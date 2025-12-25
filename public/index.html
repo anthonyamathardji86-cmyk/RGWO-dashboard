@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Union Transparency Hub</title>
+    
+    <!-- 1. FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 2. STYLING ENGINE (Tailwind CSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 3. ICONS (FontAwesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 4. CHARTING LIBRARY (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f8fafc; 
+            padding-bottom: 20px; 
+        }
+        
+        /* --- DASHBOARD STYLING --- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
+
+        /* --- TABS --- */
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-active { background: #1e293b; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .tab-inactive { background: #e2e8f0; color: #64748b; }
+        .tab-inactive:hover { background: #cbd5e1; }
+
+        /* --- MODAL STYLING --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal-active .modal-overlay { display: flex; opacity: 1; }
+        .modal-active .modal-content { transform: scale(1); }
+
+        /* --- FORM --- */
+        .form-input {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            border: 2px solid #e2e8f0; border-radius: 10px;
+            outline: none; transition: border-color 0.3s;
+        }
+        .form-input:focus { border-color: #2563EB; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+    <!-- HEADER -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-scale-unbalanced"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 tracking-tight">Union Portal</h1>
+                        <p class="text-xs text-gray-500 font-medium">Financial Transparency</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <!-- Desktop Button -->
+                    <button onclick="toggleModal(true)" class="hidden md:flex items-center px-5 py-2.5 bg-blue-50 text-blue-700 rounded-xl font-semibold hover:bg-blue-100 transition">
+                        <i class="fa-solid fa-hand-holding-dollar mr-2"></i> Leningsaanvraag
+                    </button>
+                    
+                    <button class="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 transition">
+                        <i class="fa-solid fa-bell"></i>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <img src="https://ui-avatars.com/api/?name=Member+User&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="Profile">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- KPI CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-wallet text-8xl text-blue-600"></i>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Balance</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mt-1">SRD 145,230.50</h2>
+                    <div class="flex items-center mt-4 text-sm text-green-600 bg-green-50 w-fit px-2 py-1 rounded-md">
+                        <i class="fa-solid fa-arrow-trend-up mr-1"></i> +4.2% vs last month
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-users text-8xl text-purple-600"></i>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Active Members</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mt-1">1,100</h2>
+                    <div class="flex items-center mt-4 text-sm text-purple-600 bg-purple-50 w-fit px-2 py-1 rounded-md">
+                        <i class="fa-solid fa-user-check mr-1"></i> 98% Paid Up
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-piggy-bank text-8xl text-orange-500"></i>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Net Surplus</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mt-1">SRD +4,500</h2>
+                    <div class="flex items-center mt-4 text-sm text-gray-500 w-fit px-2 py-1">
+                        <i class="fa-regular fa-clock mr-1"></i> Month to Date
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-gray-200 p-1 rounded-xl inline-flex gap-1">
+                <button onclick="updateTimeframe('monthly')" id="tab-monthly" class="tab-btn tab-active px-6 py-2 rounded-lg text-sm font-semibold shadow-sm">Monthly</button>
+                <button onclick="updateTimeframe('quarterly')" id="tab-quarterly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Quarterly</button>
+                <button onclick="updateTimeframe('yearly')" id="tab-yearly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Yearly</button>
+            </div>
+        </div>
+
+        <!-- MAIN CHART -->
+        <div class="glass-card rounded-2xl p-8 mb-8 border border-gray-100">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Income vs Expenses</h3>
+                    <p class="text-sm text-gray-500">Comparative financial analysis</p>
+                </div>
+                <button class="text-blue-600 text-sm font-semibold hover:underline">View Details</button>
+            </div>
+            <div class="relative w-full h-80">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+
+        <!-- BOTTOM SPLIT -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- PIE CHART -->
+            <div class="glass-card rounded-2xl p-8 border border-gray-100 lg:col-span-1">
+                <h3 class="text-lg font-bold text-gray-900 mb-6">Expense Distribution</h3>
+                <div class="relative h-64 flex justify-center">
+                    <canvas id="pieChart"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-gray-400 text-xs uppercase font-bold">Total</span>
+                        <span class="text-xl font-bold text-gray-800">SRD 14.8k</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRANSACTIONS TABLE -->
+            <div class="glass-card rounded-2xl p-0 overflow-hidden border border-gray-100 lg:col-span-2">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Recent Transactions</h3>
+                        <p class="text-sm text-gray-500">Latest updates from the ledger</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-ellipsis"></i></button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-semibold">
+                            <tr>
+                                <th class="px-6 py-4">Date</th>
+                                <th class="px-6 py-4">Description</th>
+                                <th class="px-6 py-4">Category</th>
+                                <th class="px-6 py-4 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">Oct 28</td>
+                                <td class="px-6 py-4">Monthly Lawyer Retainer</td>
+                                <td class="px-6 py-4"><span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">LEGAL</span></td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900">SRD 2,500.00</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">Oct 25</td>
+                                <td class="px-6 py-4">Union Hall Electricity</td>
+                                <td class="px-6 py-4"><span class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-xs font-bold">UTILS</span></td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900">SRD 340.50</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">Oct 20</td>
+                                <td class="px-6 py-4">Scholarship Fund Deposit</td>
+                                <td class="px-6 py-4"><span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-bold">BENEFIT</span></td>
+                                <td class="px-6 py-4 text-right font-bold text-green-600">SRD 1,000.00</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">Oct 15</td>
+                                <td class="px-6 py-4">Office Supplies (Staples)</td>
+                                <td class="px-6 py-4"><span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-bold">ADMIN</span></td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900">SRD 120.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER ACTIONS -->
+        <div class="mt-10 flex flex-col sm:flex-row justify-between gap-4">
+            <!-- Updated Button: Loan Request (Replacing Export) -->
+            <button onclick="toggleModal(true)" class="flex items-center justify-center px-8 py-3.5 rounded-xl bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">
+                <i class="fa-solid fa-hand-holding-dollar mr-2"></i> Leningsaanvraag
+            </button>
+            
+            <!-- Discord Button -->
+            <button class="flex items-center justify-center px-8 py-3.5 rounded-xl text-white font-bold shadow-lg shadow-indigo-500/20 bg-[#5865F2] hover:bg-[#4752C4] transition">
+                <i class="fa-brands fa-discord mr-2 text-lg"></i> Publish to Discord
+            </button>
+        </div>
+
+    </main>
+
+    <!-- LOAN REQUEST MODAL -->
+    <div id="loanModal">
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Request Assistance</h2>
+                        <p class="text-sm text-gray-500">Submit a loan request for review.</p>
+                    </div>
+                    <button onclick="toggleModal(false)" class="text-gray-400 hover:text-gray-600 transition">
+                        <i class="fa-solid fa-xmark text-2xl"></i>
+                    </button>
+                </div>
+
+                <form onsubmit="submitLoan(event)">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                    <input type="text" class="form-input" placeholder="e.g. John Doe" required>
+
+                    <!-- NEW FIELD: Badge Number -->
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Badge Number</label>
+                    <input type="text" class="form-input" placeholder="e.g. 12345" required>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Amount Requested</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-400">SRD</span>
+                        <!-- Updated: Max 40000 -->
+                        <input type="number" class="form-input pl-12" placeholder="0.00" max="40000" required>
+                    </div>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Reason</label>
+                    <select class="form-input bg-white">
+                        <option>Emergency Car Repair</option>
+                        <option>Medical Bill</option>
+                        <option>Housing Assistance</option>
+                        <option>Other</option>
+                    </select>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Additional Details</label>
+                    <textarea class="form-input" rows="3" placeholder="Briefly explain your situation..."></textarea>
+
+                    <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition mt-2">
+                        Submit Request
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        function toggleModal(show) {
+            const modal = document.getElementById('loanModal');
+            if (show) {
+                modal.classList.add('modal-active');
+            } else {
+                modal.classList.remove('modal-active');
+            }
+        }
+
+        function submitLoan(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button');
+            const originalText = btn.innerText;
+            
+            btn.innerText = "Sending...";
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            setTimeout(() => {
+                alert("Request Sent Successfully! We will review it shortly.");
+                toggleModal(false);
+                btn.innerText = originalText;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                event.target.reset();
+            }, 1500);
+        }
+
+        let mainChartInstance;
+        let pieChartInstance;
+
+        window.addEventListener('load', function() {
+            initCharts();
+        });
+
+        function initCharts() {
+            Chart.defaults.font.family = "'Poppins', sans-serif";
+            Chart.defaults.color = '#64748b';
+
+            const ctxMain = document.getElementById('mainChart').getContext('2d');
+            const incomeGradient = ctxMain.createLinearGradient(0, 0, 0, 400);
+            incomeGradient.addColorStop(0, '#3b82f6'); incomeGradient.addColorStop(1, '#60a5fa');
+            const expenseGradient = ctxMain.createLinearGradient(0, 0, 0, 400);
+            expenseGradient.addColorStop(0, '#ef4444'); expenseGradient.addColorStop(1, '#f87171');
+
+            mainChartInstance = new Chart(ctxMain, {
+                type: 'bar',
+                data: {
+                    labels: ['Dues', 'Events', 'Rent', 'Legal', 'Ops'],
+                    datasets: [
+                        { label: 'Income', data: [15000, 2000, 0, 0, 0], backgroundColor: incomeGradient, borderRadius: 6, barPercentage: 0.6 },
+                        { label: 'Expenses', data: [0, 0, 2200, 5200, 1500], backgroundColor: expenseGradient, borderRadius: 6, barPercentage: 0.6 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' }, border: { display: false } },
+                        x: { grid: { display: false }, border: { display: false } }
+                    },
+                    animation: { duration: 2000, easing: 'easeOutQuart' }
+                }
+            });
+
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Legal', 'Operations', 'Benefits', 'Rent', 'Misc'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#94a3b8'],
+                        borderWidth: 0, hoverOffset: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+            });
+        }
+
+        function updateTimeframe(period) {
+            const tabs = ['monthly', 'quarterly', 'yearly'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                btn.classList.remove('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm');
+                btn.classList.add('tab-inactive', 'bg-gray-200', 'text-gray-500');
+            });
+            const activeBtn = document.getElementById(`tab-${period}`);
+            activeBtn.classList.remove('tab-inactive', 'bg-gray-200', 'text-gray-500');
+            activeBtn.classList.add('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm');
+
+            if (period === 'monthly') updateChartData([15000, 2000, 0, 0, 0], [0, 0, 2200, 5200, 1500]);
+            else if (period === 'quarterly') updateChartData([45000, 6000, 0, 0, 0], [0, 0, 6600, 15600, 4500]);
+            else updateChartData([180000, 24000, 0, 0, 0], [0, 0, 26400, 62400, 18000]);
+        }
+
+        function updateChartData(incomeData, expenseData) {
+            if (mainChartInstance) {
+                mainChartInstance.data.datasets[0].data = incomeData;
+                mainChartInstance.data.datasets[1].data = expenseData;
+                mainChartInstance.update();
+            }
+        }
+    </script>
+</body>
+</html>

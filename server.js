@@ -48,8 +48,9 @@ app.get('/auth/discord/login', (req, res) => {
         client_id: process.env.CLIENT_ID,
         redirect_uri: `${BASE_URL}/auth/discord/callback`,
         response_type: 'code',
-        scope: 'identify guilds'
+        scope: 'identify'
     });
+
     res.redirect(`https://discord.com/api/oauth2/authorize?${params.toString()}`);
 });
 
@@ -58,11 +59,10 @@ app.get('/auth/discord/login', (req, res) => {
 // ==========================
 app.get('/auth/discord/callback', async (req, res) => {
     const { code } = req.query;
-
     if (!code) return res.redirect('/?error=no_code');
 
     try {
-        // Exchange code for access token
+        // 1️⃣ Exchange code for token
         const tokenResponse = await axios.post(
             'https://discord.com/api/oauth2/token',
             new URLSearchParams({
@@ -77,29 +77,46 @@ app.get('/auth/discord/callback', async (req, res) => {
 
         const { access_token } = tokenResponse.data;
 
-        // Fetch user info
-        const userResponse = await axios.get('https://discord.com/api/users/@me', {
-            headers: { Authorization: `Bearer ${access_token}` }
-        });
+        // 2️⃣ Get user info
+        const userResponse = await axios.get(
+            'https://discord.com/api/users/@me',
+            { headers: { Authorization: `Bearer ${access_token}` } }
+        );
 
         const user = userResponse.data;
 
-        // Fetch user's guilds
+        // 3️⃣ BOT verifies guild membership
         const RGWO_ID = process.env.RGWO_GUILD_ID;
 
-try {
-    await axios.get(
-        `https://discord.com/api/guilds/${RGWO_ID}/members/${user.id}`,
-        {
-            headers: {
-                Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`
+        await axios.get(
+            `https://discord.com/api/guilds/${RGWO_ID}/members/${user.id}`,
+            {
+                headers: {
+                    Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`
+                }
             }
-        }
-    );
-} catch (err) {
-    // 404 = not a member
-    return res.redirect('/?error=not_member');
-}
+        );
+
+        // 4️⃣ Save session
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            avatar: user.avatar
+        };
+
+        // 5️⃣ Redirect to dashboard
+        res.redirect('/');
+
+    } catch (err) {
+        console.error(
+            'Discord auth error:',
+            err.response?.status,
+            err.response?.data || err.message
+        );
+
+        res.redirect('/?error=not_member');
+    }
+});
 
         // Save user session
         req.session.user = {
@@ -143,4 +160,5 @@ app.post('/api/logout', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
+
 

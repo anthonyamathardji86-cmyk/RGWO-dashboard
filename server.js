@@ -12,31 +12,29 @@ const app = express();
 // ==========================
 const PORT = process.env.PORT || 3000;
 
-// BASE_URL must be your public Render URL in production
+// IMPORTANT: In Render, create an Environment Variable named APP_URL 
+// and set it to https://your-app-name.onrender.com
 const BASE_URL = process.env.APP_URL || `http://localhost:${PORT}`;
 
-console.log(`Server running at: ${BASE_URL}`);
+console.log(`[INFO] Server running at: ${BASE_URL}`);
+console.log(`[INFO] Using Discord Guild ID: ${process.env.RGWO_GUILD_ID}`);
 
 // ==========================
 // 2. MIDDLEWARE
 // ==========================
 
-// Trust Render’s proxy
 app.set('trust proxy', 1);
 
-// Serve frontend (index.html) from public folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// CORS for API calls
 app.use(cors({
     origin: '*',
     credentials: true
 }));
 
-// Cookie session
 app.use(session({
     name: 'session',
-    keys: [process.env.SESSION_SECRET || 'fallbacksecret'],
+    keys: [process.env.SESSION_SECRET || 'fallbacksecretpleasechangeinproduction'],
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
@@ -48,21 +46,25 @@ app.get('/auth/discord/login', (req, res) => {
         client_id: process.env.CLIENT_ID,
         redirect_uri: `${BASE_URL}/auth/discord/callback`,
         response_type: 'code',
-        scope: 'identify'
+        scope: 'identify guilds' // Added guilds scope just in case
     });
 
     res.redirect(`https://discord.com/api/oauth2/authorize?${params.toString()}`);
 });
 
 // ==========================
-// 4. DISCORD CALLBACK
+// 4. DISCORD CALLBACK (FIXED)
 // ==========================
 app.get('/auth/discord/callback', async (req, res) => {
     const { code } = req.query;
-    if (!code) return res.redirect('/?error=no_code');
+    
+    if (!code) {
+        console.error("[ERROR] No code provided by Discord");
+        return res.redirect('/?error=no_code');
+    }
 
     try {
-        // 1️⃣ Exchange code for token
+        // 1️⃣ Exchange code for access token
         const tokenResponse = await axios.post(
             'https://discord.com/api/oauth2/token',
             new URLSearchParams({
@@ -85,10 +87,12 @@ app.get('/auth/discord/callback', async (req, res) => {
 
         const user = userResponse.data;
 
-        // 3️⃣ BOT verifies guild membership
+        // 3️⃣ Verify Guild Membership (The "Member Check")
         const RGWO_ID = process.env.RGWO_GUILD_ID;
-
-        await axios.get(
+        
+        // This request will fail (throw error) if the user is NOT in the guild
+        // or if the Bot Token is invalid.
+        const memberCheck = await axios.get(
             `https://discord.com/api/guilds/${RGWO_ID}/members/${user.id}`,
             {
                 headers: {
@@ -96,42 +100,35 @@ app.get('/auth/discord/callback', async (req, res) => {
                 }
             }
         );
+        
+        console.log(`[SUCCESS] User ${user.username} is a member.`);
 
-        // 4️⃣ Save session
+        // 4️⃣ Save session (User passed the check)
         req.session.user = {
             id: user.id,
             username: user.username,
-            avatar: user.avatar
+            avatar: user.avatar,
+            discriminator: user.discriminator,
+            isMember: true // Explicitly setting this
         };
 
         // 5️⃣ Redirect to dashboard
         res.redirect('/');
 
     } catch (err) {
-        console.error(
-            'Discord auth error:',
-            err.response?.status,
-            err.response?.data || err.message
-        );
+        // LOG THE ERROR SO YOU CAN SEE WHY IT FAILED
+        console.error('[AUTH ERROR]:', err.response?.status, err.response?.data || err.message);
 
-        res.redirect('/?error=not_member');
-    }
-});
+        if (err.response?.status === 404) {
+            console.error(`[FAIL] User is not in the Guild ID: ${process.env.RGWO_GUILD_ID}`);
+            return res.redirect('/?error=not_member');
+        }
+        
+        if (err.response?.status === 401) {
+            console.error('[FAIL] Bot Token is invalid or missing permissions.');
+            return res.redirect('/?error=server_config');
+        }
 
-        // Save user session
-        req.session.user = {
-            id: user.id,
-            username: user.username,
-            avatar: user.avatar,
-            discriminator: user.discriminator,
-            isMember: true
-        };
-
-        // Redirect to dashboard (index.html)
-        res.redirect('/');
-
-    } catch (err) {
-        console.error('Discord Auth Error:', err.response ? err.response.data : err.message);
         res.redirect('/?error=auth_failed');
     }
 });
@@ -160,5 +157,3 @@ app.post('/api/logout', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
-
-

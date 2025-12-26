@@ -128,8 +128,8 @@ app.post('/api/loan', async (req, res) => {
         const { name, department, badge, reason, amount, term } = req.body;
         const webhookUrl = process.env.LOAN_WEBHOOK_URL;
 
-        // Get Discord ID from active session
-        const discordId = req.session.user ? req.session.user.id : 'Niet ingelogd';
+        // Get Discord Username from active session
+        const discordUsername = req.session.user ? req.session.user.username : 'Niet ingelogd';
 
         if (!webhookUrl) {
             console.error('[ERROR] LOAN_WEBHOOK_URL is not configured');
@@ -160,8 +160,8 @@ app.post('/api/loan', async (req, res) => {
                         { name: "Bedrag (SRD)", value: amount, inline: false },
                         { name: "Termijn (maanden)", value: term, inline: false }
                     ],
-                    // UPDATED: Explicitly says "Discord User ID"
-                    footer: { text: `Verstuurd via RGWO Portal door Discord User ID: ${discordId}` },
+                    // UPDATED: Explicitly says "Discord User ID" but uses Discord Username value
+                    footer: { text: `Verstuurd via RGWO Portal door Discord User ID: ${discordUsername}` },
                     timestamp: new Date().toISOString()
                 }
             ]
@@ -191,4 +191,3 @@ app.post('/api/logout', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
-

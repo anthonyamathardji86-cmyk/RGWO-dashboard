@@ -22,8 +22,16 @@
         body { 
             font-family: 'Poppins', sans-serif; 
             background-color: #f8fafc; 
-            padding-bottom: 20px; 
+            /* FIXED: Default state is locked, so we prevent scrolling */
+            overflow: hidden; 
+            height: 100vh;
+        }
+
+        /* FIXED: When unlocked, restore scrolling */
+        body.dashboard-unlocked {
             overflow-x: hidden;
+            overflow-y: auto;
+            height: auto;
         }
         
         /* --- DASHBOARD STYLING --- */
@@ -83,7 +91,10 @@
         #dashboard-lock {
             position: fixed; 
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            /* FIXED: Enhanced backdrop blur for stationary background */
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             z-index: 60; 
             display: flex;
             flex-direction: column;
@@ -174,10 +185,10 @@
 
                 <!-- RIGHT: AUTH STATE -->
                 <div class="flex items-center gap-4 relative" id="header-auth-section">
-                    <!-- LOGGED OUT STATE (Empty - No login button requested) -->
+                    <!-- LOGGED OUT STATE -->
                     <div id="logged-out-view"></div>
 
-                    <!-- LOGGED IN STATE (Hidden by default, shown after unlock) -->
+                    <!-- LOGGED IN STATE -->
                     <div id="logged-in-view" class="hidden items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-gray-50 transition border border-transparent hover:border-gray-200" onclick="toggleUserMenu()">
                         <div class="text-right hidden sm:block">
                             <p id="user-name-display" class="text-sm font-bold text-gray-900 leading-tight">Loading...</p>
@@ -216,8 +227,8 @@
                     Je moet ingelogd zijn als lid van de <strong>Rosebel Goldmines Werknemers Organisatie</strong> Discord server om toegang te krijgen tot dit dashboard.
                 </p>
                 
-                <!-- Points to local backend -->
-                <a href="https://discord.com/oauth2/authorize?client_id=1453714636544151615&response_type=code&redirect_uri=https%3A%2F%2Frgwo-dashboard.onrender.com%2Fauth%2Fdiscord%2Fcallback&scope=identify+guilds" class="block w-full py-3 bg-[#5865F2] text-white rounded-xl font-bold shadow-lg hover:bg-[#4752C4] transition text-center">
+                <!-- Login Link -->
+                <a href="/auth/discord/login" class="block w-full py-3 bg-[#5865F2] text-white rounded-xl font-bold shadow-lg hover:bg-[#4752C4] transition text-center">
                     <i class="fa-brands fa-discord mr-2"></i> Login met Discord
                 </a>
             </div>
@@ -425,40 +436,31 @@
         };
 
         // --- CONFIGURATION ---
-        const API_URL = window.location.origin; // Automatically detects Render URL or Localhost
+        const API_URL = window.location.origin;
 
         // --- AUTHENTICATION LOGIC ---
         function checkSession() {
             fetch(`${API_URL}/api/me`, {
-                credentials: 'include' // Sends cookies
+                credentials: 'include'
             })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Unauthorized');
-                }
+                if (!response.ok) throw new Error('Unauthorized');
                 return response.json();
             })
             .then(data => {
-                // Successfully logged in
                 state.isLoggedIn = true;
                 state.isRGWOMember = true;
-                
-                // Construct Discord Avatar URL
-                // Format: https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png
                 const avatarUrl = data.avatar 
                     ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`
                     : `https://cdn.discordapp.com/embed/avatars/${data.discriminator % 5}.png`;
-
                 state.user = {
                     username: data.username,
                     avatar: avatarUrl,
                     discriminator: data.discriminator
                 };
-
                 updateUIState();
             })
             .catch(error => {
-                // Not logged in or server error
                 console.log("Not logged in:", error.message);
                 state.isLoggedIn = false;
                 updateUIState();
@@ -466,20 +468,9 @@
         }
 
         function logout() {
-            // Call backend to destroy session
-            // Note: Ensure you have /api/logout route in server.js
-            fetch(`${API_URL}/api/logout`, { 
-                method: 'POST',
-                credentials: 'include' 
-            })
-            .then(() => {
-                // Refresh the page to clear UI state
-                window.location.reload();
-            })
-            .catch(() => {
-                // If logout fails (or endpoint missing), force reload anyway
-                window.location.reload();
-            });
+            fetch(`${API_URL}/api/logout`, { method: 'POST', credentials: 'include' })
+            .then(() => window.location.reload())
+            .catch(() => window.location.reload());
         }
 
         // --- UI UPDATE FUNCTIONS ---
@@ -491,25 +482,16 @@
             const userAvatarDisplay = document.getElementById('user-avatar-display');
 
             if (state.isLoggedIn && state.isRGWOMember) {
-                // Unlock Dashboard
                 body.classList.add('dashboard-unlocked');
-                
-                // Show Logged In View
                 loggedOutView.classList.add('hidden');
                 loggedInView.classList.remove('hidden');
                 loggedInView.classList.add('flex');
-                
-                // Update User Data
                 if (state.user) {
                     userNameDisplay.textContent = state.user.username;
                     userAvatarDisplay.src = state.user.avatar;
                 }
-
             } else {
-                // Lock Dashboard
                 body.classList.remove('dashboard-unlocked');
-                
-                // Hide Logged In View
                 loggedOutView.classList.remove('hidden');
                 loggedInView.classList.add('hidden');
                 loggedInView.classList.remove('flex');
@@ -517,10 +499,8 @@
         }
 
         function toggleUserMenu() {
-            const menu = document.getElementById('user-menu');
-            menu.classList.toggle('active');
+            document.getElementById('user-menu').classList.toggle('active');
         }
-
         window.addEventListener('click', function(e) {
             const menu = document.getElementById('user-menu');
             const profile = document.getElementById('logged-in-view');
@@ -533,19 +513,15 @@
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
+            let iconClass = type === 'error' ? 'fa-exclamation-circle' : (type === 'info' ? 'fa-info-circle' : 'fa-check-circle');
+            let colorClass = type === 'error' ? 'text-red-500' : (type === 'info' ? 'text-blue-500' : 'text-green-500');
             
-            let iconClass = 'fa-check-circle';
-            if (type === 'error') iconClass = 'fa-exclamation-circle';
-            if (type === 'info') iconClass = 'fa-info-circle';
-
             toast.className = `toast ${type}`;
             toast.innerHTML = `
-                <i class="fa-solid ${iconClass} text-lg ${type === 'success' ? 'text-green-500' : type === 'error' ? 'text-red-500' : 'text-blue-500'}"></i>
+                <i class="fa-solid ${iconClass} text-lg ${colorClass}"></i>
                 <span class="text-sm font-medium text-gray-800">${message}</span>
             `;
-
             container.appendChild(toast);
-
             setTimeout(() => {
                 toast.style.animation = 'fadeOut 0.3s ease forwards';
                 setTimeout(() => toast.remove(), 300);
@@ -555,23 +531,18 @@
         // --- MODAL & CHART LOGIC ---
         function toggleModal(show) {
             const modal = document.getElementById('loanModal');
-            if (show) {
-                modal.classList.add('modal-active');
-            } else {
-                modal.classList.remove('modal-active');
-            }
+            if (show) modal.classList.add('modal-active');
+            else modal.classList.remove('modal-active');
         }
 
         function submitLoan(event) {
             event.preventDefault();
             const btn = event.target.querySelector('button');
             const originalText = btn.innerText;
-            
             btn.innerText = "Sending...";
             btn.classList.add('opacity-75', 'cursor-not-allowed');
-
             setTimeout(() => {
-                showToast("Request Sent Successfully! We will review it shortly.", 'success');
+                showToast("Request Sent Successfully!", 'success');
                 toggleModal(false);
                 btn.innerText = originalText;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
@@ -583,8 +554,27 @@
         let pieChartInstance;
 
         window.addEventListener('load', function() {
-            checkSession(); // Check real backend on load
             initCharts();
+            checkSession();
+            
+            // ==========================================
+            // ERROR HANDLING LOGIC (POP-UP)
+            // ==========================================
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorCode = urlParams.get('error');
+
+            if (errorCode) {
+                const errorMessages = {
+                    'no_code': 'Inlogcode ontbreekt. Probeer het opnieuw.',
+                    'not_member': 'Je bent geen lid van de RGWO Discord server.',
+                    'server_config': 'Serverfout: Discord Bot token ongeldig. Contact admin.',
+                    'auth_failed': 'Er is iets misgegaan tijdens het inloggen.'
+                };
+                const message = errorMessages[errorCode] || `Fout: ${errorCode}`;
+                showToast(message, 'error');
+                window.history.replaceState({}, document.title, "/");
+            }
+            // ==========================================
         });
 
         function initCharts() {

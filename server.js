@@ -128,12 +128,15 @@ app.post('/api/loan', async (req, res) => {
         const { name, department, badge, reason, amount, term } = req.body;
         const webhookUrl = process.env.LOAN_WEBHOOK_URL;
 
+        // Get Discord ID from the active session
+        const discordId = req.session.user ? req.session.user.id : 'Niet ingelogd';
+
         if (!webhookUrl) {
             console.error('[ERROR] LOAN_WEBHOOK_URL is not configured');
             return res.status(500).json({ success: false, message: 'Webhook URL not configured' });
         }
 
-        // Construct Discord Embed (Vertical Layout, Amount Plain Text)
+        // Construct Discord Embed
         const payload = {
             username: "RGWO Loan Bot",
             avatar_url: "https://cdn-icons-png.flaticon.com/512/2098/2098589.png", 
@@ -154,10 +157,11 @@ app.post('/api/loan', async (req, res) => {
                         // --- LOAN INFO SECTION ---
                         { name: "💰 Lening Details", value: "\u200b" }, 
                         { name: "Doel lening", value: reason, inline: false },
-                        { name: "Bedrag (SRD)", value: amount, inline: false }, // No bolding
+                        { name: "Bedrag (SRD)", value: amount, inline: false },
                         { name: "Termijn (maanden)", value: term, inline: false }
                     ],
-                    footer: { text: `Verstuurd via RGWO Portal door ${name}` },
+                    // UPDATED: Uses Discord ID from session
+                    footer: { text: `Verstuurd via RGWO Portal door Discord ID: ${discordId}` },
                     timestamp: new Date().toISOString()
                 }
             ]

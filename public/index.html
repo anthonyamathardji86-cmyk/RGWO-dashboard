@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Union Transparency Hub</title>
+    <title>RGWO portal</title>
     
     <!-- 1. FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -81,30 +81,35 @@
 </head>
 <body class="text-gray-800 antialiased">
 
-    <!-- HEADER -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/30">
-                        <i class="fa-solid fa-scale-unbalanced"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-900 tracking-tight">Union Portal</h1>
-                        <p class="text-xs text-gray-500 font-medium">Financial Transparency</p>
-                    </div>
+<!-- HEADER -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <!-- LEFT: LOGO + TITLE -->
+            <div class="flex items-center gap-3">
+                <!-- Image -->
+                <div class="w-18 h-16 rounded-lg overflow-hidden shadow-lg shadow-blue-500/30">
+                    <!-- CHANGED SRC TO THUMBNAIL FORMAT FOR BETTER LOADING -->
+                    <img src="https://drive.google.com/thumbnail?id=1kkC39iHQ6ZCSuNccH9uEcKxtLXA84ypw&sz=s1024"
+                         alt="RGWO Logo"
+                         class="w-full h-full object-contain">
                 </div>
-                <div class="flex items-center gap-4">                    
-                    <button class="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 transition">
-                        <i class="fa-solid fa-bell"></i>
-                    </button>
-                    <div class="flex items-center gap-2">
-                        <img src="https://ui-avatars.com/api/?name=Member+User&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="Profile">
-                    </div>
+                <!-- Text -->
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900 tracking-tight">Rosebel Goldmines Werknemers Organisatie (RGWO)</h1>
+                    <p class="text-xs text-gray-500 font-medium">Financieel Dashboard</p>
                 </div>
             </div>
+
+            <!-- RIGHT: BUTTON -->
+            <div class="flex items-center gap-4">                    
+                <button class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition">
+                    Inloggen
+                </button>
+            </div>
         </div>
-    </header>
+    </div>
+</header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -153,9 +158,9 @@
         <!-- TABS -->
         <div class="flex justify-center mb-8">
             <div class="bg-gray-200 p-1 rounded-xl inline-flex gap-1">
-                <button onclick="updateTimeframe('monthly')" id="tab-monthly" class="tab-btn tab-active px-6 py-2 rounded-lg text-sm font-semibold shadow-sm">Monthly</button>
-                <button onclick="updateTimeframe('quarterly')" id="tab-quarterly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Quarterly</button>
-                <button onclick="updateTimeframe('yearly')" id="tab-yearly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Yearly</button>
+                <button onclick="updateTimeframe('monthly')" id="tab-monthly" class="tab-btn tab-active px-6 py-2 rounded-lg text-sm font-semibold shadow-sm">Maand</button>
+                <button onclick="updateTimeframe('quarterly')" id="tab-quarterly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Kwartaal</button>
+                <button onclick="updateTimeframe('yearly')" id="tab-yearly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Jaar</button>
             </div>
         </div>
 
@@ -166,8 +171,6 @@
                     <h3 class="text-lg font-bold text-gray-900">Income vs Expenses</h3>
                     <p class="text-sm text-gray-500">Comparative financial analysis</p>
                 </div>
-                <button class="text-blue-600 text-sm font-semibold hover:underline">View Details</button>
-            </div>
             <div class="relative w-full h-80">
                 <canvas id="mainChart"></canvas>
             </div>
@@ -242,7 +245,7 @@
         <div class="mt-10 flex flex-col sm:flex-row justify-between gap-4">
             <!-- Updated Button: Loan Request (Replacing Export) -->
             <button onclick="toggleModal(true)" class="flex items-center justify-center px-8 py-3.5 rounded-xl bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">
-                <i class="fa-solid fa-hand-holding-dollar mr-2"></i> Leningsaanvraag
+                <i class="fa-solid fa-hand-holding-dollar mr-2"></i> Leningaanvraag
             </button>
             
             <!-- Discord Button -->
@@ -259,8 +262,8 @@
             <div class="modal-content">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900">Request Assistance</h2>
-                        <p class="text-sm text-gray-500">Submit a loan request for review.</p>
+                        <h2 class="text-2xl font-bold text-gray-900">Formulier invullen</h2>
+                        <p class="text-sm text-gray-500">Dien een leningaanvraag in ter beoordeling.</p>
                     </div>
                     <button onclick="toggleModal(false)" class="text-gray-400 hover:text-gray-600 transition">
                         <i class="fa-solid fa-xmark text-2xl"></i>
@@ -269,29 +272,25 @@
 
                 <form onsubmit="submitLoan(event)">
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Volledige naam</label>
-                    <input type="text" class="form-input" placeholder="e.g. John Doe" required>
+                    <input type="text" class="form-input" placeholder="v.b. Anthony Amathardji" required>
 
-                    <!-- NEW FIELD: Badge Number -->
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Afdeling</label>
+                    <input type="text" class="form-input" placeholder="v.b. Regional Exploration" required>
+
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer</label>
-                    <input type="text" class="form-input" placeholder="e.g. 12345" required>
-
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Bedrag</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-3 text-gray-400">SRD</span>
-                        <!-- Updated: Max 40000 -->
-                        <input type="number" class="form-input pl-12" placeholder="0.00" max="40000" required>
-                    </div>
+                    <input type="text" class="form-input" placeholder="v.b. 7224" required>
 
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Doel lening</label>
-                    <select class="form-input bg-white">
-                        <option>Emergency Car Repair</option>
-                        <option>Medical Bill</option>
-                        <option>Housing Assistance</option>
-                        <option>Other</option>
-                    </select>
+                    <input type="text" class="form-input" placeholder="v.b. Auto reparatie" required>
 
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Additional Details</label>
-                    <textarea class="form-input" rows="3" placeholder="Briefly explain your situation..."></textarea>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Bedrag (SRD)</label>
+                    <div class="relative">
+                        <input type="number" class="form-input" placeholder="Max. SRD 40000" max="40000" required>
+                    </div>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Aflossingstermijn (maanden)</label>
+                    <div class="relative">
+                        <input type="number" class="form-input" placeholder="Max. 24 maanden" max="24" required>
 
                     <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition mt-2">
                         Verzenden

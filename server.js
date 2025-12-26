@@ -1,107 +1,128 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
-const DiscordStrategy = require('passport-discord').Strategy;
 const axios = require('axios');
+const cors = require('cors');
+const session = require('cookie-session');
 
 const app = express();
 
-// --- 1. CONFIGURATION ---
+// 1. CONFIGURATION
+// ---------------------------------------------------------
+// Use APP_URL if set (Render), otherwise fallback to localhost
+const BASE_URL = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
 const PORT = process.env.PORT || 3000;
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const DISCORD_CALLBACK_URL = process.env.DISCORD_CALLBACK_URL || 'http://localhost:3000/auth/discord/callback';
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
 
-// --- 2. DISCORD AUTHENTICATION ---
-passport.use(new DiscordStrategy({
-    clientID: DISCORD_CLIENT_ID,
-    clientSecret: DISCORD_CLIENT_SECRET,
-    callbackURL: DISCORD_CALLBACK_URL,
-    scope: ['identify']
-}, (accessToken, refreshToken, profile, done) => {
-    return done(null, profile);
-}));
+console.log(`Running on: ${BASE_URL}`);
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
-
-app.use(express.json());
-app.use(session({
-    secret: 'union_secret_session_key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false } 
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-
-// --- 3. SERVE THE HTML ---
+// 2. MIDDLEWARE
+// ---------------------------------------------------------
+// Serve static files from 'public' folder (index.html)
 app.use(express.static('public'));
 
-// --- 4. ROUTES ---
+app.use(cors({
+    origin: '*',
+    credentials: true
+}));
 
-// Check User Status (Returns Mock Data)
-app.get('/api/me', (req, res) => {
-    if (req.isAuthenticated()) {
-        res.json({ 
-            loggedIn: true, 
-            user: {
-                username: req.user.username,
-                discriminator: req.user.discriminator,
-                avatar: req.user.avatar,
-                id: req.user.id
-            }
-        });
-    } else {
-        res.json({ loggedIn: false });
-    }
-});
+// Cookie Session setup
+app.use(session({
+    name: 'session',
+    keys: [process.env.SESSION_SECRET],
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 
-// Discord Login Routes
-app.get('/auth/discord', passport.authenticate('discord'));
-app.get('/auth/discord/callback', 
-    passport.authenticate('discord', { failureRedirect: '/' }),
-    (req, res) => {
-        res.redirect('/');
-    }
-);
-
-app.get('/logout', (req, res) => {
-    req.logout(() => {
-        res.redirect('/');
+// 3. DISCORD LOGIN REDIRECT
+// ---------------------------------------------------------
+app.get('/auth/discord/login', (req, res) => {
+    const params = new URLSearchParams({
+        client_id: process.env.CLIENT_ID,
+        redirect_uri: `${BASE_URL}/auth/discord/callback`, // Uses dynamic URL
+        response_type: 'code',
+        scope: 'identify guilds'
     });
+    res.redirect(`https://discord.com/api/oauth2/authorize?${params.toString()}`);
 });
 
-// Submit Loan Request
-app.post('/submit-loan', async (req, res) => {
-    const { name, badge, amount, reason } = req.body;
-
-    if (amount > 40000) {
-        return res.json({ success: false, message: 'Amount exceeds SRD 40,000 limit' });
-    }
-
-    const discordMsg = {
-        content: `🆕 **NEW LOAN REQUEST**
-👤 **Name:** ${name}
-🆔 **Badge:** ${badge}
-💰 **Requesting:** SRD ${amount}
-📝 **Reason:** ${reason}`
-    };
+// 4. DISCORD CALLBACK (VERIFY USER & CHECK GUILD)
+// ---------------------------------------------------------
+app.get('/auth/discord/callback', async (req, res) => {
+    const { code } = req.query;
+    if (!code) return res.redirect('/?error=no_code');
 
     try {
-        // NOTE: If DISCORD_WEBHOOK is 'placeholder', this will fail.
-        // But we just want the app to RUN for now.
-        await axios.post(DISCORD_WEBHOOK_URL, discordMsg);
-        res.json({ success: true, message: 'Sent to Discord' });
-    } catch (err) {
-        console.error("Discord Error:", err);
-        res.status(500).json({ success: false, message: 'Discord Error' });
+        // A. Exchange code for access token
+        const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', new URLSearchParams({
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: `${BASE_URL}/auth/discord/callback` // Uses dynamic URL
+        }), {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+
+        const { access_token } = tokenResponse.data;
+
+        // B. Get User Info
+        const userResponse = await axios.get('https://discord.com/api/users/@me', {
+            headers: { Authorization: `Bearer ${access_token}` }
+        });
+
+        const user = userResponse.data;
+
+        // C. Get User's Guilds (Check if they are in RGWO Server)
+        const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
+            headers: { Authorization: `Bearer ${access_token}` }
+        });
+
+        const guilds = guildsResponse.data;
+        const RGWO_ID = process.env.RGWO_GUILD_ID; 
+        
+        // Check if user is a member of specific RGWO guild
+        const isMember = guilds.some(g => g.id === RGWO_ID);
+
+        if (!isMember) {
+            return res.redirect('/?error=not_member');
+        }
+
+        // D. Save User to Session
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            avatar: user.avatar,
+            discriminator: user.discriminator,
+            isMember: true
+        };
+
+        // E. Redirect to Dashboard (Index)
+        // This works because 'index.html' is in the 'public' folder
+        res.redirect('/');
+
+    } catch (error) {
+        console.error('Auth Error:', error.response ? error.response.data : error.message);
+        res.redirect('/?error=auth_failed');
     }
 });
 
-// --- 5. START SERVER ---
+// 5. API: GET CURRENT USER
+// ---------------------------------------------------------
+app.get('/api/me', (req, res) => {
+    if (req.session.user) {
+        res.json(req.session.user);
+    } else {
+        res.status(401).json({ error: 'Not logged in' });
+    }
+});
+
+// 6. API: LOGOUT
+// ---------------------------------------------------------
+app.post('/api/logout', (req, res) => {
+    req.session = null;
+    res.status(200).json({ success: true });
+});
+
+// 7. START SERVER
+// ---------------------------------------------------------
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });

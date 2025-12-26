@@ -36,7 +36,7 @@
         
         /* --- DASHBOARD STYLING --- */
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255,255, 255, 0.95);
             backdrop-filter: blur(10px);
             border:1px solid rgba(255,255, 255, 0.5);
             box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
@@ -170,7 +170,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 
-                <!-- LEFT: LOGO + TITLE -->
+                <!-- LEFT: LOGO + TITLE + USERNAME -->
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-10 rounded-lg overflow-hidden shadow-lg shadow-blue-500/30">
                         <img src="https://drive.google.com/thumbnail?id=1kkC39iHQ6ZCSuNccH9uEcKxtLXA84ypw&sz=s1024"
@@ -179,7 +179,8 @@
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-gray-900 tracking-tight">RGWO Portal</h1>
-                        <!-- REMOVED: Member Dashboard text -->
+                        <!-- Username moved here -->
+                        <p id="user-name-display" class="text-sm font-semibold text-gray-500">Loading...</p>
                     </div>
                 </div>
 
@@ -190,11 +191,7 @@
 
                     <!-- LOGGED IN STATE -->
                     <div id="logged-in-view" class="hidden items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-gray-50 transition border border-transparent hover:border-gray-200" onclick="toggleUserMenu()">
-                        <div class="text-right hidden sm:block">
-                            <!-- REMOVED: Top Username Line -->
-                            <!-- Updated to show "Welcome, Username" -->
-                            <p id="user-welcome-display" class="text-sm font-bold text-gray-900 leading-tight">Loading...</p>
-                        </div>
+                        <!-- Removed Text Welcome Block. Only Avatar and Arrow remain -->
                         <img id="user-avatar-display" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-md bg-gray-200">
                         <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1"></i>
 
@@ -480,9 +477,9 @@
             const body = document.body;
             const loggedOutView = document.getElementById('logged-out-view');
             const loggedInView = document.getElementById('logged-in-view');
-            // Removed: userNameDisplay
+            const userNameDisplay = document.getElementById('user-name-display'); // This is now on the LEFT
             const userAvatarDisplay = document.getElementById('user-avatar-display');
-            const userWelcomeDisplay = document.getElementById('user-welcome-display');
+            // Removed reference to user-welcome-display
 
             if (state.isLoggedIn && state.isRGWOMember) {
                 body.classList.add('dashboard-unlocked');
@@ -491,11 +488,13 @@
                 loggedInView.classList.add('flex');
                 
                 if (state.user) {
-                    // userNameDisplay.textContent = state.user.username; // Removed
-                    userAvatarDisplay.src = state.user.avatar;
-                    if(userWelcomeDisplay) {
-                        // Updated to prepend "Welcome, "
-                        userWelcomeDisplay.textContent = `Welcome, ${state.user.username}`;
+                    // Update Left Side (Username)
+                    if(userNameDisplay) {
+                        userNameDisplay.textContent = state.user.username;
+                    }
+                    // Update Right Side (Avatar)
+                    if(userAvatarDisplay) {
+                        userAvatarDisplay.src = state.user.avatar;
                     }
                 }
             } else {

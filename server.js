@@ -128,7 +128,7 @@ app.post('/api/loan', async (req, res) => {
         const { name, department, badge, reason, amount, term } = req.body;
         const webhookUrl = process.env.LOAN_WEBHOOK_URL;
 
-        // Get Discord ID from the active session
+        // Get Discord ID from active session
         const discordId = req.session.user ? req.session.user.id : 'Niet ingelogd';
 
         if (!webhookUrl) {
@@ -160,8 +160,8 @@ app.post('/api/loan', async (req, res) => {
                         { name: "Bedrag (SRD)", value: amount, inline: false },
                         { name: "Termijn (maanden)", value: term, inline: false }
                     ],
-                    // UPDATED: Uses Discord ID from session
-                    footer: { text: `Verstuurd via RGWO Portal door Discord ID: ${discordId}` },
+                    // UPDATED: Explicitly says "Discord User ID"
+                    footer: { text: `Verstuurd via RGWO Portal door Discord User ID: ${discordId}` },
                     timestamp: new Date().toISOString()
                 }
             ]

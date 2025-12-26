@@ -488,9 +488,9 @@
                 loggedInView.classList.add('flex');
                 
                 if (state.user) {
-                    // Update Left Side (Username)
+                    // UPDATE: Adds "Welcome, " to the username on the left side
                     if(userNameDisplay) {
-                        userNameDisplay.textContent = state.user.username;
+                        userNameDisplay.textContent = "Welcome, " + state.user.username;
                     }
                     // Update Right Side (Avatar)
                     if(userAvatarDisplay) {

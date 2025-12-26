@@ -11,9 +11,6 @@ const app = express();
 // 1. CONFIGURATION
 // ==========================
 const PORT = process.env.PORT || 3000;
-
-// IMPORTANT: In Render, create an Environment Variable named APP_URL 
-// and set it to https://your-app-name.onrender.com
 const BASE_URL = process.env.APP_URL || `http://localhost:${PORT}`;
 
 console.log(`[INFO] Server running at: ${BASE_URL}`);
@@ -22,20 +19,14 @@ console.log(`[INFO] Using Discord Guild ID: ${process.env.RGWO_GUILD_ID}`);
 // ==========================
 // 2. MIDDLEWARE
 // ==========================
-
 app.set('trust proxy', 1);
-
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use(cors({
-    origin: '*',
-    credentials: true
-}));
-
+app.use(cors({ origin: '*', credentials: true }));
+app.use(express.json()); // Needed to parse JSON bodies for the loan form
 app.use(session({
     name: 'session',
     keys: [process.env.SESSION_SECRET || 'fallbacksecretpleasechangeinproduction'],
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000
 }));
 
 // ==========================
@@ -46,25 +37,20 @@ app.get('/auth/discord/login', (req, res) => {
         client_id: process.env.CLIENT_ID,
         redirect_uri: `${BASE_URL}/auth/discord/callback`,
         response_type: 'code',
-        scope: 'identify guilds' // Added guilds scope just in case
+        scope: 'identify guilds'
     });
-
     res.redirect(`https://discord.com/api/oauth2/authorize?${params.toString()}`);
 });
 
 // ==========================
-// 4. DISCORD CALLBACK (FIXED)
+// 4. DISCORD CALLBACK
 // ==========================
 app.get('/auth/discord/callback', async (req, res) => {
     const { code } = req.query;
-    
-    if (!code) {
-        console.error("[ERROR] No code provided by Discord");
-        return res.redirect('/?error=no_code');
-    }
+    if (!code) return res.redirect('/?error=no_code');
 
     try {
-        // 1️⃣ Exchange code for access token
+        // 1. Exchange code for access token
         const tokenResponse = await axios.post(
             'https://discord.com/api/oauth2/token',
             new URLSearchParams({
@@ -79,54 +65,47 @@ app.get('/auth/discord/callback', async (req, res) => {
 
         const { access_token } = tokenResponse.data;
 
-        // 2️⃣ Get user info
+        // 2. Get user info
         const userResponse = await axios.get(
             'https://discord.com/api/users/@me',
             { headers: { Authorization: `Bearer ${access_token}` } }
         );
-
         const user = userResponse.data;
 
-        // 3️⃣ Verify Guild Membership (The "Member Check")
+        // 3. Verify Guild Membership
         const RGWO_ID = process.env.RGWO_GUILD_ID;
-        
-        // This request will fail (throw error) if the user is NOT in the guild
-        // or if the Bot Token is invalid.
         const memberCheck = await axios.get(
             `https://discord.com/api/guilds/${RGWO_ID}/members/${user.id}`,
-            {
-                headers: {
-                    Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`
-                }
-            }
+            { headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` } }
         );
         
-        console.log(`[SUCCESS] User ${user.username} is a member.`);
+        console.log(`[SUCCESS] User ${user.username} is verified in guild.`);
 
-        // 4️⃣ Save session (User passed the check)
+        // 4. Save session
         req.session.user = {
             id: user.id,
             username: user.username,
             avatar: user.avatar,
             discriminator: user.discriminator,
-            isMember: true // Explicitly setting this
+            isMember: true
         };
 
-        // 5️⃣ Redirect to dashboard
         res.redirect('/');
 
     } catch (err) {
-        // LOG THE ERROR SO YOU CAN SEE WHY IT FAILED
-        console.error('[AUTH ERROR]:', err.response?.status, err.response?.data || err.message);
+        const status = err.response?.status;
+        const data = err.response?.data;
+        console.error(`[AUTH ERROR]: ${status}`, data);
 
-        if (err.response?.status === 404) {
-            console.error(`[FAIL] User is not in the Guild ID: ${process.env.RGWO_GUILD_ID}`);
-            return res.redirect('/?error=not_member');
+        if (status === 404 || data?.code === 10004) {
+            return res.redirect('/?error=server_config'); // Wrong Guild ID or Bot not in server
         }
-        
-        if (err.response?.status === 401) {
-            console.error('[FAIL] Bot Token is invalid or missing permissions.');
-            return res.redirect('/?error=server_config');
+        if (status === 401) {
+            return res.redirect('/?error=server_config'); // Bot Token invalid
+        }
+        // If the member check fails (404 on /members), it means they aren't in the guild
+        if (err.config.url.includes('/members/')) {
+             return res.redirect('/?error=not_member');
         }
 
         res.redirect('/?error=auth_failed');
@@ -137,14 +116,57 @@ app.get('/auth/discord/callback', async (req, res) => {
 // 5. API: GET CURRENT USER
 // ==========================
 app.get('/api/me', (req, res) => {
-    if (req.session.user) {
-        return res.json(req.session.user);
-    }
+    if (req.session.user) return res.json(req.session.user);
     res.status(401).json({ error: 'Not logged in' });
 });
 
 // ==========================
-// 6. API: LOGOUT
+// 6. API: LOAN REQUEST (WEBHOOK)
+// ==========================
+app.post('/api/loan', async (req, res) => {
+    try {
+        const { name, department, badge, reason, amount, term } = req.body;
+        const webhookUrl = process.env.LOAN_WEBHOOK_URL;
+
+        if (!webhookUrl) {
+            console.error('[ERROR] LOAN_WEBHOOK_URL is not configured');
+            return res.status(500).json({ success: false, message: 'Webhook URL not configured' });
+        }
+
+        // Construct Discord Embed
+        const payload = {
+            username: "RGWO Loan Bot",
+            avatar_url: "https://cdn-icons-png.flaticon.com/512/2098/2098589.png", 
+            embeds: [
+                {
+                    title: "Nieuwe Leningaanvraag 🛡️",
+                    color: 3447003, 
+                    fields: [
+                        { name: "Volledige naam", value: name, inline: true },
+                        { name: "Badge nummer", value: badge, inline: true },
+                        { name: "Afdeling", value: department },
+                        { name: "Doel lening", value: reason },
+                        { name: "Bedrag (SRD)", value: `**${amount}**`, inline: true },
+                        { name: "Termijn (maanden)", value: term, inline: true }
+                    ],
+                    footer: { text: "Verstuurd via RGWO Portal" },
+                    timestamp: new Date().toISOString()
+                }
+            ]
+        };
+
+        await axios.post(webhookUrl, payload);
+        console.log('[SUCCESS] Loan request sent to Discord.');
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error("[WEBHOOK ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// ==========================
+// 7. API: LOGOUT
 // ==========================
 app.post('/api/logout', (req, res) => {
     req.session = null;
@@ -152,7 +174,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 // ==========================
-// 7. START SERVER
+// 8. START SERVER
 // ==========================
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);

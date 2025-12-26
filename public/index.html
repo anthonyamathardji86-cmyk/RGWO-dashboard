@@ -38,7 +38,7 @@
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border:1px solid rgba(255,255, 255, 0.5);
             box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
         }
         .btn-gradient {
@@ -192,7 +192,7 @@
                     <div id="logged-in-view" class="hidden items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-gray-50 transition border border-transparent hover:border-gray-200" onclick="toggleUserMenu()">
                         <div class="text-right hidden sm:block">
                             <p id="user-name-display" class="text-sm font-bold text-gray-900 leading-tight">Loading...</p>
-                            <!-- ADDED ID and CHANGED TEXT -->
+                            <!-- Displays Username -->
                             <p id="user-welcome-display" class="text-xs text-green-600 font-medium">Loading...</p>
                         </div>
                         <img id="user-avatar-display" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-md bg-gray-200">
@@ -458,7 +458,7 @@
                     username: data.username,
                     avatar: avatarUrl,
                     discriminator: data.discriminator,
-                    id: data.id // Ensure ID is saved
+                    id: data.id
                 };
                 updateUIState();
             })
@@ -482,7 +482,7 @@
             const loggedInView = document.getElementById('logged-in-view');
             const userNameDisplay = document.getElementById('user-name-display');
             const userAvatarDisplay = document.getElementById('user-avatar-display');
-            const userWelcomeDisplay = document.getElementById('user-welcome-display'); // New element
+            const userWelcomeDisplay = document.getElementById('user-welcome-display');
 
             if (state.isLoggedIn && state.isRGWOMember) {
                 body.classList.add('dashboard-unlocked');
@@ -493,9 +493,9 @@
                 if (state.user) {
                     userNameDisplay.textContent = state.user.username;
                     userAvatarDisplay.src = state.user.avatar;
-                    // NEW: Update Welcome Text
+                    // CHANGED: Display Username here
                     if(userWelcomeDisplay) {
-                        userWelcomeDisplay.textContent = `Welcome, ${state.user.id}`;
+                        userWelcomeDisplay.textContent = state.user.username;
                     }
                 }
             } else {

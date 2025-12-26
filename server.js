@@ -133,23 +133,31 @@ app.post('/api/loan', async (req, res) => {
             return res.status(500).json({ success: false, message: 'Webhook URL not configured' });
         }
 
-        // Construct Discord Embed
+        // Construct Discord Embed (Vertical Layout, Amount Plain Text)
         const payload = {
             username: "RGWO Loan Bot",
             avatar_url: "https://cdn-icons-png.flaticon.com/512/2098/2098589.png", 
             embeds: [
                 {
                     title: "Nieuwe Leningaanvraag 🛡️",
-                    color: 3447003, 
+                    color: 3447003, // Reddish blue color
                     fields: [
-                        { name: "Volledige naam", value: name, inline: true },
-                        { name: "Badge nummer", value: badge, inline: true },
-                        { name: "Afdeling", value: department },
-                        { name: "Doel lening", value: reason },
-                        { name: "Bedrag (SRD)", value: `**${amount}**`, inline: true },
-                        { name: "Termijn (maanden)", value: term, inline: true }
+                        // --- USER INFO SECTION ---
+                        { name: "👤 Gebruiker", value: "\u200b" }, 
+                        { name: "Volledige naam", value: name, inline: false },
+                        { name: "Badge nummer", value: badge, inline: false },
+                        { name: "Afdeling", value: department, inline: false },
+
+                        // --- SPACER ---
+                        { name: "\u200b", value: "\u200b" }, 
+
+                        // --- LOAN INFO SECTION ---
+                        { name: "💰 Lening Details", value: "\u200b" }, 
+                        { name: "Doel lening", value: reason, inline: false },
+                        { name: "Bedrag (SRD)", value: amount, inline: false }, // No bolding
+                        { name: "Termijn (maanden)", value: term, inline: false }
                     ],
-                    footer: { text: "Verstuurd via RGWO Portal" },
+                    footer: { text: `Verstuurd via RGWO Portal door ${name}` },
                     timestamp: new Date().toISOString()
                 }
             ]

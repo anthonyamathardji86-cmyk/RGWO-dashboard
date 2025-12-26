@@ -85,16 +85,21 @@ app.get('/auth/discord/callback', async (req, res) => {
         const user = userResponse.data;
 
         // Fetch user's guilds
-        const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
-            headers: { Authorization: `Bearer ${access_token}` }
-        });
-
-        const guilds = guildsResponse.data;
         const RGWO_ID = process.env.RGWO_GUILD_ID;
 
-        const isMember = guilds.some(g => g.id === RGWO_ID);
-
-        if (!isMember) return res.redirect('/?error=not_member');
+try {
+    await axios.get(
+        `https://discord.com/api/guilds/${RGWO_ID}/members/${user.id}`,
+        {
+            headers: {
+                Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`
+            }
+        }
+    );
+} catch (err) {
+    // 404 = not a member
+    return res.redirect('/?error=not_member');
+}
 
         // Save user session
         req.session.user = {
@@ -138,3 +143,4 @@ app.post('/api/logout', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
+

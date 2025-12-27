@@ -47,9 +47,16 @@ app.use(session({
 }));
 
 // ==========================
-// 3. DISCORD LOGIN REDIRECT
+// 3. DISCORD LOGIN REDIRECT (UPDATED)
 // ==========================
 app.get('/auth/discord/login', (req, res) => {
+    // 1. CHECK SESSION: If user is already logged in, send them straight to Dashboard
+    if (req.session.user) {
+        console.log(`[INFO] User ${req.session.user.username} is already logged in. Redirecting to dashboard.`);
+        return res.redirect('/');
+    }
+
+    // 2. If not logged in, proceed to Discord
     const params = new URLSearchParams({
         client_id: process.env.CLIENT_ID,
         redirect_uri: `${BASE_URL}/auth/discord/callback`,

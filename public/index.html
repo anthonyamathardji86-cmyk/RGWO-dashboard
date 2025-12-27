@@ -7,7 +7,7 @@
     
     <!-- 1. FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <!-- 2. STYLING ENGINE (Tailwind CSS) -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,7 +20,7 @@
 
     <style>
         body { 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Poppins', sans-serif; 
             background-color: #f8fafc; 
             overflow: hidden; 
             height: 100vh;
@@ -203,9 +203,12 @@
                                 <div class="border-t border-gray-100 my-1"></div>
                                 
                                 <!-- NEW STYLISH MENU ITEMS -->
-                                <a href="#" class="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition flex items-center">
+                                
+                                <!-- DOCUMENTEN (UPDATED WITH GOOGLE DRIVE LINK) -->
+                                <a href="https://drive.google.com/drive/folders/1STqjsaxz7ZU_gXqZQ6pf6aDmDToq9A0T?usp=sharing" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition flex items-center">
                                     <i class="fa-solid fa-folder-open w-5 mr-2"></i> Documenten
                                 </a>
+                                
                                 <a href="#" class="block px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition flex items-center">
                                     <i class="fa-solid fa-diagram-project w-5 mr-2"></i> Projecten
                                 </a>
@@ -711,7 +714,7 @@
         });
 
         function initCharts() {
-            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.font.family = "'Poppins', sans-serif";
             Chart.defaults.color = '#64748b';
 
             const ctxMain = document.getElementById('mainChart').getContext('2d');

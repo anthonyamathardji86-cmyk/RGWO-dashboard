@@ -113,7 +113,7 @@
             position: absolute;
             top: 120%;
             right: 0;
-            width: 200px;
+            width: 250px; /* Adjusted width for buttons */
             background: white;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -200,6 +200,17 @@
                             <div class="py-2">
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-user mr-2"></i> Profile</a>
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-gear mr-2"></i> Settings</a>
+                                
+                                <!-- MOVED BUTTONS FROM FOOTER -->
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <button onclick="toggleModal(true)" class="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition flex items-center">
+                                    <i class="fa-solid fa-hand-holding-dollar mr-2"></i> Leningaanvraag
+                                </button>
+                                <button onclick="showToast('Gegevens succesvol gepubliceerd naar Discord!', 'success')" class="w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 transition flex items-center">
+                                    <i class="fa-brands fa-discord mr-2"></i> Publish to Discord
+                                </button>
+                                <!-- END MOVED BUTTONS -->
+                                
                                 <div class="border-t border-gray-100 my-1"></div>
                                 <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Logout</button>
                             </div>
@@ -361,18 +372,34 @@
             </div>
         </div>
 
-        <!-- FOOTER ACTIONS -->
-        <div class="mt-10 flex flex-col sm:flex-row justify-between gap-4">
-            <!-- Loan Request -->
-            <button onclick="toggleModal(true)" class="flex items-center justify-center px-8 py-3.5 rounded-xl bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">
-                <i class="fa-solid fa-hand-holding-dollar mr-2"></i> Leningaanvraag
-            </button>
-            
-            <!-- Discord Button -->
-            <button onclick="showToast('Gegevens succesvol gepubliceerd naar Discord!', 'success')" class="flex items-center justify-center px-8 py-3.5 rounded-xl text-white font-bold shadow-lg shadow-indigo-500/20 bg-[#5865F2] hover:bg-[#4752C4] transition">
-                <i class="fa-brands fa-discord mr-2 text-lg"></i> Publish to Discord
-            </button>
-        </div>
+        <!-- NEW FOOTER (LEFT ALIGNED) -->
+        <footer class="mt-12 border-t border-gray-200 pt-8 pb-8">
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                    <!-- RGWO Logo Small or Icon -->
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                        <i class="fa-solid fa-shield-halved text-2xl"></i>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-900">RGWO Contact</h4>
+                        <p class="text-sm text-gray-500 mt-1">Rosebel Goldmines Werknemers Organisatie</p>
+                        
+                        <div class="mt-4 space-y-2">
+                            <div class="flex items-center text-sm text-gray-700">
+                                <i class="fa-solid fa-location-dot w-6 text-blue-500"></i>
+                                <span>Paramaribo, Suriname</span>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-700">
+                                <i class="fa-regular fa-envelope w-6 text-green-500"></i>
+                                <span>info@rgwo.sr</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
 
     </main>
 
@@ -488,7 +515,7 @@
                 loggedInView.classList.add('flex');
                 
                 if (state.user) {
-                    // UPDATE: Adds "Welcome, " to the username on the left side
+                    // Update Left Side (Username)
                     if(userNameDisplay) {
                         userNameDisplay.textContent = "Welcome, " + state.user.username;
                     }

@@ -191,7 +191,7 @@
                     <div id="logged-in-view" class="hidden items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-gray-50 transition border border-transparent hover:border-gray-200" onclick="toggleUserMenu()">
                         <!-- Removed Text Welcome Block. Only Avatar and Arrow remain -->
                         <img id="user-avatar-display" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-md bg-gray-200">
-                        <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1"></i>
+                        <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1 transition-transform duration-200" id="dropdown-arrow"></i>
 
                         <!-- Dropdown Menu -->
                         <div class="user-dropdown" id="user-menu">
@@ -199,24 +199,28 @@
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-user mr-2"></i> Profile</a>
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-gear mr-2"></i> Settings</a>
                                 
-                                <!-- MOVED BUTTONS FROM FOOTER -->
                                 <div class="border-t border-gray-100 my-1"></div>
                                 
-                                <!-- NEW STYLISH MENU ITEMS -->
+                                <!-- INDEPENDENT MENU ITEMS (Updated Links) -->
                                 
-                                <!-- DOCUMENTEN (UPDATED WITH GOOGLE DRIVE LINK) -->
-                                <a href="https://drive.google.com/drive/folders/1STqjsaxz7ZU_gXqZQ6pf6aDmDToq9A0T?usp=sharing" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition flex items-center">
+                                <!-- Documenten -->
+                                <a href="#" class="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition flex items-center">
                                     <i class="fa-solid fa-folder-open w-5 mr-2"></i> Documenten
                                 </a>
                                 
-                                <a href="#" class="block px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition flex items-center">
+                                <!-- Bekendmakingen (Updated Link) -->
+                                <a href="https://drive.google.com/open?id=1oFiROUJcntJiOYPzHZiPIFHyb3E6jstw&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-teal-600 hover:bg-teal-50 transition flex items-center">
+                                    <i class="fa-solid fa-bullhorn w-5 mr-2"></i> Bekendmakingen
+                                </a>
+                                
+                                <!-- Projecten (Updated Link) -->
+                                <a href="https://drive.google.com/open?id=1KbjRO1OR25DhVGBARu6YRI9StpzM3Gmt&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition flex items-center">
                                     <i class="fa-solid fa-diagram-project w-5 mr-2"></i> Projecten
                                 </a>
-                                <a href="#" class="block px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 transition flex items-center">
+                                
+                                <!-- Formulieren (Updated Link) -->
+                                <a href="https://drive.google.com/open?id=1-6hXZIvduRF05MyAfNjKFyz8z8uzQLRG&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 transition flex items-center">
                                     <i class="fa-solid fa-clipboard-list w-5 mr-2"></i> Formulieren
-                                </a>
-                                <a href="#" class="block px-4 py-2 text-sm text-teal-600 hover:bg-teal-50 transition flex items-center">
-                                    <i class="fa-solid fa-bullhorn w-5 mr-2"></i> Bekendmakingen
                                 </a>
                                 
                                 <div class="border-t border-gray-100 my-1"></div>
@@ -566,6 +570,7 @@
             const loggedInView = document.getElementById('logged-in-view');
             const userNameDisplay = document.getElementById('user-name-display'); 
             const userAvatarDisplay = document.getElementById('user-avatar-display');
+            const dropdownArrow = document.getElementById('dropdown-arrow');
 
             if (state.isLoggedIn && state.isRGWOMember) {
                 body.classList.add('dashboard-unlocked');
@@ -591,12 +596,22 @@
 
         function toggleUserMenu() {
             document.getElementById('user-menu').classList.toggle('active');
+            // Rotate arrow icon when menu opens
+            const arrow = document.getElementById('dropdown-arrow');
+            if (arrow) {
+                arrow.classList.toggle('rotate-180');
+            }
         }
         window.addEventListener('click', function(e) {
             const menu = document.getElementById('user-menu');
             const profile = document.getElementById('logged-in-view');
             if (!profile.contains(e.target)) {
                 menu.classList.remove('active');
+                // Reset arrow rotation when menu closes
+                const arrow = document.getElementById('dropdown-arrow');
+                if (arrow) {
+                    arrow.classList.remove('rotate-180');
+                }
             }
         });
 

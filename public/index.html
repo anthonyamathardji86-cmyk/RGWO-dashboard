@@ -20,77 +20,26 @@
 
     <style>
         body { 
-            font-family: 'Inter', sans-serif; /* PRO TIP: 'Inter' is more UI professional than Poppins for dashboards */
-            background-color: #f1f5f9; /* Slightly cooler gray */
-            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
-            background-size: 20px 20px;
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
             overflow: hidden; 
             height: 100vh;
-            color-scheme: dark light; /* Supports browser auto dark mode if expanded */
         }
 
-        /* --- ANIMATIONS --- */
-        .animate-stagger-1 { animation: fadeIn 0.5s ease-out forwards; animation-delay: 0.1s; opacity: 0; }
-        .animate-stagger-2 { animation: fadeIn 0.5s ease-out forwards; animation-delay: 0.2s; opacity: 0; }
-        .animate-stagger-3 { animation: fadeIn 0.5s ease-out forwards; animation-delay: 0.3s; opacity: 0; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- GLASS CARD (PRO UPGRADE) --- */
-        .glass-card {
-            background: rgba(255,255,255, 0.85); /* More opacity */
-            backdrop-filter: blur(16px); /* Stronger blur */
-            border: 1px solid rgba(255,255,255, 0.6);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* Softer shadow */
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        /* FIXED: When unlocked, restore scrolling */
+        body.dashboard-unlocked {
+            overflow-x: hidden;
+            overflow-y: auto;
+            height: auto;
         }
         
-        /* --- SKELETON LOADING (PRO TIP) --- */
-        .skeleton {
-            background: #e2e8f0;
-            background-image: linear-gradient(90deg, #e2e8f0 0px, #f1f5f9 40px, #e2e8f0 80px);
-            background-size: 600px;
-            animation: shimmer 1.6s infinite linear;
-            border-radius: 8px;
+        /* --- DASHBOARD STYLING --- */
+        .glass-card {
+            background: rgba(255,255,255, 0.95);
+            backdrop-filter: blur(10px);
+            border:1px solid rgba(255,255,255, 0.5);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
         }
-        @keyframes shimmer {
-            0% { background-position: -100px; }
-            40%, 100% { background-position: 140px; }
-        }
-
-        /* --- LOCK SCREEN --- */
-        #dashboard-lock {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255, 0.6);
-            backdrop-filter: blur(25px);
-            z-index: 60; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-        .dashboard-unlocked #dashboard-lock {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        /* --- SKELETON LOADER OVERLAY --- */
-        #loading-skeleton {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #f8fafc;
-            z-index: 50;
-            padding: 40px;
-            display: block; /* Visible initially */
-            transition: opacity 0.5s ease;
-        }
-        .hide-loader { display: none !important; }
-
-        /* --- BUTTONS --- */
         .btn-gradient {
             background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
             transition: all 0.3s ease;
@@ -100,8 +49,8 @@
         /* --- TABS --- */
         .tab-btn { transition: all 0.3s ease; }
         .tab-active { background: #1e293b; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .tab-inactive { background: #f1f5f9; color: #64748b; }
-        .tab-inactive:hover { background: #e2e8f0; }
+        .tab-inactive { background: #e2e8f0; color: #64748b; }
+        .tab-inactive:hover { background: #cbd5e1; }
 
         /* --- MODAL STYLING --- */
         .modal-overlay {
@@ -137,6 +86,26 @@
         }
         .form-input:focus { border-color: #2563EB; }
 
+        /* --- AUTH LOCK SCREEN --- */
+        #dashboard-lock {
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255, 0.6);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            z-index: 60; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .dashboard-unlocked #dashboard-lock {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
         /* --- USER PROFILE DROPDOWN --- */
         .user-dropdown {
             position: absolute;
@@ -170,7 +139,7 @@
         }
         .toast {
             background: white;
-            padding: 16px 20px;
+            padding: 15px 20px;
             border-radius: 12px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             border-left: 4px solid #2563EB;
@@ -179,7 +148,6 @@
             gap: 12px;
             animation: slideIn 0.3s ease forwards;
             min-width: 300px;
-            font-size: 0.875rem; /* Smaller font for cleaner look */
         }
         .toast.error { border-left-color: #EF4444; }
         .toast.success { border-left-color: #10B981; }
@@ -196,19 +164,20 @@
 <body class="text-gray-800 antialiased">
 
     <!-- HEADER -->
-    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40">
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 
                 <!-- LEFT: LOGO + TITLE + USERNAME -->
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-10 rounded-lg overflow-hidden shadow-lg shadow-blue-500/30 ring-1 ring-gray-200">
+                    <div class="w-12 h-10 rounded-lg overflow-hidden shadow-lg shadow-blue-500/30">
                         <img src="https://drive.google.com/thumbnail?id=1kkC39iHQ6ZCSuNccH9uEcKxtLXA84ypw&sz=s1024"
                              alt="RGWO Logo"
                              class="w-full h-full object-contain">
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-gray-900 tracking-tight">RGWO Portal</h1>
+                        <!-- Username moved here -->
                         <p id="user-name-display" class="text-sm font-semibold text-gray-500">Loading...</p>
                     </div>
                 </div>
@@ -220,6 +189,7 @@
 
                     <!-- LOGGED IN STATE -->
                     <div id="logged-in-view" class="hidden items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-gray-50 transition border border-transparent hover:border-gray-200" onclick="toggleUserMenu()">
+                        <!-- Removed Text Welcome Block. Only Avatar and Arrow remain -->
                         <img id="user-avatar-display" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-md bg-gray-200">
                         <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1"></i>
 
@@ -229,6 +199,7 @@
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-user mr-2"></i> Profile</a>
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-gear mr-2"></i> Settings</a>
                                 
+                                <!-- MOVED BUTTONS FROM FOOTER -->
                                 <div class="border-t border-gray-100 my-1"></div>
                                 
                                 <!-- NEW STYLISH MENU ITEMS -->
@@ -253,6 +224,7 @@
                                 <button onclick="showToast('Gegevens succesvol gepubliceerd naar Discord!', 'success')" class="w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 transition flex items-center">
                                     <i class="fa-brands fa-discord mr-2"></i> Publish to Discord
                                 </button>
+                                <!-- END MOVED BUTTONS -->
                                 
                                 <div class="border-t border-gray-100 my-1"></div>
                                 <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Logout</button>
@@ -268,22 +240,8 @@
     <!-- MAIN WRAPPER -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
 
-        <!-- SKELETON LOADING STATE (Pro Feature) -->
-        <div id="loading-skeleton">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="h-40 skeleton rounded-2xl"></div>
-                <div class="h-40 skeleton rounded-2xl"></div>
-                <div class="h-40 skeleton rounded-2xl"></div>
-            </div>
-            <div class="h-80 mb-8 skeleton rounded-2xl"></div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="h-64 skeleton rounded-2xl"></div>
-                <div class="h-64 skeleton rounded-2xl lg:col-span-2"></div>
-            </div>
-        </div>
-
         <!-- LOCK SCREEN OVERLAY -->
-        <div id="dashboard-lock" class="hide-lock">
+        <div id="dashboard-lock">
             <div class="glass-card p-10 rounded-3xl text-center max-w-md w-full shadow-2xl border-t border-white/50">
                 <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600 animate-bounce">
                     <i class="fa-solid fa-lock text-3xl"></i>
@@ -301,8 +259,8 @@
         </div>
 
         <!-- KPI CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" id="dashboard-content" style="display:none;">
-            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform animate-stagger-1">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
                     <i class="fa-solid fa-wallet text-8xl text-blue-600"></i>
                 </div>
@@ -315,7 +273,7 @@
                 </div>
             </div>
 
-            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform animate-stagger-2">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
                     <i class="fa-solid fa-users text-8xl text-purple-600"></i>
                 </div>
@@ -328,7 +286,7 @@
                 </div>
             </div>
 
-            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform animate-stagger-3">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
                     <i class="fa-solid fa-piggy-bank text-8xl text-orange-500"></i>
                 </div>
@@ -343,7 +301,7 @@
         </div>
 
         <!-- TABS -->
-        <div class="flex justify-center mb-8 animate-stagger-3">
+        <div class="flex justify-center mb-8">
             <div class="bg-gray-200 p-1 rounded-xl inline-flex gap-1">
                 <button onclick="updateTimeframe('monthly')" id="tab-monthly" class="tab-btn tab-active px-6 py-2 rounded-lg text-sm font-semibold shadow-sm">Maand</button>
                 <button onclick="updateTimeframe('quarterly')" id="tab-quarterly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Kwartaal</button>
@@ -605,24 +563,12 @@
             const loggedInView = document.getElementById('logged-in-view');
             const userNameDisplay = document.getElementById('user-name-display'); 
             const userAvatarDisplay = document.getElementById('user-avatar-display');
-            const skeletonLoader = document.getElementById('loading-skeleton');
-            const dashboardLock = document.getElementById('dashboard-lock');
-            const dashboardContent = document.getElementById('dashboard-content');
-
-            // PRO CHANGE: Hide Skeleton Loader first
-            if(skeletonLoader) skeletonLoader.classList.add('hide-loader');
 
             if (state.isLoggedIn && state.isRGWOMember) {
                 body.classList.add('dashboard-unlocked');
                 loggedOutView.classList.add('hidden');
                 loggedInView.classList.remove('hidden');
                 loggedInView.classList.add('flex');
-                
-                // Hide Lock Screen
-                if(dashboardLock) dashboardLock.classList.add('hide-lock');
-                
-                // Show Dashboard Content
-                if(dashboardContent) dashboardContent.style.display = 'block';
                 
                 if (state.user) {
                     if(userNameDisplay) {
@@ -637,12 +583,6 @@
                 loggedOutView.classList.remove('hidden');
                 loggedInView.classList.add('hidden');
                 loggedInView.classList.remove('flex');
-
-                // Show Lock Screen
-                if(dashboardLock) dashboardLock.classList.remove('hide-lock');
-                
-                // Hide Dashboard Content
-                if(dashboardContent) dashboardContent.style.display = 'none';
             }
         }
 

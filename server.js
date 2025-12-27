@@ -20,13 +20,30 @@ console.log(`[INFO] Using Discord Guild ID: ${process.env.RGWO_GUILD_ID}`);
 // 2. MIDDLEWARE
 // ==========================
 app.set('trust proxy', 1);
+
+// Serve static files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json()); // Needed to parse JSON bodies for the loan form
+
+// UPDATED SESSION CONFIGURATION
 app.use(session({
     name: 'session',
     keys: [process.env.SESSION_SECRET || 'fallbacksecretpleasechangeinproduction'],
-    maxAge: 24 * 60 * 60 * 1000
+    
+    // 1. MAX AGE: Changed from 1 day to 30 days (2,592,000,000 ms)
+    maxAge: 30 * 24 * 60 * 60 * 1000, 
+    
+    cookie: {
+        // 2. SAMESITE: 'lax' ensures cookies work when clicking links from Discord App
+        sameSite: 'lax', 
+        
+        // 3. SECURE: True if production, false if localhost
+        secure: process.env.NODE_ENV === 'production',
+        
+        httpOnly: true
+    }
 }));
 
 // ==========================
@@ -103,7 +120,7 @@ app.get('/auth/discord/callback', async (req, res) => {
         if (status === 401) {
             return res.redirect('/?error=server_config'); // Bot Token invalid
         }
-        // If the member check fails (404 on /members), it means they aren't in the guild
+        // If member check fails (404 on /members), it means they aren't in the guild
         if (err.config.url.includes('/members/')) {
              return res.redirect('/?error=not_member');
         }

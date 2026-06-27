@@ -1,8 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const axios = require('axios');
 const cors = require('cors');
-const session = require('cookie-session');
 const path = require('path');
 
 const app = express();
@@ -11,206 +9,80 @@ const app = express();
 // 1. CONFIGURATION
 // ==========================
 const PORT = process.env.PORT || 3000;
-const BASE_URL = process.env.APP_URL || `http://localhost:${PORT}`;
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const CHAT_IDS = process.env.TELEGRAM_CHAT_ID.split(',').map(id => id.trim());
 
-console.log(`[INFO] Server running at: ${BASE_URL}`);
-console.log(`[INFO] Using Discord Guild ID: ${process.env.RGWO_GUILD_ID}`);
+console.log(`[INFO] Server running at: http://localhost:${PORT}`);
 
 // ==========================
 // 2. MIDDLEWARE
 // ==========================
 app.set('trust proxy', 1);
 
-// Serve static files from 'public' directory
+// Serve your HTML file from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(cors({ origin: '*', credentials: true }));
-app.use(express.json()); // Needed to parse JSON bodies for the loan form
-
-// UPDATED SESSION CONFIGURATION
-app.use(session({
-    name: 'session',
-    keys: [process.env.SESSION_SECRET || 'fallbacksecretpleasechangeinproduction'],
-    
-    // 1. MAX AGE: Changed from 1 day to 30 days (2,592,000,000 ms)
-    maxAge: 30 * 24 * 60 * 60 * 1000, 
-    
-    cookie: {
-        // 2. SAMESITE: 'lax' ensures cookies work when clicking links from Discord App
-        sameSite: 'lax', 
-        
-        // 3. SECURE: True if production, false if localhost
-        secure: process.env.NODE_ENV === 'production',
-        
-        httpOnly: true
-    }
-}));
+app.use(cors({ origin: '*' }));
+app.use(express.json()); // Parses the loan form data
 
 // ==========================
-// 3. DISCORD LOGIN REDIRECT (UPDATED)
-// ==========================
-app.get('/auth/discord/login', (req, res) => {
-    // 1. CHECK SESSION: If user is already logged in, send them straight to Dashboard
-    if (req.session.user) {
-        console.log(`[INFO] User ${req.session.user.username} is already logged in. Redirecting to dashboard.`);
-        return res.redirect('/');
-    }
-
-    // 2. If not logged in, proceed to Discord
-    const params = new URLSearchParams({
-        client_id: process.env.CLIENT_ID,
-        redirect_uri: `${BASE_URL}/auth/discord/callback`,
-        response_type: 'code',
-        scope: 'identify guilds'
-    });
-    res.redirect(`https://discord.com/api/oauth2/authorize?${params.toString()}`);
-});
-
-// ==========================
-// 4. DISCORD CALLBACK
-// ==========================
-app.get('/auth/discord/callback', async (req, res) => {
-    const { code } = req.query;
-    if (!code) return res.redirect('/?error=no_code');
-
-    try {
-        // 1. Exchange code for access token
-        const tokenResponse = await axios.post(
-            'https://discord.com/api/oauth2/token',
-            new URLSearchParams({
-                client_id: process.env.CLIENT_ID,
-                client_secret: process.env.CLIENT_SECRET,
-                grant_type: 'authorization_code',
-                code,
-                redirect_uri: `${BASE_URL}/auth/discord/callback`
-            }),
-            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-        );
-
-        const { access_token } = tokenResponse.data;
-
-        // 2. Get user info
-        const userResponse = await axios.get(
-            'https://discord.com/api/users/@me',
-            { headers: { Authorization: `Bearer ${access_token}` } }
-        );
-        const user = userResponse.data;
-
-        // 3. Verify Guild Membership
-        const RGWO_ID = process.env.RGWO_GUILD_ID;
-        const memberCheck = await axios.get(
-            `https://discord.com/api/guilds/${RGWO_ID}/members/${user.id}`,
-            { headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` } }
-        );
-        
-        console.log(`[SUCCESS] User ${user.username} is verified in guild.`);
-
-        // 4. Save session
-        req.session.user = {
-            id: user.id,
-            username: user.username,
-            avatar: user.avatar,
-            discriminator: user.discriminator,
-            isMember: true
-        };
-
-        res.redirect('/');
-
-    } catch (err) {
-        const status = err.response?.status;
-        const data = err.response?.data;
-        console.error(`[AUTH ERROR]: ${status}`, data);
-
-        if (status === 404 || data?.code === 10004) {
-            return res.redirect('/?error=server_config'); // Wrong Guild ID or Bot not in server
-        }
-        if (status === 401) {
-            return res.redirect('/?error=server_config'); // Bot Token invalid
-        }
-        // If member check fails (404 on /members), it means they aren't in the guild
-        if (err.config.url.includes('/members/')) {
-             return res.redirect('/?error=not_member');
-        }
-
-        res.redirect('/?error=auth_failed');
-    }
-});
-
-// ==========================
-// 5. API: GET CURRENT USER
-// ==========================
-app.get('/api/me', (req, res) => {
-    if (req.session.user) return res.json(req.session.user);
-    res.status(401).json({ error: 'Not logged in' });
-});
-
-// ==========================
-// 6. API: LOAN REQUEST (WEBHOOK)
+// 3. API: LOAN REQUEST TO TELEGRAM
 // ==========================
 app.post('/api/loan', async (req, res) => {
     try {
         const { name, department, badge, reason, amount, term } = req.body;
-        const webhookUrl = process.env.LOAN_WEBHOOK_URL;
 
-        // Get Discord Username from active session
-        const discordUsername = req.session.user ? req.session.user.username : 'Niet ingelogd';
-
-        if (!webhookUrl) {
-            console.error('[ERROR] LOAN_WEBHOOK_URL is not configured');
-            return res.status(500).json({ success: false, message: 'Webhook URL not configured' });
+        // Basic validation to ensure fields aren't empty
+        if (!name || !badge || !amount) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
-        // Construct Discord Embed
-        const payload = {
-            username: "RGWO Loan Bot",
-            avatar_url: "https://cdn-icons-png.flaticon.com/512/2098/2098589.png", 
-            embeds: [
-                {
-                    title: "Nieuwe Leningaanvraag 🛡️",
-                    color: 3447003, // Reddish blue color
-                    fields: [
-                        // --- USER INFO SECTION ---
-                        { name: "👤 Gebruiker", value: "\u200b" }, 
-                        { name: "Volledige naam", value: name, inline: false },
-                        { name: "Badge nummer", value: badge, inline: false },
-                        { name: "Afdeling", value: department, inline: false },
+        // Format the message for Telegram using HTML tags for bold/text
+        const message = `
+<b>🛡️ NIEUWE LENINGAANVRAAG RGWO 🛡️</b>
 
-                        // --- SPACER ---
-                        { name: "\u200b", value: "\u200b" }, 
+<b>👤 Gebruiker Info:</b>
+• Naam: <code>${name}</code>
+• Badge: <code>${badge}</code>
+• Afdeling: ${department}
 
-                        // --- LOAN INFO SECTION ---
-                        { name: "💰 Lening Details", value: "\u200b" }, 
-                        { name: "Doel lening", value: reason, inline: false },
-                        { name: "Bedrag (SRD)", value: amount, inline: false },
-                        { name: "Termijn (maanden)", value: term, inline: false }
-                    ],
-                    // UPDATED: Explicitly says "Discord User ID" but uses Discord Username value
-                    footer: { text: `Verstuurd via RGWO Portal door Discord User ID: ${discordUsername}` },
-                    timestamp: new Date().toISOString()
-                }
-            ]
-        };
+<b>💰 Lening Details:</b>
+• Doel: ${reason}
+• Bedrag: <b>SRD ${amount}</b>
+• Termijn: ${term} maanden
+        `.trim();
 
-        await axios.post(webhookUrl, payload);
-        console.log('[SUCCESS] Loan request sent to Discord.');
+        // Send the message to all Chat IDs listed in .env
+        const sendPromises = CHAT_IDS.map(chatId => {
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            
+            return fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            });
+        });
+
+        // Wait for all Telegram messages to finish sending
+        await Promise.all(sendPromises);
+
+        console.log(`[SUCCESS] Loan request from ${name} sent to Telegram.`);
+        
+        // Tell the frontend it was successful
         res.json({ success: true });
 
     } catch (error) {
-        console.error("[WEBHOOK ERROR]:", error.message);
+        console.error("[TELEGRAM ERROR]:", error.message);
         res.status(500).json({ success: false });
     }
 });
 
 // ==========================
-// 7. API: LOGOUT
-// ==========================
-app.post('/api/logout', (req, res) => {
-    req.session = null;
-    res.status(200).json({ success: true });
-});
-
-// ==========================
-// 8. START SERVER
+// 4. START SERVER
 // ==========================
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);

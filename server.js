@@ -61,12 +61,14 @@ app.post('/api/auth', async (req, res) => {
             // Give Cookie
             res.cookie('rgwo_user', userData.id, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: process.env.NODE_ENV === 'production' });
             
-            // AUTO-SAVE: Silently save Telegram ID, Username, First Name, and Last Name to DB
+            // Combine first and last name to match your 'naam' column
+            const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
+
+            // AUTO-SAVE: Save to DB using your exact column names
             await supabase.from('RGWO leden').upsert({ 
                 telegram_id: parseInt(userData.id), 
                 telegram_username: userData.username || null, 
-                voornaam: userData.first_name || null, 
-                familienaam: userData.last_name || null 
+                naam: fullName
             }, { onConflict: 'telegram_id' });
 
             res.json({ success: true, user: userData });
@@ -91,19 +93,19 @@ app.get('/api/me', async (req, res) => {
         const data = await response.json();
 
         if (['member', 'administrator', 'creator'].includes(data.result?.status)) {
-            // Check database for profile
+            // Check database for profile using 'naam' column
             const { data: member } = await supabase
                 .from('RGWO leden')
-                .select('voornaam, familienaam, badge')
+                .select('naam, badge')
                 .eq('telegram_id', parseInt(userId))
                 .single();
 
             if (member && member.badge) {
                 // Profile complete!
-                return res.json({ loggedIn: true, needsSetup: false, name: `${member.voornaam} ${member.familienaam}`, badge: member.badge });
+                return res.json({ loggedIn: true, needsSetup: false, name: member.naam, badge: member.badge });
             } else {
                 // Missing Badge/Afdeling
-                return res.json({ loggedIn: true, needsSetup: true, firstName: member?.voornaam || '' });
+                return res.json({ loggedIn: true, needsSetup: true, firstName: member?.naam || '' });
             }
         } else {
             res.clearCookie('rgwo_user');
@@ -148,10 +150,10 @@ app.post('/api/loan', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
         
-        // Fetch full identity from Database
+        // Fetch identity from Database using 'naam' column (removed 'telefoon')
         const { data: member } = await supabase
             .from('RGWO leden')
-            .select('voornaam, familienaam, telegram_username, telefoon, badge, afdeling')
+            .select('naam, telegram_username, badge, afdeling')
             .eq('telegram_id', parseInt(userId))
             .single();
 
@@ -159,9 +161,9 @@ app.post('/api/loan', async (req, res) => {
         if (!reason || !amount) return res.status(400).json({ success: false, message: 'Missing fields' });
 
         // Formatting for Treasurer
-        const fullName = member ? `${member.voornaam} ${member.familienaam}` : 'Onbekend Lid';
+        const fullName = member ? member.naam : 'Onbekend Lid';
         const tgTag = member?.telegram_username ? `@${member.telegram_username}` : 'Onbekend';
-        const phoneNum = member?.telefoon || 'Niet in DB';
+        const phoneNum = 'Niet in DB'; // Hardcoded because 'telefoon' column doesn't exist in your DB
         const dept = member?.afdeling || 'Onbekend';
         const badgeNum = member?.badge || 'Onbekend';
 

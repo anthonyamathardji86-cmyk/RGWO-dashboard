@@ -65,11 +65,18 @@ app.post('/api/auth', async (req, res) => {
             const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
 
             // AUTO-SAVE: Save to DB using your exact column names
-            await supabase.from('RGWO leden').upsert({ 
+            const { error: dbError } = await supabase.from('RGWO leden').upsert({ 
                 telegram_id: parseInt(userData.id), 
                 telegram_username: userData.username || null, 
                 naam: fullName
             }, { onConflict: 'telegram_id' });
+
+            // LOGGING TO FIND THE EXACT ERROR
+            if (dbError) {
+                console.error("[SUPABASE ERROR DETAILS]:", dbError.message, dbError.details);
+            } else {
+                console.log("[SUCCESS] User saved to database!");
+            }
 
             res.json({ success: true, user: userData });
         } else {
@@ -150,7 +157,7 @@ app.post('/api/loan', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
         
-        // Fetch identity from Database using 'naam' column (removed 'telefoon')
+        // Fetch identity from Database using 'naam' column
         const { data: member } = await supabase
             .from('RGWO leden')
             .select('naam, telegram_username, badge, afdeling')
@@ -163,7 +170,7 @@ app.post('/api/loan', async (req, res) => {
         // Formatting for Treasurer
         const fullName = member ? member.naam : 'Onbekend Lid';
         const tgTag = member?.telegram_username ? `@${member.telegram_username}` : 'Onbekend';
-        const phoneNum = 'Niet in DB'; // Hardcoded because 'telefoon' column doesn't exist in your DB
+        const phoneNum = 'Niet in DB'; 
         const dept = member?.afdeling || 'Onbekend';
         const badgeNum = member?.badge || 'Onbekend';
 

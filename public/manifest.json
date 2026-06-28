@@ -1,0 +1,21 @@
+{
+  "name": "RGWO Portal",
+  "short_name": "RGWO",
+  "description": "Rosebel Goldmines Werknemers Organisatie Leden Portaal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

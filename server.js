@@ -120,7 +120,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 // ==========================
-// 5. LOAN REQUEST (WITH BUTTONS)
+// 5. LOAN REQUEST (SINGLE PENDING LIMIT)
 // ==========================
 app.post('/api/loan', async (req, res) => {
     try {
@@ -128,9 +128,34 @@ app.post('/api/loan', async (req, res) => {
         if (!name || !reason || !amount) return res.status(400).json({ success: false, message: 'Missing fields' });
 
         const userId = req.cookies.rgwo_user;
-        const loanId = `LOAN_${Date.now()}`; // Create unique ID for the buttons
 
-        // 1. Save to new Leningen table
+        // --- CHECK FOR EXISTING PENDING LOAN ---
+        const { data: pendingLoan } = await supabase
+            .from('Leningen')
+            .select('loan_id')
+            .eq('telegram_id', parseInt(userId))
+            .eq('status', 'pending')
+            .single();
+
+        if (pendingLoan) {
+            // Block the request and send custom error message
+            return res.status(400).json({ 
+                success: false, 
+                message: `U heeft al een openstaande aanvraag (${pendingLoan.loan_id}). Wacht tot deze is goedgekeurd of afgewezen.` 
+            });
+        }
+        // ----------------------------------------
+
+        // --- GENERATE SEQUENTIAL ID ---
+        const { count } = await supabase
+            .from('Leningen')
+            .select('*', { count: 'exact', head: true });
+            
+        const nextNumber = (count || 0) + 1;
+        const loanId = `LOAN_${String(nextNumber).padStart(5, '0')}`;
+        // -------------------------------
+
+        // 1. Save to Leningen table
         await supabase.from('Leningen').insert({ 
             loan_id: loanId, 
             telegram_id: parseInt(userId), 
@@ -151,6 +176,7 @@ app.post('/api/loan', async (req, res) => {
 
         const message = `
 <b>🛡️ NIEUWE LENINGAANVRAAG RGWO 🛡️</b>
+<b>ID:</b> <code>${loanId}</code>
 
 <b>👤 Aangevraagd door:</b>
 • <b>${name}</b> (Badge: ${badge || 'Onbekend'})
@@ -188,32 +214,27 @@ app.post('/api/loan', async (req, res) => {
 app.post('/api/webhook', async (req, res) => {
     const callbackQuery = req.body.callback_query;
     
-    // If it's not a button click, ignore
     if (!callbackQuery) return res.sendStatus(200);
 
-    const data = callbackQuery.data; // e.g., "approve_LOAN_123456"
-    const action = data.split('_')[0]; // "approve" or "reject"
-    const loanId = data.substring(action.length + 1); // "LOAN_123456"
+    const data = callbackQuery.data; 
+    const action = data.split('_')[0]; 
+    const loanId = data.substring(action.length + 1); 
     
     const adminChatId = callbackQuery.message.chat.id;
     const messageId = callbackQuery.message.message_id;
 
     try {
-        // 1. Get loan details from DB to find the user's telegram_id
         const { data: loan } = await supabase.from('Leningen').select('*').eq('loan_id', loanId).single();
         
         if (!loan) {
-            // Answer button to stop loading animation
             await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/answerCallbackQuery?callback_query_id=${callbackQuery.id}&text=Lening niet gevonden!&show_alert=true`);
             return res.sendStatus(200);
         }
 
         const newStatus = action === 'approve' ? 'approved' : 'rejected';
         
-        // 2. Update Database Status
         await supabase.from('Leningen').update({ status: newStatus }).eq('loan_id', loanId);
 
-        // 3. Change Admin's button text to show it was handled
         const statusText = action === 'approve' ? '✅ GOEDGEKEURD' : '❌ AFGEWEEZEN';
         const newKeyboard = {
             inline_keyboard: [[ { text: statusText, callback_data: "noop" } ]]
@@ -225,12 +246,11 @@ app.post('/api/webhook', async (req, res) => {
             body: JSON.stringify({ chat_id: adminChatId, message_id: messageId, reply_markup: newKeyboard })
         });
 
-        // 4. Send notification to the USER who requested the loan
         let userMessage = "";
         if (action === 'approve') {
-            userMessage = `🎉 <b>Goed nieuws!</b>\n\nUw leningaanvraag van <b>SRD ${loan.bedrag}</b> is goedgekeurd door de penningmeester. Neem contact op voor de volgende stappen.`;
+            userMessage = `🎉 <b>Goed nieuws!</b>\n\nUw leningaanvraag (${loanId}) van <b>SRD ${loan.bedrag}</b> is goedgekeurd door de penningmeester. Neem contact op voor de volgende stappen.`;
         } else {
-            userMessage = `❌ <b>Bericht van RGWO</b>\n\nHelaas is uw leningaanvraag van <b>SRD ${loan.bedrag}</b> afgewezen. Neem contact op met het bestuur voor meer informatie.`;
+            userMessage = `❌ <b>Bericht van RGWO</b>\n\nHelaas is uw leningaanvraag (${loanId}) van <b>SRD ${loan.bedrag}</b> afgewezen. Neem contact op met het bestuur voor meer informatie.`;
         }
 
         await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
@@ -239,7 +259,6 @@ app.post('/api/webhook', async (req, res) => {
             body: JSON.stringify({ chat_id: loan.telegram_id, text: userMessage, parse_mode: 'HTML' })
         });
 
-        // 5. Stop the loading spinner on the admin's button
         await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/answerCallbackQuery?callback_query_id=${callbackQuery.id}&text=Verwerkt!`);
 
     } catch (error) {

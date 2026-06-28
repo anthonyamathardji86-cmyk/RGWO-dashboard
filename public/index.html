@@ -131,9 +131,10 @@
                     <h1 class="text-xl font-bold text-gray-900 tracking-tight">RGWO Portal</h1>
                 </div>
 
-                <!-- RIGHT: NAVIGATION LINKS (Moved from hidden dropdown) -->
+                <!-- RIGHT: NAVIGATION LINKS (Desktop) -->
                 <div class="hidden md:flex items-center gap-2">
-                    <a href="#" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition">Documenten</a>
+                    <!-- UPDATED: Documenten Link -->
+                    <a href="https://drive.google.com/drive/folders/1FQm8Ryy0rz9rbl1HX01P8fR__GQ5eP-X" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition">Documenten</a>
                     <a href="https://drive.google.com/open?id=1oFiROUJcntJiOYPzHZiPIFHyb3E6jstw&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-sm font-medium text-teal-600 hover:bg-teal-50 rounded-md transition">Bekendmakingen</a>
                     <a href="https://drive.google.com/open?id=1KbjRO1OR25DhVGBARu6YRI9StpzM3Gmt&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-md transition">Projecten</a>
                     <a href="https://drive.google.com/open?id=1-6hXZIvduRF05MyAfNjKFyz8z8uzQLRG&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-md transition">Formulieren</a>
@@ -148,7 +149,536 @@
 
             <!-- MOBILE MENU DROPDOWN -->
             <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-gray-100 mt-2 pt-4 flex flex-col gap-2">
-                <a href="#" class="block px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open w-5 mr-2"></i> Documenten</a>
+                <!-- UPDATED: Documenten Link -->
+                <a href="https://drive.google.com/drive/folders/1FQm8Ryy0rz9rbl1HX01P8fR__GQ5eP-X" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open w-5 mr-2"></i> Documenten</a>
+                <a href="https://drive.google.com/open?id=1oFiROUJcntJiOYPzHZiPIFHyb3E6jstw&usp=drive_fs" target="_blank" class="block px-3 py-2 text-sm font-medium text-teal-600 hover:bg-teal-50 rounded-md transition"><i class="fa-solid fa-bullhorn w-5 mr-2"></i> Bekendmakingen</a>
+                <a href="https://drive.google.com/open?id=1KbjRO1OR25DhVGBARu6YRI9StpzM3Gmt&usp=drive_fs" target="_blank" class="block px-3 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-md transition"><i class="fa-solid fa-diagram-project w-5 mr-2"></i> Projecten</a>
+                <a href="https://drive.google.com/open?id=1-6hXZIvduRF05MyAfNjKFyz8z8uzQLRG&usp=drive_fs" target="_blank" class="block px-3 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-md transition"><i class="fa-solid fa-clipboard-list w-5 mr-2"></i> Formulieren</a>
+                <button onclick="toggleModal(true)" class="w-full text-left px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-hand-holding-dollar w-5 mr-2"></i> Leningaanvraag</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN WRAPPER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+
+        <!-- KPI CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-wallet text-8xl text-blue-600"></i>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Balance</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mt-1">SRD 145,230.50</h2>
+                    <div class="flex items-center mt-4 text-sm text-green-600 bg-green-50 w-fit px-2 py-1 rounded-md">
+                        <i class="fa-solid fa-arrow-trend-up mr-1"></i> +4.2% vs last month
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-users text-8xl text-purple-600"></i>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Active Members</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mt-1">1,100</h2>
+                    <div class="flex items-center mt-4 text-sm text-purple-600 bg-purple-50 w-fit px-2 py-1 rounded-md">
+                        <i class="fa-solid fa-user-check mr-1"></i> 98% Paid Up
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <i class="fa-solid fa-piggy-bank text-8xl text-orange-500"></i>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Net Surplus</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mt-1">SRD +4,500</h2>
+                    <div class="flex items-center mt-4 text-sm text-gray-500 w-fit px-2 py-1">
+                        <i class="fa-regular fa-clock mr-1"></i> Month to Date
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-gray-200 p-1 rounded-xl inline-flex gap-1">
+                <button onclick="updateTimeframe('monthly')" id="tab-monthly" class="tab-btn tab-active px-6 py-2 rounded-lg text-sm font-semibold shadow-sm">Maand</button>
+                <button onclick="updateTimeframe('quarterly')" id="tab-quarterly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Kwartaal</button>
+                <button onclick="updateTimeframe('yearly')" id="tab-yearly" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-semibold">Jaar</button>
+            </div>
+        </div>
+
+        <!-- MAIN CHART -->
+        <div class="glass-card rounded-2xl p-8 mb-8 border border-gray-100">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Income vs Expenses</h3>
+                    <p class="text-sm text-gray-500">Comparative financial analysis</p>
+                </div>
+            </div>
+            <div class="relative w-full h-80">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+
+        <!-- BOTTOM SPLIT -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- PIE CHART -->
+            <div class="glass-card rounded-2xl p-8 border border-gray-100 lg:col-span-1">
+                <h3 class="text-lg font-bold text-gray-900 mb-6">Expense Distribution</h3>
+                <div class="relative h-64 flex justify-center">
+                    <canvas id="pieChart"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-gray-400 text-xs uppercase font-bold">Total</span>
+                        <span class="text-xl font-bold text-gray-800">SRD 14.8k</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRANSACTIONS TABLE -->
+            <div class="glass-card rounded-2xl p-0 overflow-hidden border border-gray-100 lg:col-span-2">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Recent Transactions</h3>
+                        <p class="text-sm text-gray-500">Latest updates from ledger</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-ellipsis"></i></button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-semibold">
+                            <tr>
+                                <th class="px-6 py-4">Date</th>
+                                <th class="px-6 py-4">Description</th>
+                                <th class="px-6 py-4">Category</th>
+                                <th class="px-6 py-4 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">Oct 28</td>
+                                <td class="px-6 py-4">Monthly Lawyer Retainer</td>
+                                <td class="px-6 py-4"><span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">LEGAL</span></td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900">SRD 2,500.00</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">Oct 25</td>
+                                <td class="px-6 py-4">Union Hall Electricity</td>
+                                <td class="px-6 py-4"><span class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-xs font-bold">UTILS</span></td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900">SRD 340.50</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">Oct 20</td>
+                                <td class="px-6 py-4">Scholarship Fund Deposit</td>
+                                <td class="px-6 py-4"><span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-bold">BENEFIT</span></td>
+                                <td class="px-6 py-4 text-right font-bold text-green-600">SRD 1,000.00</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">Oct 15</td>
+                                <td class="px-6 py-4">Office Supplies (Staples)</td>
+                                <td class="px-6 py-4"><span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-bold">ADMIN</span></td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900">SRD 120.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="mt-12 border-t border-gray-200 pt-8 pb-8">
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-900">Contact informatie</h4>
+                        <p class="text-sm text-gray-500 mt-1">Rosebel Goldmines Werknemers Organisatie (RGWO)</p>
+                        <p class="text-sm text-gray-500">Opgericht op 15 November 2004</p>
+                        
+                        <div class="mt-4 space-y-2">
+                            <div class="flex items-center text-sm text-gray-700">
+                                <i class="fa-solid fa-location-dot w-6 text-blue-500"></i>
+                                <span>Burenstraat no. 46</span>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-700">
+                                <a href="tel:+597427094" class="flex items-center group hover:text-blue-600 transition">
+                                    <i class="fa-solid fa-phone w-6 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                                    <span>+597427094</span>
+                                </a>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-700">
+                                <a href="mailto:info@rgwo.sr" class="flex items-center group hover:text-blue-600 transition">
+                                    <i class="fa-solid fa-envelope w-6 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                                    <span>info@rgwo.sr</span>
+                                </a>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-700 md:hidden">
+                                <a href="https://wa.me/5978920277" target="_blank" class="flex items-center group hover:text-green-600 transition">
+                                    <i class="fa-brands fa-whatsapp w-6 text-green-500 group-hover:scale-110 transition-transform"></i>
+                                    <span>Contact ons</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- LOAN REQUEST MODAL -->
+    <div id="loanModal">
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Formulier invullen</h2>
+                        <p class="text-sm text-gray-500">Dien een leningaanvraag in ter beoordeling.</p>
+                    </div>
+                    <button onclick="toggleModal(false)" class="text-gray-400 hover:text-gray-600 transition">
+                        <i class="fa-solid fa-xmark text-2xl"></i>
+                    </button>
+                </div>
+
+                <form onsubmit="submitLoan(event)">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Volledige naam</label>
+                    <input type="text" id="name" class="form-input" placeholder="v.b. Anthony Amathardji" required>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Afdeling</label>
+                    <input type="text" id="department" class="form-input" placeholder="v.b. Regional Exploration" required>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer</label>
+                    <input type="text" id="badge" class="form-input" placeholder="v.b. 7224" required>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Doel lening</label>
+                    <input type="text" id="reason" class="form-input" placeholder="v.b. Auto reparatie" required>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Bedrag (SRD)</label>
+                    <div class="relative">
+                        <input type="number" id="amount" class="form-input" placeholder="Max. SRD 40000" max="40000" required>
+                    </div>
+
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Aflossingstermijn (maanden)</label>
+                    <div class="relative">
+                        <input type="number" id="term" class="form-input" placeholder="Max. 24 maanden" max="24" required>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition mt-2">
+                        Verzenden
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- TOAST NOTIFICATION SYSTEM ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let iconClass = type === 'error' ? 'fa-exclamation-circle' : (type === 'info' ? 'fa-info-circle' : 'fa-check-circle');
+            let colorClass = type === 'error' ? 'text-red-500' : (type === 'info' ? 'text-blue-500' : 'text-green-500');
+            
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} text-lg ${colorClass}"></i>
+                <span class="text-sm font-medium text-gray-800">${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- MODAL & CHART LOGIC ---
+        function toggleModal(show) {
+            const modal = document.getElementById('loanModal');
+            if (show) modal.classList.add('modal-active');
+            else modal.classList.remove('modal-active');
+        }
+
+        // Submit Loan Logic
+        async function submitLoan(event) {
+            event.preventDefault();
+            
+            const btn = event.target.querySelector('button');
+            const originalText = btn.innerText;
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                department: document.getElementById('department').value,
+                badge: document.getElementById('badge').value,
+                reason: document.getElementById('reason').value,
+                amount: document.getElementById('amount').value,
+                term: document.getElementById('term').value
+            };
+
+            btn.innerText = "Sending...";
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            try {
+                const response = await fetch('/api/loan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    showToast("Aanvraag succesvol ingediend!", 'success');
+                    toggleModal(false);
+                    event.target.reset();
+                } else {
+                    showToast("Er ging iets mis. Probeer het opnieuw.", 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Verbindingsfout met server.", 'error');
+            } finally {
+                btn.innerText = originalText;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        let mainChartInstance;
+        let pieChartInstance;
+
+        window.addEventListener('load', function() {
+            initCharts();
+        });
+
+        function initCharts() {
+            Chart.defaults.font.family = "'Poppins', sans-serif";
+            Chart.defaults.color = '#64748b';
+
+            const ctxMain = document.getElementById('mainChart').getContext('2d');
+            const incomeGradient = ctxMain.createLinearGradient(0, 0, 0, 400);
+            incomeGradient.addColorStop(0, '#3b82f6'); incomeGradient.addColorStop(1, '#60a5fa');
+            const expenseGradient = ctxMain.createLinearGradient(0, 0, 0, 400);
+            expenseGradient.addColorStop(0, '#ef4444'); expenseGradient.addColorStop(1, '#f87171');
+
+            mainChartInstance = new Chart(ctxMain, {
+                type: 'bar',
+                data: {
+                    labels: ['Dues', 'Events', 'Rent', 'Legal', 'Ops'],
+                    datasets: [
+                        { label: 'Income', data: [15000, 2000, 0, 0, 0], backgroundColor: incomeGradient, borderRadius: 6, barPercentage: 0.6 },
+                        { label: 'Expenses', data: [0, 0, 2200, 5200, 1500], backgroundColor: expenseGradient, borderRadius: 6, barPercentage: 0.6 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' }, border: { display: false } },
+                        x: { grid: { display: false }, border: { display: false } }
+                    },
+                    animation: { duration: 2000, easing: 'easeOutQuart' }
+                }
+            });
+
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Legal', 'Operations', 'Benefits', 'Rent', 'Misc'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#94a3b8'],
+                        borderWidth: 0, hoverOffset: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+            });
+        }
+
+        function updateTimeframe(period) {
+            const tabs = ['monthly', 'quarterly', 'yearly'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                btn.classList.remove('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm');
+                btn.classList.add('tab-inactive', 'bg-gray-200', 'text-gray-500');
+            });
+            const activeBtn = document.getElementById(`tab-${period}`);
+            activeBtn.classList.remove('tab-inactive', 'bg-gray-200', 'text-gray-500');
+            activeBtn.classList.add('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm');
+
+            if (period === 'monthly') updateChartData([15000, 2000, 0, 0, 0], [0, 0, 2200, 5200, 1500]);
+            else if (period === 'quarterly') updateChartData([45000, 6000, 0, 0, 0], [0, 0, 6600, 15600, 4500]);
+            else updateChartData([180000, 24000, 0, 0, 0], [0, 0, 26400, 62400, 18000]);
+        }
+
+        function updateChartData(incomeData, expenseData) {
+            if (mainChartInstance) {
+                mainChartInstance.data.datasets[0].data = incomeData;
+                mainChartInstance.data.datasets[1].data = expenseData;
+                mainChartInstance.update();
+            }
+        }
+    </script>
+</body>
+</html>
+```
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>RGWO portal</title>
+    
+    <!-- 1. FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 2. STYLING ENGINE (Tailwind CSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 3. ICONS (FontAwesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 4. CHARTING LIBRARY (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f8fafc; 
+            overflow-x: hidden;
+            overflow-y: auto;
+            height: auto;
+        }
+        
+        /* --- DASHBOARD STYLING --- */
+        .glass-card {
+            background: rgba(255,255,255, 0.95);
+            backdrop-filter: blur(10px);
+            border:1px solid rgba(255,255,255, 0.5);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
+
+        /* --- TABS --- */
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-active { background: #1e293b; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .tab-inactive { background: #e2e8f0; color: #64748b; }
+        .tab-inactive:hover { background: #cbd5e1; }
+
+        /* --- MODAL STYLING --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal-active .modal-overlay { display: flex; opacity: 1; }
+        .modal-active .modal-content { transform: scale(1); }
+
+        /* --- FORM --- */
+        .form-input {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            border: 2px solid #e2e8f0; border-radius: 10px;
+            outline: none; transition: border-color 0.3s;
+        }
+        .form-input:focus { border-color: #2563EB; }
+        
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2563EB;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease forwards;
+            min-width: 300px;
+        }
+        .toast.error { border-left-color: #EF4444; }
+        .toast.success { border-left-color: #10B981; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(20px); }
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+    <!-- HEADER -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                
+                <!-- LEFT: LOGO + TITLE -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-8 rounded-lg overflow-hidden shadow-lg shadow-blue-500/30">
+                        <img src="https://drive.google.com/thumbnail?id=1kkC39iHQ6ZCSuNccH9uEcKxtLXA84ypw&sz=s1024"
+                             alt="RGWO Logo"
+                             class="w-full h-full object-contain">
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900 tracking-tight">RGWO Portal</h1>
+                </div>
+
+                <!-- RIGHT: NAVIGATION LINKS (Desktop) -->
+                <div class="hidden md:flex items-center gap-2">
+                    <!-- UPDATED: Documenten Link -->
+                    <a href="https://drive.google.com/drive/folders/1FQm8Ryy0rz9rbl1HX01P8fR__GQ5eP-X" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition">Documenten</a>
+                    <a href="https://drive.google.com/open?id=1oFiROUJcntJiOYPzHZiPIFHyb3E6jstw&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-sm font-medium text-teal-600 hover:bg-teal-50 rounded-md transition">Bekendmakingen</a>
+                    <a href="https://drive.google.com/open?id=1KbjRO1OR25DhVGBARu6YRI9StpzM3Gmt&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-md transition">Projecten</a>
+                    <a href="https://drive.google.com/open?id=1-6hXZIvduRF05MyAfNjKFyz8z8uzQLRG&usp=drive_fs" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-md transition">Formulieren</a>
+                    <button onclick="toggleModal(true)" class="px-4 py-1.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm">Leningaanvraag</button>
+                </div>
+
+                <!-- MOBILE MENU BUTTON -->
+                <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition">
+                    <i class="fa-solid fa-bars text-gray-600 text-xl"></i>
+                </button>
+            </div>
+
+            <!-- MOBILE MENU DROPDOWN -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-gray-100 mt-2 pt-4 flex flex-col gap-2">
+                <!-- UPDATED: Documenten Link -->
+                <a href="https://drive.google.com/drive/folders/1FQm8Ryy0rz9rbl1HX01P8fR__GQ5eP-X" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open w-5 mr-2"></i> Documenten</a>
                 <a href="https://drive.google.com/open?id=1oFiROUJcntJiOYPzHZiPIFHyb3E6jstw&usp=drive_fs" target="_blank" class="block px-3 py-2 text-sm font-medium text-teal-600 hover:bg-teal-50 rounded-md transition"><i class="fa-solid fa-bullhorn w-5 mr-2"></i> Bekendmakingen</a>
                 <a href="https://drive.google.com/open?id=1KbjRO1OR25DhVGBARu6YRI9StpzM3Gmt&usp=drive_fs" target="_blank" class="block px-3 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-md transition"><i class="fa-solid fa-diagram-project w-5 mr-2"></i> Projecten</a>
                 <a href="https://drive.google.com/open?id=1-6hXZIvduRF05MyAfNjKFyz8z8uzQLRG&usp=drive_fs" target="_blank" class="block px-3 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-md transition"><i class="fa-solid fa-clipboard-list w-5 mr-2"></i> Formulieren</a>

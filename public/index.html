@@ -22,10 +22,10 @@
         .tab-inactive { background: #e2e8f0; color: #64748b; }
         .tab-inactive:hover { background: #cbd5e1; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 100; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
-        .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; transform: scale(0.9); transition: transform 0.3s ease; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; transform: scale(0.9); transition: transform 0.3s ease; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; }
         .modal-active .modal-overlay { display: flex; opacity: 1; }
         .modal-active .modal-content { transform: scale(1); }
-        .form-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; transition: border-color 0.3s; }
+        .form-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; transition: border-color 0.3s; font-family: 'Poppins', sans-serif; }
         .form-input:focus { border-color: #2563EB; }
         .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
         .toast { background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-left: 4px solid #2563EB; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease forwards; min-width: 300px; }
@@ -84,13 +84,13 @@
         </div>
     </div>
 
-    <!-- PROFILE SETUP MODAL (ONLY ASKS FOR BADGE & AFDELING) -->
+    <!-- PROFILE SETUP MODAL -->
     <div id="profileModal">
         <div class="modal-overlay">
             <div class="modal-content">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-gray-900">Welkom, <span id="welcome-name">Lid</span>!</h2>
-                    <p class="text-sm text-gray-500">Uw naam is al bekend. Vul uw werkgegeversgegevens in.</p>
+                    <p class="text-sm text-gray-500">Uw naam is al bekend. Vul uw werkgegevensgegevens in.</p>
                 </div>
                 <form onsubmit="submitProfile(event)">
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer</label>
@@ -162,11 +162,16 @@
         </div></div></div></footer>
     </main>
 
-    <!-- LOAN MODAL -->
+    <!-- INDEPENDENT LOAN MODAL -->
     <div id="loanModal"><div class="modal-overlay"><div class="modal-content">
-        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-gray-900">Formulier invullen</h2><button onclick="toggleModal(false, 'loanModal')" class="text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-2xl"></i></button></div>
+        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-gray-900">Leningaanvraag Formulier</h2><button onclick="toggleModal(false, 'loanModal')" class="text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-2xl"></i></button></div>
         <form onsubmit="submitLoan(event)">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Doel lening</label><input type="text" id="reason" class="form-input" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Volledige Naam</label><input type="text" id="loan-name" class="form-input" placeholder="v.b. Anthe Mathardji" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer</label><input type="text" id="loan-badge" class="form-input" placeholder="v.b. 7224" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Afdeling</label><input type="text" id="loan-afdeling" class="form-input" placeholder="v.b. Regional Exploration" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Telefoonnummer</label><input type="tel" id="loan-phone" class="form-input" placeholder="v.b. +5971234567" required>
+            <hr class="my-4 border-gray-200">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Doel lening</label><input type="text" id="reason" class="form-input" placeholder="v.b. Bouwen" required>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Bedrag (SRD)</label><input type="number" id="amount" class="form-input" max="40000" required>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Aflossingstermijn (maanden)</label><input type="number" id="term" class="form-input" max="24" required>
             <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition mt-2">Verzenden</button>
@@ -197,7 +202,6 @@
                 if (data.loggedIn) {
                     unlockDashboard();
                     if (data.needsSetup) {
-                        // Auto-fill their first name in the welcome message!
                         document.getElementById('welcome-name').innerText = data.firstName || 'Lid';
                         toggleModal(true, 'profileModal');
                     }
@@ -256,7 +260,15 @@
             event.preventDefault();
             const btn = event.target.querySelector('button');
             const originalText = btn.innerText;
-            const formData = { reason: document.getElementById('reason').value, amount: document.getElementById('amount').value, term: document.getElementById('term').value };
+            const formData = { 
+                name: document.getElementById('loan-name').value,
+                badge: document.getElementById('loan-badge').value,
+                afdeling: document.getElementById('loan-afdeling').value,
+                telefoon: document.getElementById('loan-phone').value,
+                reason: document.getElementById('reason').value, 
+                amount: document.getElementById('amount').value, 
+                term: document.getElementById('term').value 
+            };
             
             btn.innerText = "Sending...";
             btn.classList.add('opacity-75', 'cursor-not-allowed');

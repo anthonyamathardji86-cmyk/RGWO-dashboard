@@ -61,17 +61,16 @@ app.post('/api/auth', async (req, res) => {
             // Give Cookie
             res.cookie('rgwo_user', userData.id, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: process.env.NODE_ENV === 'production' });
             
-            // Combine first and last name to match your 'naam' column
+            // Combine first and last name
             const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
 
-            // AUTO-SAVE: Save to DB using your exact column names
+            // AUTO-SAVE: Save to DB
             const { error: dbError } = await supabase.from('RGWO leden').upsert({ 
                 telegram_id: parseInt(userData.id), 
                 telegram_username: userData.username || null, 
                 naam: fullName
             }, { onConflict: 'telegram_id' });
 
-            // LOGGING TO FIND THE EXACT ERROR
             if (dbError) {
                 console.error("[SUPABASE ERROR DETAILS]:", dbError.message, dbError.details);
             } else {
@@ -100,7 +99,7 @@ app.get('/api/me', async (req, res) => {
         const data = await response.json();
 
         if (['member', 'administrator', 'creator'].includes(data.result?.status)) {
-            // Check database for profile using 'naam' column
+            // Check database for profile
             const { data: member } = await supabase
                 .from('RGWO leden')
                 .select('naam, badge')
@@ -108,10 +107,8 @@ app.get('/api/me', async (req, res) => {
                 .single();
 
             if (member && member.badge) {
-                // Profile complete!
                 return res.json({ loggedIn: true, needsSetup: false, name: member.naam, badge: member.badge });
             } else {
-                // Missing Badge/Afdeling
                 return res.json({ loggedIn: true, needsSetup: true, firstName: member?.naam || '' });
             }
         } else {
@@ -151,37 +148,28 @@ app.post('/api/logout', (req, res) => {
 });
 
 // ==========================
-// 5. API: LOAN REQUEST TO TELEGRAM
+// 5. API: INDEPENDENT LOAN REQUEST TO TELEGRAM
 // ==========================
 app.post('/api/loan', async (req, res) => {
     try {
-        const userId = req.cookies.rgwo_user;
+        // Grab all fields directly from the form
+        const { name, badge, afdeling, telefoon, reason, amount, term } = req.body;
         
-        // Fetch identity from Database using 'naam' column
-        const { data: member } = await supabase
-            .from('RGWO leden')
-            .select('naam, telegram_username, badge, afdeling')
-            .eq('telegram_id', parseInt(userId))
-            .single();
+        if (!name || !reason || !amount) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
 
-        const { reason, amount, term } = req.body;
-        if (!reason || !amount) return res.status(400).json({ success: false, message: 'Missing fields' });
-
-        // Formatting for Treasurer
-        const fullName = member ? member.naam : 'Onbekend Lid';
-        const tgTag = member?.telegram_username ? `@${member.telegram_username}` : 'Onbekend';
-        const phoneNum = 'Niet in DB'; 
-        const dept = member?.afdeling || 'Onbekend';
-        const badgeNum = member?.badge || 'Onbekend';
+        // Secretly attach their login ID for admin verification
+        const tgTag = req.cookies.rgwo_user ? `Ingelogd (ID: ${req.cookies.rgwo_user})` : 'Niet ingelogd';
 
         const message = `
 <b>🛡️ NIEUWE LENINGAANVRAAG RGWO 🛡️</b>
 
 <b>👤 Aangevraagd door:</b>
-• <b>${fullName}</b> (Badge: ${badgeNum})
-• Telegram: <i>${tgTag}</i>
-• Telefoon: ${phoneNum}
-• Afdeling: ${dept}
+• <b>${name}</b> (Badge: ${badge || 'Onbekend'})
+• Telefoon: ${telefoon || 'Onbekend'}
+• Afdeling: ${afdeling || 'Onbekend'}
+• Status: <i>${tgTag}</i>
 
 <b>💰 Lening Details:</b>
 • Doel: ${reason}
@@ -195,7 +183,7 @@ app.post('/api/loan', async (req, res) => {
         });
 
         await Promise.all(sendPromises);
-        console.log(`[SUCCESS] Loan from ${fullName} sent to Telegram.`);
+        console.log(`[SUCCESS] Loan from ${name} sent to Telegram.`);
         res.json({ success: true });
     } catch (error) {
         console.error("[TELEGRAM ERROR]:", error.message);

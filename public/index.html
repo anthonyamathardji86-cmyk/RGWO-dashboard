@@ -11,9 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- INTEGRATED: Telegram Login Widget with YOUR Bot Username -->
-    <script src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="rgwo_loan_bot" data-size="large" data-radius="10" data-onauth="onTelegramAuth(user)" data-request-access="write"></script>
-
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; overflow-x: hidden; height: auto; }
         body.dashboard-locked { overflow: hidden; height: 100vh; }
@@ -92,8 +89,10 @@
             <h2 class="text-2xl font-bold text-gray-900 mb-2">Leden Portaal</h2>
             <p class="text-gray-500 mb-8 text-sm">Log in met je Telegram account om toegang te krijgen tot het dashboard.</p>
             
-            <!-- Telegram Button Container -->
-            <div id="telegram-login-container" class="flex justify-center mb-4"></div>
+            <!-- FIXED: Telegram Widget Script placed DIRECTLY here so the button renders in the right spot -->
+            <div id="telegram-login-container" class="flex justify-center mb-4">
+                <script src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="rgwo_loan_bot" data-size="large" data-radius="10" data-onauth="onTelegramAuth(user)" data-request-access="write"></script>
+            </div>
             
             <p id="auth-error" class="text-red-500 text-sm mt-4 hidden">Je bent geen lid van de RGWO Telegram groep.</p>
         </div>
@@ -176,10 +175,7 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // Move Telegram button into our custom container
         window.addEventListener('load', () => {
-            const widget = document.querySelector('script[src*="telegram-widget"]');
-            if(widget) document.getElementById('telegram-login-container').appendChild(widget);
             initCharts();
             checkSession();
         });

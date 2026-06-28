@@ -8,11 +8,18 @@ const cookieParser = require('cookie-parser');
 const app = express();
 
 // ==========================
-// 1. CONFIGURATION
+// 1. CONFIGURATION & DATABASE
 // ==========================
 const PORT = process.env.PORT || 3000;
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_IDS = (process.env.TELEGRAM_CHAT_ID || '').split(',').map(id => id.trim());
+
+// PostgreSQL database connectie voor Supabase
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Verplicht voor beveiligde verbinding met Supabase
+});
 
 // ==========================
 // 2. MIDDLEWARE
@@ -43,40 +50,65 @@ function validateTelegramLogin(userData) {
 
     const authDate = parseInt(userData.auth_date);
     const currentTime = Math.floor(Date.now() / 1000);
-    if (currentTime - authDate > 300) return false; // Expires in 5 mins
+    if (currentTime - authDate > 300) return false; // Verloopt na 5 minuten
 
     return true;
 }
 
 // ==========================
-// 4. AUTHENTICATION API
+// 4. AUTHENTICATION API (Met check op tabel: "RGWO leden")
 // ==========================
 app.post('/api/auth', (req, res) => {
     try {
         const userData = req.body;
 
         if (!validateTelegramLogin(userData)) {
-            return res.status(403).json({ success: false, message: 'Ongeldig inlogpoging.' });
+            return res.status(403).json({ success: false, message: 'Ongeldige inlogpoging.' });
         }
 
         const groupId = process.env.RGWO_GROUP_ID;
-        const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getChatMember?chat_id=${groupId}&user_id=${userData.id}`;
+        const url = `https://telegram.org{TELEGRAM_TOKEN}/getChatMember?chat_id=${groupId}&user_id=${userData.id}`;
         
         fetch(url)
             .then(response => response.json())
-            .then(data => {
+            .then(async (data) => {
                 if (['member', 'administrator', 'creator'].includes(data.result?.status)) {
+                    
+                    // Kijken of dit Telegram ID al bestaat in de tabel "RGWO leden"
+                    const userCheck = await pool.query('SELECT naam FROM "RGWO leden" WHERE telegram_id = $1', [userData.id.toString()]);
+                    
+                    let needsOnboarding = true;
+                    if (userCheck.rows.length > 0) {
+                        // Gebruiker bestaat; controleren of ze hun echte naam al hebben ingevuld
+                        if (userCheck.rows[0].naam) {
+                            needsOnboarding = false;
+                        }
+                    } else {
+                        // Gloednieuwe gebruiker: Voeg het basis Telegram ID en de username alvast toe
+                        await pool.query(
+                            'INSERT INTO "RGWO leden" (telegram_id, telegram_username) VALUES ($1, $2) ON CONFLICT (telegram_id) DO NOTHING',
+                            [userData.id.toString(), userData.username || null]
+                        );
+                    }
+
+                    // Sessie cookie aanmaken
                     res.cookie('rgwo_user', userData.id, { 
                         maxAge: 30 * 24 * 60 * 60 * 1000, 
                         httpOnly: true,
                         secure: process.env.NODE_ENV === 'production'
                     });
-                    res.json({ success: true, user: userData });
+
+                    res.json({ 
+                        success: true, 
+                        user: userData,
+                        needsOnboarding: needsOnboarding 
+                    });
                 } else {
                     res.status(403).json({ success: false, message: 'Je bent geen lid van de RGWO Telegram groep.' });
                 }
             })
-            .catch(() => {
+            .catch((err) => {
+                console.error(err);
                 res.status(500).json({ success: false, message: 'Fout bij het controleren van de groep.' });
             });
 
@@ -86,29 +118,80 @@ app.post('/api/auth', (req, res) => {
     }
 });
 
-// ACTIVE CHECK: Kicks out users instantly if removed from Telegram group
+// Endpoint om de echte naam, badge en afdeling op te slaan bij eerste keer inloggen
+app.post('/api/profile/setup', async (req, res) => {
+    const userId = req.cookies.rgwo_user;
+    if (!userId) return res.status(401).json({ success: false, message: 'Niet ingelogd' });
+
+    const { naam, badge, afdeling } = req.body;
+    if (!naam || !badge || !afdeling) {
+        return res.status(400).json({ success: false, message: 'Alle velden zijn verplicht' });
+    }
+
+    try {
+        await pool.query(
+            'UPDATE "RGWO leden" SET naam = $1, badge = $2, afdeling = $3 WHERE telegram_id = $4',
+            [naam.trim(), badge.trim(), afdeling.trim(), userId.toString()]
+        );
+        return res.json({ success: true });
+    } catch (error) {
+        console.error("[DB UPDATE ERROR]:", error.message);
+        return res.status(500).json({ success: false, message: 'Fout bij opslaan in database.' });
+    }
+});
+
+// ACTIVE CHECK: Schopt gebruikers eruit als ze uit de Telegram groep worden gehaald
 app.get('/api/me', async (req, res) => {
     const userId = req.cookies.rgwo_user;
     if (!userId) return res.status(401).json({ loggedIn: false });
 
     try {
         const groupId = process.env.RGWO_GROUP_ID;
-        const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getChatMember?chat_id=${groupId}&user_id=${userId}`;
+        const url = `https://telegram.org{TELEGRAM_TOKEN}/getChatMember?chat_id=${groupId}&user_id=${userId}`;
         
         const response = await fetch(url);
         const data = await response.json();
 
         if (['member', 'administrator', 'creator'].includes(data.result?.status)) {
-            return res.json({ loggedIn: true });
+            // Controleren of de gebruiker de onboarding al heeft voltooid
+            const userCheck = await pool.query('SELECT naam FROM "RGWO leden" WHERE telegram_id = $1', [userId.toString()]);
+            const needsOnboarding = userCheck.rows.length > 0 ? !userCheck.rows[0].naam : true;
+            
+            return res.json({ loggedIn: true, needsOnboarding: needsOnboarding });
         } else {
-            // User was kicked from the group! Destroy their cookie immediately.
             res.clearCookie('rgwo_user');
             return res.status(401).json({ loggedIn: false });
         }
     } catch (error) {
-        // If Telegram servers are down, let them stay logged in so the site doesn't crash
         console.error("[GROUP CHECK ERROR]:", error.message);
-        return res.json({ loggedIn: true }); 
+        return res.json({ loggedIn: true, needsOnboarding: false }); 
+    }
+});
+
+// Beveiligd overzicht voor het administratie-paneel (haalt alle "RGWO leden" op)
+app.get('/api/admin/members', async (req, res) => {
+    const userId = req.cookies.rgwo_user;
+    if (!userId) return res.status(401).json({ success: false, message: 'Niet ingelogd' });
+
+    try {
+        const groupId = process.env.RGWO_GROUP_ID;
+        const url = `https://telegram.org{TELEGRAM_TOKEN}/getChatMember?chat_id=${groupId}&user_id=${userId}`;
+        const tgResponse = await fetch(url);
+        const tgData = await tgResponse.json();
+
+        if (!['member', 'administrator', 'creator'].includes(tgData.result?.status)) {
+            res.clearCookie('rgwo_user');
+            return res.status(403).json({ success: false, message: 'Geen toegang.' });
+        }
+
+        const result = await pool.query(
+            'SELECT telegram_id, telegram_username, naam, badge, afdeling FROM "RGWO leden"'
+        );
+        res.json({ success: true, members: result.rows });
+
+    } catch (error) {
+        console.error("[ADMIN FETCH ERROR]:", error.message);
+        res.status(500).json({ success: false, message: 'Fout bij ophalen van ledenlijst.' });
     }
 });
 
@@ -144,7 +227,7 @@ app.post('/api/loan', async (req, res) => {
         `.trim();
 
         const sendPromises = CHAT_IDS.map(chatId => {
-            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            const url = `https://telegram.org{TELEGRAM_TOKEN}/sendMessage`;
             return fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

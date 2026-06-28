@@ -90,7 +90,7 @@
             <div class="modal-content">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-gray-900">Welkom, <span id="welcome-name">Lid</span>!</h2>
-                    <p class="text-sm text-gray-500">Uw naam is al bekend. Vul uw werkgegevensgegevens in.</p>
+                    <p class="text-sm text-gray-500">Vul uw gegevens in.</p>
                 </div>
                 <form onsubmit="submitProfile(event)">
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer</label>
@@ -166,13 +166,13 @@
     <div id="loanModal"><div class="modal-overlay"><div class="modal-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-gray-900">Leningaanvraag Formulier</h2><button onclick="toggleModal(false, 'loanModal')" class="text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-2xl"></i></button></div>
         <form onsubmit="submitLoan(event)">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Volledige Naam</label><input type="text" id="loan-name" class="form-input" placeholder="v.b. Anthe Mathardji" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Volledige Naam</label><input type="text" id="loan-name" class="form-input" placeholder="v.b. Anthony Amathardji" required>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer</label><input type="text" id="loan-badge" class="form-input" placeholder="v.b. 7224" required>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Afdeling</label><input type="text" id="loan-afdeling" class="form-input" placeholder="v.b. Regional Exploration" required>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Telefoonnummer</label><input type="tel" id="loan-phone" class="form-input" placeholder="v.b. +5971234567" required>
             <hr class="my-4 border-gray-200">
             <label class="block text-sm font-semibold text-gray-700 mb-1">Doel lening</label><input type="text" id="reason" class="form-input" placeholder="v.b. Bouwen" required>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Bedrag (SRD)</label><input type="number" id="amount" class="form-input" max="40000" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Bedrag (SRD)</label><input type="number" id="amount" class="form-input" max="30000" required>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Aflossingstermijn (maanden)</label><input type="number" id="term" class="form-input" max="24" required>
             <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition mt-2">Verzenden</button>
         </form>

@@ -256,7 +256,7 @@
             toast.className = `toast ${type}`;
             toast.innerHTML = `<i class="fa-solid ${iconClass} text-lg ${colorClass}"></i><span class="text-sm font-medium text-gray-800">${message}</span>`;
             container.appendChild(toast);
-            setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+            setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 5000);
         }
 
         async function submitLoan(event) {
@@ -278,10 +278,22 @@
 
             try {
                 const response = await fetch('/api/loan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-                if (response.ok) { showToast("Aanvraag succesvol ingediend!", 'success'); toggleModal(false, 'loanModal'); event.target.reset(); }
-                else { showToast("Er ging iets mis.", 'error'); }
-            } catch (error) { showToast("Verbindingsfout met server.", 'error'); } 
-            finally { btn.innerText = originalText; btn.classList.remove('opacity-75', 'cursor-not-allowed'); }
+                
+                if (response.ok) { 
+                    showToast("Aanvraag succesvol ingediend!", 'success'); 
+                    toggleModal(false, 'loanModal'); 
+                    event.target.reset(); 
+                } else {
+                    // Read the custom error message from the server (e.g. pending loan warning)
+                    const errorData = await response.json();
+                    showToast(errorData.message || "Er ging iets mis.", 'error'); 
+                }
+            } catch (error) { 
+                showToast("Verbindingsfout met server.", 'error'); 
+            } finally { 
+                btn.innerText = originalText; 
+                btn.classList.remove('opacity-75', 'cursor-not-allowed'); 
+            }
         }
 
         let mainChartInstance, pieChartInstance;

@@ -61,10 +61,10 @@ app.post('/api/auth', async (req, res) => {
             // Give Cookie
             res.cookie('rgwo_user', userData.id, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: process.env.NODE_ENV === 'production' });
             
-            // Save fake Telegram name
+            // Save fake Telegram name to its own column
             const telegramName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
 
-            // AUTO-SAVE: Save to DB (Fake name goes to telegram_naam)
+            // AUTO-SAVE: Save to DB (Fake name goes to telegram_naam, real naam stays empty until profile setup)
             const { error: dbError } = await supabase.from('RGWO leden').upsert({ 
                 telegram_id: parseInt(userData.id), 
                 telegram_username: userData.username || null, 
@@ -102,13 +102,14 @@ app.get('/api/me', async (req, res) => {
             // Check database for profile
             const { data: member } = await supabase
                 .from('RGWO leden')
-                .select('naam, badge')
+                .select('naam, telegram_naam, badge')
                 .eq('telegram_id', parseInt(userId))
                 .single();
 
             if (member && member.badge) {
                 return res.json({ loggedIn: true, needsSetup: false, name: member.naam, badge: member.badge });
             } else {
+                // Use the fake telegram name for the welcome message
                 return res.json({ loggedIn: true, needsSetup: true, firstName: member?.telegram_naam || '' });
             }
         } else {
@@ -160,4 +161,40 @@ app.post('/api/loan', async (req, res) => {
         }
 
         // Secretly attach their login ID for admin verification
-        const tgTag = req
+        const tgTag = req.cookies.rgwo_user ? `Ingelogd (ID: ${req.cookies.rgwo_user})` : 'Niet ingelogd';
+
+        const message = `
+<b>🛡️ NIEUWE LENINGAANVRAAG RGWO 🛡️</b>
+
+<b>👤 Aangevraagd door:</b>
+• <b>${name}</b> (Badge: ${badge || 'Onbekend'})
+• Telefoon: ${telefoon || 'Onbekend'}
+• Afdeling: ${afdeling || 'Onbekend'}
+• Status: <i>${tgTag}</i>
+
+<b>💰 Lening Details:</b>
+• Doel: ${reason}
+• Bedrag: <b>SRD ${amount}</b>
+• Termijn: ${term} maanden
+        `.trim();
+
+        const sendPromises = CHAT_IDS.map(chatId => {
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' }) });
+        });
+
+        await Promise.all(sendPromises);
+        console.log(`[SUCCESS] Loan from ${name} sent to Telegram.`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error("[TELEGRAM ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// ==========================
+// 6. START SERVER
+// ==========================
+app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+});

@@ -14,20 +14,44 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_IDS = (process.env.TELEGRAM_CHAT_ID || '').split(',').map(id => id.trim());
+const DOMAIN = process.env.DOMAIN || 'www.rgwo.org'; // Default to your domain
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 // ==========================
 // 2. MIDDLEWARE
 // ==========================
-app.set('trust proxy', 1);
+app.set('trust proxy', 1); // Important for Render/HTTPS detection
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors({ origin: '*' }));
+app.use(cors({ origin: '*' })); // In prod, you might restrict this to your domain
 app.use(express.json());
-app.use(cookieParser(process.env.COOKIE_SECRET || 'fallback_secret'));
+app.use(cookieParser(process.env.COOKIE_SECRET || 'fallback_secret_change_this'));
 
 // ==========================
-// 3. CUSTOM TELEGRAM VALIDATION
+// 3. TELEGRAM WEBHOOK REGISTRATION
+// ==========================
+// This runs automatically when the server starts on Render
+async function registerWebhook() {
+    if (process.env.NODE_ENV === 'production' && TELEGRAM_TOKEN) {
+        const webhookUrl = `https://${DOMAIN}/api/webhook`;
+        console.log(`🔗 Registering Webhook: ${webhookUrl}`);
+        
+        try {
+            const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/setWebhook?url=${webhookUrl}`);
+            const data = await response.json();
+            if (data.ok) {
+                console.log('✅ Webhook registered successfully!');
+            } else {
+                console.error('❌ Webhook registration failed:', data.description);
+            }
+        } catch (error) {
+            console.error('❌ Error setting webhook:', error.message);
+        }
+    }
+}
+
+// ==========================
+// 4. CUSTOM TELEGRAM VALIDATION
 // ==========================
 function validateTelegramLogin(userData) {
     const checkHash = userData.hash;
@@ -38,12 +62,12 @@ function validateTelegramLogin(userData) {
     if (hash !== checkHash) return false;
     const authDate = parseInt(userData.auth_date);
     const currentTime = Math.floor(Date.now() / 1000);
-    if (currentTime - authDate > 300) return false;
+    if (currentTime - authDate > 86400) return false; // Increased to 24hrs validity
     return true;
 }
 
 // ==========================
-// 4. AUTHENTICATION & PROFILE API
+// 5. AUTHENTICATION & PROFILE API
 // ==========================
 app.post('/api/auth', async (req, res) => {
     try {
@@ -56,7 +80,15 @@ app.post('/api/auth', async (req, res) => {
         const data = await response.json();
 
         if (['member', 'administrator', 'creator'].includes(data.result?.status)) {
-            res.cookie('rgwo_user', userData.id, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+            // SECURE COOKIE SETTINGS FOR PRODUCTION
+            const cookieOptions = {
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // true on rgwo.org
+                sameSite: 'lax' // Needed for Telegram callback
+            };
+
+            res.cookie('rgwo_user', userData.id, cookieOptions);
             const telegramName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
 
             const { error: dbError } = await supabase.from('RGWO leden').upsert({ 
@@ -66,8 +98,7 @@ app.post('/api/auth', async (req, res) => {
             }, { onConflict: 'telegram_id' });
 
             if (dbError) console.error("[SUPABASE ERROR DETAILS]:", dbError.message);
-            else console.log("[SUCCESS] User saved to database!");
-
+            
             res.json({ success: true, user: userData });
         } else {
             res.status(403).json({ success: false, message: 'Je bent geen lid van de RGWO Telegram groep.' });
@@ -89,9 +120,24 @@ app.get('/api/me', async (req, res) => {
         const data = await response.json();
 
         if (['member', 'administrator', 'creator'].includes(data.result?.status)) {
-            const { data: member } = await supabase.from('RGWO leden').select('naam, telegram_naam, badge').eq('telegram_id', parseInt(userId)).single();
-            if (member && member.badge) return res.json({ loggedIn: true, needsSetup: false, name: member.naam, badge: member.badge });
-            else return res.json({ loggedIn: true, needsSetup: true, firstName: member?.telegram_naam || '' });
+            const { data: member } = await supabase.from('RGWO leden').select('naam, telegram_naam, badge, role').eq('telegram_id', parseInt(userId)).single();
+            
+            // Check if profile is complete
+            if (member && member.badge) {
+                return res.json({ 
+                    loggedIn: true, 
+                    needsSetup: false, 
+                    name: member.naam, 
+                    badge: member.badge,
+                    role: member.role // 'admin', 'board', etc.
+                });
+            } else {
+                return res.json({ 
+                    loggedIn: true, 
+                    needsSetup: true, 
+                    firstName: member?.telegram_naam || '' 
+                });
+            }
         } else {
             res.clearCookie('rgwo_user');
             return res.status(401).json({ loggedIn: false });
@@ -120,7 +166,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 // ==========================
-// 5. LOAN REQUEST (SINGLE PENDING LIMIT)
+// 6. LOAN REQUEST (SINGLE PENDING LIMIT)
 // ==========================
 app.post('/api/loan', async (req, res) => {
     try {
@@ -138,13 +184,11 @@ app.post('/api/loan', async (req, res) => {
             .single();
 
         if (pendingLoan) {
-            // Block the request and send custom error message
             return res.status(400).json({ 
                 success: false, 
-                message: `U heeft al een openstaande aanvraag (${pendingLoan.loan_id}). Wacht tot deze is goedgekeurd of afgewezen.` 
+                message: `U heeft al een openstaande aanvraag (${pendingLoan.loan_id}).` 
             });
         }
-        // ----------------------------------------
 
         // --- GENERATE SEQUENTIAL ID ---
         const { count } = await supabase
@@ -153,7 +197,6 @@ app.post('/api/loan', async (req, res) => {
             
         const nextNumber = (count || 0) + 1;
         const loanId = `LOAN_${String(nextNumber).padStart(5, '0')}`;
-        // -------------------------------
 
         // 1. Save to Leningen table
         await supabase.from('Leningen').insert({ 
@@ -209,7 +252,7 @@ app.post('/api/loan', async (req, res) => {
 });
 
 // ==========================
-// 6. WEBHOOK FOR APPROVAL BUTTONS
+// 7. WEBHOOK FOR APPROVAL BUTTONS
 // ==========================
 app.post('/api/webhook', async (req, res) => {
     const callbackQuery = req.body.callback_query;
@@ -269,8 +312,9 @@ app.post('/api/webhook', async (req, res) => {
 });
 
 // ==========================
-// 7. START SERVER
+// 8. START SERVER & WEBHOOK
 // ==========================
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Server listening on port ${PORT}`);
+    await registerWebhook();
 });

@@ -315,7 +315,7 @@ app.post('/api/webhook', async (req, res) => {
 // ==========================
 
 // Categories that are allowed
-const VALID_CATEGORIES = ['formulieren', 'documenten', 'reglementen', 'verslagen', 'circulaires', 'overig'];
+const VALID_CATEGORIES = ['formulieren', 'documenten', 'bekendmakingen', 'projecten', 'reglementen', 'overig'];
 
 // File types that are allowed
 const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.png', '.jpg', '.jpeg'];

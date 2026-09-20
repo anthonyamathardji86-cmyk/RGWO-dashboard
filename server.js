@@ -580,3 +580,157 @@ app.listen(PORT, async () => {
     console.log(`Server listening on port ${PORT}`);
     await registerWebhook();
 });
+
+// ==========================
+// 10. ANNOUNCEMENTS (Mededelingen)
+// ==========================
+
+// --- GET active announcements (public) ---
+app.get('/api/announcements', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('Mededelingen')
+            .select('*')
+            .eq('is_active', true)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json({ success: true, announcements: data });
+    } catch (error) {
+        console.error("[ANNOUNCEMENTS ERROR]:", error.message);
+        res.status(500).json({ success: false, announcements: [] });
+    }
+});
+
+// --- GET all announcements (admin, includes inactive) ---
+app.get('/api/announcements/all', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+
+        const { data: member } = await supabase
+            .from('RGWO leden')
+            .select('role')
+            .eq('telegram_id', parseInt(userId))
+            .single();
+
+        if (!member || !['admin', 'board'].includes(member.role)) {
+            return res.status(403).json({ success: false });
+        }
+
+        const { data, error } = await supabase
+            .from('Mededelingen')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json({ success: true, announcements: data });
+    } catch (error) {
+        console.error("[ANNOUNCEMENTS ALL ERROR]:", error.message);
+        res.status(500).json({ success: false, announcements: [] });
+    }
+});
+
+// --- CREATE announcement (admin only) ---
+app.post('/api/announcements', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false, message: 'Niet ingelogd.' });
+
+        const { data: member } = await supabase
+            .from('RGWO leden')
+            .select('role')
+            .eq('telegram_id', parseInt(userId))
+            .single();
+
+        if (!member || !['admin', 'board'].includes(member.role)) {
+            return res.status(403).json({ success: false, message: 'Geen beheerdersrechten.' });
+        }
+
+        const { message, type } = req.body;
+        if (!message) return res.status(400).json({ success: false, message: 'Bericht is verplicht.' });
+
+        const validTypes = ['info', 'warning', 'urgent'];
+        const annType = validTypes.includes(type) ? type : 'info';
+
+        const { data: newAnn, error } = await supabase
+            .from('Mededelingen')
+            .insert({ message, type: annType })
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, announcement: newAnn });
+    } catch (error) {
+        console.error("[ANNOUNCEMENT CREATE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// --- UPDATE announcement (admin only) ---
+app.patch('/api/announcements/:id', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+
+        const { data: member } = await supabase
+            .from('RGWO leden')
+            .select('role')
+            .eq('telegram_id', parseInt(userId))
+            .single();
+
+        if (!member || !['admin', 'board'].includes(member.role)) {
+            return res.status(403).json({ success: false });
+        }
+
+        const annId = req.params.id;
+        const { message, type, is_active } = req.body;
+
+        const updates = {};
+        if (message !== undefined) updates.message = message;
+        if (type !== undefined) updates.type = type;
+        if (is_active !== undefined) updates.is_active = is_active;
+
+        const { data, error } = await supabase
+            .from('Mededelingen')
+            .update(updates)
+            .eq('id', annId)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, announcement: data });
+    } catch (error) {
+        console.error("[ANNOUNCEMENT UPDATE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// --- DELETE announcement (admin only) ---
+app.delete('/api/announcements/:id', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+
+        const { data: member } = await supabase
+            .from('RGWO leden')
+            .select('role')
+            .eq('telegram_id', parseInt(userId))
+            .single();
+
+        if (!member || !['admin', 'board'].includes(member.role)) {
+            return res.status(403).json({ success: false });
+        }
+
+        const { error } = await supabase
+            .from('Mededelingen')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) {
+        console.error("[ANNOUNCEMENT DELETE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});

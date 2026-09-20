@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>RGWO portal</title>
     
-    <!-- PWA WEB APP SETTINGS (For "Add to Home Screen" icon) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#2563EB">
@@ -43,33 +42,75 @@
         @keyframes fadeOut { to { opacity: 0; transform: translateX(20px); } }
 
         /* Document category buttons */
-        .doc-cat-btn {
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            padding: 16px 10px; border-radius: 14px; border: 2px solid #e2e8f0;
-            background: #f8fafc; cursor: pointer; transition: all 0.2s ease;
-        }
+        .doc-cat-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 10px; border-radius: 14px; border: 2px solid #e2e8f0; background: #f8fafc; cursor: pointer; transition: all 0.2s ease; }
         .doc-cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .doc-cat-btn.cat-blue { border-color: #bfdbfe; background: #eff6ff; }
-        .doc-cat-btn.cat-blue:hover { background: #dbeafe; }
-        .doc-cat-btn.cat-amber { border-color: #fde68a; background: #fffbeb; }
-        .doc-cat-btn.cat-amber:hover { background: #fef3c7; }
-        .doc-cat-btn.cat-teal { border-color: #99f6e4; background: #f0fdfa; }
-        .doc-cat-btn.cat-teal:hover { background: #ccfbf1; }
-        .doc-cat-btn.cat-purple { border-color: #d8b4fe; background: #faf5ff; }
-        .doc-cat-btn.cat-purple:hover { background: #f3e8ff; }
-        .doc-cat-btn.cat-orange { border-color: #fed7aa; background: #fff7ed; }
-        .doc-cat-btn.cat-orange:hover { background: #ffedd5; }
-        .doc-cat-btn.cat-gray { border-color: #d1d5db; background: #f9fafb; }
-        .doc-cat-btn.cat-gray:hover { background: #f3f4f6; }
-
-        /* Document file link */
-        .doc-file-link {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 14px; border-radius: 10px;
-            text-decoration: none; color: #1e293b;
-            transition: background 0.15s ease;
-        }
+        .doc-cat-btn.cat-blue { border-color: #bfdbfe; background: #eff6ff; } .doc-cat-btn.cat-blue:hover { background: #dbeafe; }
+        .doc-cat-btn.cat-amber { border-color: #fde68a; background: #fffbeb; } .doc-cat-btn.cat-amber:hover { background: #fef3c7; }
+        .doc-cat-btn.cat-teal { border-color: #99f6e4; background: #f0fdfa; } .doc-cat-btn.cat-teal:hover { background: #ccfbf1; }
+        .doc-cat-btn.cat-purple { border-color: #d8b4fe; background: #faf5ff; } .doc-cat-btn.cat-purple:hover { background: #f3e8ff; }
+        .doc-cat-btn.cat-orange { border-color: #fed7aa; background: #fff7ed; } .doc-cat-btn.cat-orange:hover { background: #ffedd5; }
+        .doc-cat-btn.cat-gray { border-color: #d1d5db; background: #f9fafb; } .doc-cat-btn.cat-gray:hover { background: #f3f4f6; }
+        .doc-file-link { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #1e293b; transition: background 0.15s ease; }
         .doc-file-link:hover { background: #f1f5f9; }
+
+        /* ===== ANNOUNCEMENT BANNER ===== */
+        #announcement-banner {
+            display: none;
+            overflow: hidden;
+            position: relative;
+            padding: 0;
+            white-space: nowrap;
+        }
+        #announcement-banner.visible {
+            display: block;
+        }
+        #announcement-banner.banner-info    { background: #2563eb; color: white; }
+        #announcement-banner.banner-warning  { background: #d97706; color: white; }
+        #announcement-banner.banner-urgent   { background: #dc2626; color: white; }
+
+        .banner-inner {
+            display: flex;
+            align-items: center;
+        }
+        .banner-track {
+            display: flex;
+            animation: bannerScroll var(--banner-speed, 30s) linear infinite;
+            padding: 10px 0;
+        }
+        .banner-text {
+            padding-right: 80px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .banner-text .separator {
+            margin: 0 20px;
+            opacity: 0.5;
+        }
+        @keyframes bannerScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .banner-close {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: inherit;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            z-index: 2;
+            transition: background 0.2s;
+        }
+        .banner-close:hover { background: rgba(255,255,255,0.35); }
     </style>
 </head>
 <body class="text-gray-800 antialiased dashboard-locked">
@@ -84,13 +125,8 @@
                     <h1 class="text-xl font-bold text-gray-900 tracking-tight">RGWO Portal</h1>
                 </div>
                 <div class="hidden md:flex items-center gap-2">
-                    
-                    <!-- SECRET ADMIN/BOARD BUTTON (Hidden from normal members) -->
                     <a href="/beheer.html" id="admin-btn" class="hidden px-3 py-1.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-md transition shadow-sm"><i class="fa-solid fa-gear mr-1"></i> Beheer</a>
-
-                    <!-- DOCUMENTEN BUTTON (replaces 4 Google Drive links) -->
                     <button onclick="toggleModal(true, 'docModal')" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open mr-1"></i> Documenten</button>
-
                     <button onclick="toggleModal(true, 'loanModal')" class="px-4 py-1.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm">Leningaanvraag</button>
                     <button onclick="logout()" class="px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                 </div>
@@ -99,17 +135,25 @@
                 </button>
             </div>
             <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-gray-100 mt-2 pt-4 flex flex-col gap-2">
-                <!-- MOBILE SECRET ADMIN BUTTON -->
                 <a href="/beheer.html" id="admin-btn-mobile" class="hidden w-full text-left px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-gear w-5 mr-2"></i> Beheer</a>
-                
-                <!-- MOBILE DOCUMENTEN BUTTON (replaces 4 Google Drive links) -->
                 <button onclick="toggleModal(true, 'docModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open w-5 mr-2"></i> Documenten</button>
-
                 <button onclick="toggleModal(true, 'loanModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-hand-holding-dollar w-5 mr-2"></i> Leningaanvraag</button>
                 <button onclick="logout()" class="w-full text-left px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket w-5 mr-2"></i> Logout</button>
             </div>
         </div>
     </header>
+
+    <!-- ANNOUNCEMENT BANNER (looping) -->
+    <div id="announcement-banner">
+        <button class="banner-close" onclick="dismissBanner()"><i class="fa-solid fa-xmark"></i></button>
+        <div class="banner-inner">
+            <div class="banner-track" id="banner-track">
+                <!-- Content is duplicated by JS for seamless loop -->
+                <span class="banner-text" id="banner-text-1"></span>
+                <span class="banner-text" id="banner-text-2"></span>
+            </div>
+        </div>
+    </div>
 
     <!-- LOCK SCREEN -->
     <div id="dashboard-lock">
@@ -153,23 +197,15 @@
             <div class="modal-content" style="max-width: 550px;">
                 <div class="flex justify-between items-center mb-5">
                     <h2 class="text-xl font-bold text-gray-900" id="doc-modal-title"><i class="fa-solid fa-folder-open mr-2 text-blue-500"></i>Documenten</h2>
-                    <button onclick="closeDocModal()" class="text-gray-400 hover:text-gray-600 transition">
-                        <i class="fa-solid fa-xmark text-2xl"></i>
-                    </button>
+                    <button onclick="closeDocModal()" class="text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
                 </div>
-
-                <!-- View 1: Category Buttons -->
                 <div id="doc-categories-view">
                     <div id="doc-buttons" class="grid grid-cols-2 gap-3">
                         <p class="col-span-2 text-center text-gray-400 py-6 text-sm">Documenten laden...</p>
                     </div>
                 </div>
-
-                <!-- View 2: File List (hidden by default) -->
                 <div id="doc-files-view" class="hidden">
-                    <button onclick="showDocCategories()" class="mb-4 text-sm text-blue-600 hover:text-blue-800 font-semibold transition">
-                        <i class="fa-solid fa-arrow-left mr-1"></i> Terug naar categorieën
-                    </button>
+                    <button onclick="showDocCategories()" class="mb-4 text-sm text-blue-600 hover:text-blue-800 font-semibold transition"><i class="fa-solid fa-arrow-left mr-1"></i> Terug naar categorieën</button>
                     <div id="doc-file-list"></div>
                 </div>
             </div>
@@ -288,8 +324,8 @@
                         toggleModal(true, 'profileModal');
                     }
 
-                    // Load documents from Supabase
                     loadDocuments();
+                    loadAnnouncements();
                 }
             }).catch(() => {});
         }
@@ -310,26 +346,13 @@
             const naam = document.getElementById('profile-naam').value;
             const badge = document.getElementById('profile-badge').value;
             const afdeling = document.getElementById('profile-afdeling').value;
-
             try {
-                const response = await fetch('/api/profile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ naam, badge, afdeling })
-                });
-
-                if (response.ok) {
-                    toggleModal(false, 'profileModal');
-                    showToast("Profiel succesvol opgeslagen!", 'success');
-                }
-            } catch (error) {
-                showToast("Fout bij opslaan profiel.", 'error');
-            }
+                const response = await fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ naam, badge, afdeling }) });
+                if (response.ok) { toggleModal(false, 'profileModal'); showToast("Profiel succesvol opgeslagen!", 'success'); }
+            } catch (error) { showToast("Fout bij opslaan profiel.", 'error'); }
         }
 
-        function logout() {
-            fetch('/api/logout', { method: 'POST' }).finally(() => window.location.reload());
-        }
+        function logout() { fetch('/api/logout', { method: 'POST' }).finally(() => window.location.reload()); }
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -346,44 +369,20 @@
             event.preventDefault();
             const btn = event.target.querySelector('button');
             const originalText = btn.innerText;
-            const formData = { 
-                name: document.getElementById('loan-name').value,
-                badge: document.getElementById('loan-badge').value,
-                afdeling: document.getElementById('loan-afdeling').value,
-                telefoon: document.getElementById('loan-phone').value,
-                reason: document.getElementById('reason').value, 
-                amount: document.getElementById('amount').value, 
-                term: document.getElementById('term').value 
-            };
-            
-            btn.innerText = "Sending...";
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
-
+            const formData = { name: document.getElementById('loan-name').value, badge: document.getElementById('loan-badge').value, afdeling: document.getElementById('loan-afdeling').value, telefoon: document.getElementById('loan-phone').value, reason: document.getElementById('reason').value, amount: document.getElementById('amount').value, term: document.getElementById('term').value };
+            btn.innerText = "Sending..."; btn.classList.add('opacity-75', 'cursor-not-allowed');
             try {
                 const response = await fetch('/api/loan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-                
-                if (response.ok) { 
-                    showToast("Aanvraag succesvol ingediend!", 'success'); 
-                    toggleModal(false, 'loanModal'); 
-                    event.target.reset(); 
-                } else {
-                    const errorData = await response.json();
-                    showToast(errorData.message || "Er ging iets mis.", 'error'); 
-                }
-            } catch (error) { 
-                showToast("Verbindingsfout met server.", 'error'); 
-            } finally { 
-                btn.innerText = originalText; 
-                btn.classList.remove('opacity-75', 'cursor-not-allowed'); 
-            }
+                if (response.ok) { showToast("Aanvraag succesvol ingediend!", 'success'); toggleModal(false, 'loanModal'); event.target.reset(); }
+                else { const errorData = await response.json(); showToast(errorData.message || "Er ging iets mis.", 'error'); }
+            } catch (error) { showToast("Verbindingsfout met server.", 'error'); }
+            finally { btn.innerText = originalText; btn.classList.remove('opacity-75', 'cursor-not-allowed'); }
         }
 
         // ===================================
         // DOCUMENTS — Supabase Integration
         // ===================================
-
         var docData = {};
-
         var DOC_CATEGORIES = {
             formulieren:     { icon: 'fa-clipboard-list',   label: 'Formulieren',    catClass: 'cat-amber',   iconColor: 'text-amber-600',  countColor: 'text-amber-600' },
             documenten:      { icon: 'fa-folder-open',      label: 'Documenten',     catClass: 'cat-blue',    iconColor: 'text-blue-600',   countColor: 'text-blue-600' },
@@ -392,109 +391,89 @@
             reglementen:     { icon: 'fa-scale-balanced',   label: 'Reglementen',    catClass: 'cat-orange',  iconColor: 'text-orange-600', countColor: 'text-orange-600' },
             overig:          { icon: 'fa-ellipsis',         label: 'Overig',         catClass: 'cat-gray',    iconColor: 'text-gray-600',   countColor: 'text-gray-500' }
         };
-
-        function getFileIconClass(type) {
-            var icons = {
-                pdf: 'fa-file-pdf', doc: 'fa-file-word', docx: 'fa-file-word',
-                xls: 'fa-file-excel', xlsx: 'fa-file-excel',
-                ppt: 'fa-file-powerpoint', pptx: 'fa-file-powerpoint',
-                png: 'fa-file-image', jpg: 'fa-file-image', jpeg: 'fa-file-image'
-            };
-            return icons[type] || 'fa-file';
-        }
-
-        function getFileIconColor(type) {
-            if (type === 'pdf') return 'text-red-500';
-            if (type === 'doc' || type === 'docx') return 'text-blue-500';
-            if (type === 'xls' || type === 'xlsx') return 'text-green-600';
-            if (type === 'ppt' || type === 'pptx') return 'text-orange-500';
-            return 'text-gray-400';
-        }
+        function getFileIconClass(type) { var icons = { pdf: 'fa-file-pdf', doc: 'fa-file-word', docx: 'fa-file-word', xls: 'fa-file-excel', xlsx: 'fa-file-excel', ppt: 'fa-file-powerpoint', pptx: 'fa-file-powerpoint', png: 'fa-file-image', jpg: 'fa-file-image', jpeg: 'fa-file-image' }; return icons[type] || 'fa-file'; }
+        function getFileIconColor(type) { if (type === 'pdf') return 'text-red-500'; if (type === 'doc' || type === 'docx') return 'text-blue-500'; if (type === 'xls' || type === 'xlsx') return 'text-green-600'; if (type === 'ppt' || type === 'pptx') return 'text-orange-500'; return 'text-gray-400'; }
 
         function loadDocuments() {
-            fetch('/api/documents/grouped')
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    if (data.success) {
-                        docData = data.grouped;
-                        renderDocCategories();
-                    }
-                })
-                .catch(function(err) {
-                    console.error('Failed to load documents:', err);
-                    var container = document.getElementById('doc-buttons');
-                    if (container) container.innerHTML = '<p class="col-span-2 text-center text-gray-400 py-6 text-sm">Kan documenten niet laden.</p>';
-                });
+            fetch('/api/documents/grouped').then(function(res) { return res.json(); }).then(function(data) { if (data.success) { docData = data.grouped; renderDocCategories(); } }).catch(function(err) { console.error('Failed to load documents:', err); });
         }
-
         function renderDocCategories() {
-            var container = document.getElementById('doc-buttons');
-            if (!container) return;
-            container.innerHTML = '';
-
-            var categories = Object.keys(DOC_CATEGORIES);
-
-            categories.forEach(function(cat) {
-                var config = DOC_CATEGORIES[cat];
-                var docs = docData[cat] || [];
-                var count = docs.length;
-
-                var btn = document.createElement('button');
-                btn.className = 'doc-cat-btn ' + config.catClass;
-                btn.innerHTML =
-                    '<i class="fa-solid ' + config.icon + ' text-2xl ' + config.iconColor + '"></i>' +
-                    '<span class="text-sm font-semibold text-gray-700">' + config.label + '</span>' +
-                    '<span class="text-xs font-bold ' + config.countColor + '">' + count + ' bestand' + (count !== 1 ? 'en' : '') + '</span>';
-                btn.onclick = function() { showDocFiles(cat); };
-                container.appendChild(btn);
+            var container = document.getElementById('doc-buttons'); if (!container) return; container.innerHTML = '';
+            Object.keys(DOC_CATEGORIES).forEach(function(cat) {
+                var config = DOC_CATEGORIES[cat]; var docs = docData[cat] || []; var count = docs.length;
+                var btn = document.createElement('button'); btn.className = 'doc-cat-btn ' + config.catClass;
+                btn.innerHTML = '<i class="fa-solid ' + config.icon + ' text-2xl ' + config.iconColor + '"></i><span class="text-sm font-semibold text-gray-700">' + config.label + '</span><span class="text-xs font-bold ' + config.countColor + '">' + count + ' bestand' + (count !== 1 ? 'en' : '') + '</span>';
+                btn.onclick = function() { showDocFiles(cat); }; container.appendChild(btn);
             });
         }
-
         function showDocFiles(category) {
-            var config = DOC_CATEGORIES[category];
-            var docs = docData[category] || [];
-
-            document.getElementById('doc-modal-title').innerHTML =
-                '<i class="fa-solid ' + config.icon + ' mr-2 ' + config.iconColor + '"></i>' + config.label;
-            document.getElementById('doc-categories-view').classList.add('hidden');
-            document.getElementById('doc-files-view').classList.remove('hidden');
-
+            var config = DOC_CATEGORIES[category]; var docs = docData[category] || [];
+            document.getElementById('doc-modal-title').innerHTML = '<i class="fa-solid ' + config.icon + ' mr-2 ' + config.iconColor + '"></i>' + config.label;
+            document.getElementById('doc-categories-view').classList.add('hidden'); document.getElementById('doc-files-view').classList.remove('hidden');
             var listContainer = document.getElementById('doc-file-list');
+            if (docs.length === 0) { listContainer.innerHTML = '<p class="text-center text-gray-400 py-10 text-sm">Nog geen documenten in deze categorie.</p>'; return; }
+            listContainer.innerHTML = docs.map(function(doc) { var icon = getFileIconClass(doc.type); var iconColor = getFileIconColor(doc.type); return '<a href="' + doc.url + '" target="_blank" rel="noopener" class="doc-file-link group"><i class="fa-solid ' + icon + ' text-xl ' + iconColor + '"></i><div class="flex-1 min-w-0"><span class="block text-sm font-semibold text-gray-800 truncate">' + doc.title + '</span>' + (doc.description ? '<span class="block text-xs text-gray-400 truncate">' + doc.description + '</span>' : '') + '</div><i class="fa-solid fa-arrow-up-right-from-square text-gray-300 group-hover:text-blue-500 transition"></i></a>'; }).join('');
+        }
+        function showDocCategories() { document.getElementById('doc-modal-title').innerHTML = '<i class="fa-solid fa-folder-open mr-2 text-blue-500"></i>Documenten'; document.getElementById('doc-categories-view').classList.remove('hidden'); document.getElementById('doc-files-view').classList.add('hidden'); }
+        function closeDocModal() { toggleModal(false, 'docModal'); setTimeout(showDocCategories, 300); }
 
-            if (docs.length === 0) {
-                listContainer.innerHTML = '<p class="text-center text-gray-400 py-10 text-sm">Nog geen documenten in deze categorie.</p>';
-                return;
-            }
-
-            listContainer.innerHTML = docs.map(function(doc) {
-                var icon = getFileIconClass(doc.type);
-                var iconColor = getFileIconColor(doc.type);
-                return '<a href="' + doc.url + '" target="_blank" rel="noopener" class="doc-file-link group">' +
-                    '<i class="fa-solid ' + icon + ' text-xl ' + iconColor + '"></i>' +
-                    '<div class="flex-1 min-w-0">' +
-                        '<span class="block text-sm font-semibold text-gray-800 truncate">' + doc.title + '</span>' +
-                        (doc.description ? '<span class="block text-xs text-gray-400 truncate">' + doc.description + '</span>' : '') +
-                    '</div>' +
-                    '<i class="fa-solid fa-arrow-up-right-from-square text-gray-300 group-hover:text-blue-500 transition"></i>' +
-                '</a>';
-            }).join('');
+        // ===================================
+        // ANNOUNCEMENT BANNER — Supabase
+        // ===================================
+        function loadAnnouncements() {
+            fetch('/api/announcements')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success && data.announcements.length > 0) {
+                        renderBanner(data.announcements);
+                    }
+                })
+                .catch(function(err) { console.error('Failed to load announcements:', err); });
         }
 
-        function showDocCategories() {
-            document.getElementById('doc-modal-title').innerHTML = '<i class="fa-solid fa-folder-open mr-2 text-blue-500"></i>Documenten';
-            document.getElementById('doc-categories-view').classList.remove('hidden');
-            document.getElementById('doc-files-view').classList.add('hidden');
+        function renderBanner(announcements) {
+            var banner = document.getElementById('announcement-banner');
+            var text1 = document.getElementById('banner-text-1');
+            var text2 = document.getElementById('banner-text-2');
+
+            // Determine banner color based on most urgent type
+            var hasUrgent = announcements.some(function(a) { return a.type === 'urgent'; });
+            var hasWarning = announcements.some(function(a) { return a.type === 'warning'; });
+
+            banner.classList.remove('banner-info', 'banner-warning', 'banner-urgent');
+            if (hasUrgent) banner.classList.add('banner-urgent');
+            else if (hasWarning) banner.classList.add('banner-warning');
+            else banner.classList.add('banner-info');
+
+            // Build the text with separators between announcements
+            var html = announcements.map(function(a) {
+                var icon = '';
+                if (a.type === 'urgent') icon = '<i class="fa-solid fa-circle-exclamation"></i> ';
+                else if (a.type === 'warning') icon = '<i class="fa-solid fa-triangle-exclamation"></i> ';
+                else icon = '<i class="fa-solid fa-circle-info"></i> ';
+                return icon + a.message;
+            }).join('  <span class="separator">★</span>  ');
+
+            // Duplicate for seamless loop
+            text1.innerHTML = html;
+            text2.innerHTML = html;
+
+            // Adjust speed based on text length (longer text = slower)
+            var charCount = html.length;
+            var speed = Math.max(15, Math.min(60, charCount * 0.15));
+            document.getElementById('banner-track').style.setProperty('--banner-speed', speed + 's');
+
+            banner.classList.add('visible');
         }
 
-        function closeDocModal() {
-            toggleModal(false, 'docModal');
-            setTimeout(showDocCategories, 300);
+        function dismissBanner() {
+            var banner = document.getElementById('announcement-banner');
+            banner.classList.remove('visible');
         }
 
         // ===================================
         // CHARTS
         // ===================================
-
         let mainChartInstance, pieChartInstance;
         function initCharts() {
             Chart.defaults.font.family = "'Poppins', sans-serif"; Chart.defaults.color = '#64748b';
@@ -505,7 +484,6 @@
             const ctxPie = document.getElementById('pieChart').getContext('2d');
             pieChartInstance = new Chart(ctxPie, { type: 'doughnut', data: { labels: ['Legal', 'Operations', 'Benefits', 'Rent', 'Misc'], datasets: [{ data: [35, 25, 20, 15, 5], backgroundColor: ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#94a3b8'], borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } } });
         }
-
         function updateTimeframe(period) {
             const tabs = ['monthly', 'quarterly', 'yearly'];
             tabs.forEach(t => { const btn = document.getElementById(`tab-${t}`); btn.classList.remove('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm'); btn.classList.add('tab-inactive', 'bg-gray-200', 'text-gray-500'); });

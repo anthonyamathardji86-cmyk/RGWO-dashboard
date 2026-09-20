@@ -17,7 +17,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 // ==========================
 // 2. MIDDLEWARE
 // ==========================
-app.set('trust proxy', 1); // Important for Render/HTTPS detection
+app.set('trust proxy', 1);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({ origin: '*' }));
 app.use(express.json());
@@ -30,7 +30,7 @@ async function requireTelegramAuth(req, res, next) {
     return res.status(401).json({ success: false, message: 'Niet ingelogd' });
   }
 
-  const groupId = CHAT_IDS[0]; // Primary group ID
+  const groupId = CHAT_IDS[0];
   const chatCheckUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getChatMember?chat_id=${groupId}&user_id=${userId}`;
 
   try {
@@ -90,12 +90,12 @@ function validateTelegramLogin(userData) {
   if (hash !== checkHash) return false;
   const authDate = parseInt(userData.auth_date);
   const currentTime = Math.floor(Date.now() / 1000);
-  if (currentTime - authDate > 86400) return false; // 24 hours validity
+  if (currentTime - authDate > 86400) return false;
   return true;
 }
 
 // ==========================
-// 5. AUTHENTICATION API
+// 5. AUTHENTICATION & PROFILE API
 // ==========================
 app.post('/api/auth', async (req, res) => {
   try {
@@ -141,7 +141,7 @@ app.post('/api/auth', async (req, res) => {
 app.get('/api/me', requireTelegramAuth, async (req, res) => {
   try {
     const { data: member } = await supabase.from('RGWO leden')
-      .select('naam, telegram_naam, badge, role')
+      .select('naam, telegram_naam, badge, afdeling, role')
       .eq('telegram_id', parseInt(req.userId))
       .single();
 
@@ -151,6 +151,7 @@ app.get('/api/me', requireTelegramAuth, async (req, res) => {
         needsSetup: false,
         name: member.naam,
         badge: member.badge,
+        afdeling: member.afdeling,
         role: member.role || 'member'
       });
     } else {
@@ -165,6 +166,27 @@ app.get('/api/me', requireTelegramAuth, async (req, res) => {
   }
 });
 
+// Profile setup endpoint triggered by "Ga naar Dashboard"
+app.post('/api/profile', requireTelegramAuth, async (req, res) => {
+  try {
+    const { name, badge, afdeling } = req.body;
+    const userId = parseInt(req.userId);
+
+    const { error } = await supabase.from('RGWO leden').update({
+      naam: name,
+      badge: badge,
+      afdeling: afdeling
+    }).eq('telegram_id', userId);
+
+    if (error) throw error;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("[PROFILE UPDATE ERROR]:", error.message);
+    res.status(500).json({ success: false, message: 'Fout bij opslaan profiel' });
+  }
+});
+
 app.post('/api/logout', (req, res) => {
   res.clearCookie('rgwo_user');
   res.json({ success: true });
@@ -173,8 +195,6 @@ app.post('/api/logout', (req, res) => {
 // ==========================
 // 6. DOCUMENTS & FORMULIEREN API
 // ==========================
-
-// Get list of documents/forms filtered by category ('Documenten', 'Bekendmakingen', 'Formulieren')
 app.get('/api/documents', requireTelegramAuth, async (req, res) => {
   const { category } = req.query;
 
@@ -194,7 +214,6 @@ app.get('/api/documents', requireTelegramAuth, async (req, res) => {
   }
 });
 
-// Generate a 60-second secure temporary download URL for private bucket files
 app.get('/api/documents/download', requireTelegramAuth, async (req, res) => {
   const { filePath } = req.query;
   if (!filePath) {
@@ -216,7 +235,7 @@ app.get('/api/documents/download', requireTelegramAuth, async (req, res) => {
 });
 
 // ==========================
-// 7. LOAN REQUEST (SINGLE PENDING LIMIT)
+// 7. LOAN REQUEST
 // ==========================
 app.post('/api/loan', requireTelegramAuth, async (req, res) => {
   try {
@@ -267,7 +286,7 @@ app.post('/api/webhook', async (req, res) => {
   const callbackQuery = req.body.callback_query;
   if (!callbackQuery) return res.sendStatus(200);
 
-  const action = callbackQuery.data; // e.g. 'approve_LOAN_00001'
+  const action = callbackQuery.data;
   const messageId = callbackQuery.message.message_id;
   const chatId = callbackQuery.message.chat.id;
 
@@ -307,7 +326,7 @@ app.post('/api/webhook', async (req, res) => {
 });
 
 // ==========================
-// 9. START SERVER & WEBHOOK
+// 9. START SERVER
 // ==========================
 app.listen(PORT, async () => {
   console.log(`Server listening on port ${PORT}`);

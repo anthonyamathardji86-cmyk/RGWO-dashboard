@@ -3,141 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RGWO — Documenten Beheer</title>
+    <title>RGWO — Beheer</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #0f172a; color: #e2e8f0;
-            min-height: 100vh; padding: 20px;
-        }
-
-        .admin-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 0; margin-bottom: 24px;
-            border-bottom: 1px solid #1e293b;
-        }
-        .admin-header h1 { font-size: 1.4rem; }
-        .admin-header a { color: #3b82f6; text-decoration: none; }
-
-        .card {
-            background: #1e293b; border-radius: 12px; padding: 24px;
-            margin-bottom: 24px; border: 1px solid #334155;
-        }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; padding: 20px; }
+        a { color: #2563eb; text-decoration: none; }
+        .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.4rem; }
+        .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .card h2 { margin-bottom: 16px; font-size: 1.1rem; }
-
-        .form-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .form-group { display: flex; flex-direction: column; gap: 4px; }
         .form-group.full { grid-column: 1 / -1; }
-
-        label { font-size: 0.8rem; color: #94a3b8; font-weight: 600; }
-
-        input, select, textarea {
-            background: #0f172a; border: 1px solid #334155;
-            color: #e2e8f0; padding: 10px 12px; border-radius: 8px;
-            font-size: 0.9rem;
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none; border-color: #3b82f6;
-        }
+        label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+        input, select, textarea { background: #f8fafc; border: 1px solid #e2e8f0; color: #1e293b; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; background: white; }
         input[type="file"] { padding: 8px; cursor: pointer; }
-
-        .btn-primary {
-            background: #3b82f6; color: white; border: none;
-            padding: 12px; border-radius: 8px; font-weight: 600;
-            cursor: pointer; font-size: 0.95rem;
-        }
-        .btn-primary:hover { background: #2563eb; }
+        textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+        .btn-primary { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+        .btn-primary:hover { background: #1d4ed8; }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        table {
-            width: 100%; border-collapse: collapse;
-        }
-        th {
-            text-align: left; padding: 10px 12px; font-size: 0.8rem;
-            color: #94a3b8; border-bottom: 1px solid #334155;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        td {
-            padding: 10px 12px; border-bottom: 1px solid #1e293b;
-            font-size: 0.9rem; vertical-align: middle;
-        }
-        tr:hover td { background: rgba(59,130,246,0.05); }
-
-        .badge {
-            display: inline-block; padding: 2px 8px; border-radius: 6px;
-            font-size: 0.75rem; font-weight: 600;
-        }
-        .badge-formulieren  { background: #1e3a5f; color: #60a5fa; }
-        .badge-documenten   { background: #064e3b; color: #34d399; }
-        .badge-reglementen  { background: #78350f; color: #fbbf24; }
-        .badge-verslagen    { background: #4c1d95; color: #a78bfa; }
-        .badge-circulaires  { background: #831843; color: #f472b6; }
-        .badge-overig       { background: #374151; color: #9ca3af; }
-        .badge-bekendmakingen { background: #042f2e; color: #5eead4; }
-        .badge-projecten      { background: #3b0764; color: #c084fc; }
-
-        .btn-sm {
-            padding: 6px 12px; border-radius: 6px; cursor: pointer;
-            font-size: 0.8rem; font-weight: 600; border: none; color: white;
-        }
-        .btn-view    { background: #3b82f6; }
-        .btn-view:hover    { background: #2563eb; }
-        .btn-hide    { background: #374151; color: #9ca3af; }
-        .btn-hide:hover    { background: #4b5563; }
-        .btn-delete  { background: #dc2626; }
-        .btn-delete:hover  { background: #b91c1c; }
-
+        .btn-danger { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-sm { padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; border: none; }
+        .btn-view { background: #2563eb; color: white; }
+        .btn-toggle { background: #e2e8f0; color: #475569; }
+        .btn-toggle:hover { background: #cbd5e1; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 10px 12px; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; vertical-align: middle; }
+        tr:hover td { background: #f8fafc; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+        .badge-formulieren { background: #fef3c7; color: #92400e; }
+        .badge-documenten { background: #dbeafe; color: #1e40af; }
+        .badge-bekendmakingen { background: #ccfbf1; color: #115e59; }
+        .badge-projecten { background: #f3e8ff; color: #6b21a8; }
+        .badge-reglementen { background: #ffedd5; color: #9a3412; }
+        .badge-overig { background: #f3f4f6; color: #374151; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-urgent { background: #fee2e2; color: #991b1b; }
         .row-inactive { opacity: 0.4; }
-
-        .toast {
-            position: fixed; bottom: 20px; right: 20px;
-            padding: 12px 20px; border-radius: 8px;
-            font-weight: 600; z-index: 9999; color: white;
-            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
-        }
-        .toast-success { background: #059669; }
-        .toast-error   { background: #dc2626; }
-        @keyframes toastIn  { from { transform: translateY(100px); } to { transform: translateY(0); } }
-        @keyframes toastOut { from { transform: translateY(0); } to { transform: translateY(100px); } }
-
         .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
-
-        @media (max-width: 640px) {
-            .form-grid { grid-template-columns: 1fr; }
-            table { font-size: 0.8rem; }
-            .actions-cell { flex-direction: column; }
-        }
+        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; font-weight: 600; z-index: 9999; color: white; animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; }
+        .toast-success { background: #059669; }
+        .toast-error { background: #dc2626; }
+        @keyframes toastIn { from { transform: translateY(100px); } to { transform: translateY(0); } }
+        @keyframes toastOut { from { transform: translateY(0); } to { transform: translateY(100px); } }
+        .section-divider { border: none; border-top: 2px solid #e2e8f0; margin: 8px 0 24px; }
+        @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } table { font-size: 0.75rem; } .actions-cell { flex-direction: column; } }
     </style>
 </head>
 <body>
 
-<div class="admin-header">
-    <h1>📁 Documenten Beheer</h1>
+<div class="header">
+    <h1>⚙️ RGWO Beheer</h1>
     <a href="/">← Terug naar Dashboard</a>
 </div>
 
-<!-- Upload Form -->
+<!-- DOCUMENTS SECTION -->
 <div class="card">
-    <h2>⬆️ Nieuw Document Uploaden</h2>
+    <h2>📁 Documenten Uploaden</h2>
     <form id="uploadForm" class="form-grid">
         <div class="form-group full">
             <label>Bestand</label>
-            <input type="file" name="file" id="fileInput" required
-                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg">
+            <input type="file" name="file" id="fileInput" required accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg">
         </div>
         <div class="form-group">
             <label>Categorie</label>
             <select name="category" required>
-                <option value="">— Kies categorie —</option>
+                <option value="">— Kies —</option>
                 <option value="formulieren">📝 Formulieren</option>
                 <option value="documenten">📄 Documenten</option>
                 <option value="bekendmakingen">📢 Bekendmakingen</option>
                 <option value="projecten">🔧 Projecten</option>
                 <option value="reglementen">⚖️ Reglementen</option>
-            <option value="overig">📁 Overig</option>
+                <option value="overig">📁 Overig</option>
             </select>
         </div>
         <div class="form-group">
@@ -146,7 +87,7 @@
         </div>
         <div class="form-group full">
             <label>Beschrijving (optioneel)</label>
-            <input type="text" name="description" placeholder="Korte omschrijving van het document">
+            <input type="text" name="description" placeholder="Korte omschrijving">
         </div>
         <div class="form-group">
             <label>Sorteervolgorde</label>
@@ -158,159 +99,109 @@
     </form>
 </div>
 
-<!-- Document List -->
 <div class="card">
     <h2>📂 Alle Documenten</h2>
     <div style="overflow-x: auto;">
         <table>
-            <thead>
-                <tr>
-                    <th>Titel</th>
-                    <th>Categorie</th>
-                    <th>Type</th>
-                    <th>Geüpload door</th>
-                    <th>Datum</th>
-                    <th>Acties</th>
-                </tr>
-            </thead>
-            <tbody id="docTableBody">
-                <tr><td colspan="6" style="text-align:center; color:#64748b; padding:30px;">Laden...</td></tr>
-            </tbody>
+            <thead><tr><th>Titel</th><th>Categorie</th><th>Type</th><th>Datum</th><th>Acties</th></tr></thead>
+            <tbody id="docTableBody"><tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:30px;">Laden...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ANNOUNCEMENTS SECTION -->
+<div class="card">
+    <h2>📢 Nieuwe Mededeling (Banner)</h2>
+    <form id="annForm" class="form-grid">
+        <div class="form-group full">
+            <label>Bericht</label>
+            <textarea name="message" id="annMessage" required placeholder="Bijv. Algemene vergadering op 15 november om 14:00"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Type</label>
+            <select name="type">
+                <option value="info">ℹ️ Info (blauw)</option>
+                <option value="warning">⚠️ Waarschuwing (geel)</option>
+                <option value="urgent">🚨 Urgent (rood)</option>
+            </select>
+        </div>
+        <div class="form-group" style="align-self: end;">
+            <button type="submit" class="btn-primary" id="annSubmitBtn" style="width:100%;">📢 Plaatsen</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>📋 Alle Mededelingen</h2>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead><tr><th>Bericht</th><th>Type</th><th>Datum</th><th>Acties</th></tr></thead>
+            <tbody id="annTableBody"><tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:30px;">Laden...</td></tr></tbody>
         </table>
     </div>
 </div>
 
 <script>
-function checkAdmin() {
-    return fetch('/api/me')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            if (!data.loggedIn || (data.role !== 'admin' && data.role !== 'board')) {
-                document.body.innerHTML = '<div style="text-align:center;padding:100px;color:#ef4444;"><h1>🚫 Geen toegang</h1><p>Alleen beheerders kunnen documenten beheren.</p></div>';
-                throw new Error('Not admin');
-            }
-        });
-}
-
-function loadAllDocuments() {
-    return fetch('/api/documents')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            return data.success ? data.documents : [];
-        });
-}
-
-function renderDocTable() {
-    return loadAllDocuments().then(function(docs) {
-        var tbody = document.getElementById('docTableBody');
-
-        if (docs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:30px;">Nog geen documenten geüpload.</td></tr>';
-            return;
+function checkAdminAccess() {
+    return fetch('/api/me').then(function(res) { return res.json(); }).then(function(data) {
+        if (!data.loggedIn || (data.role !== 'admin' && data.role !== 'board')).{
+            document.body.innerHTML = '<div style="text-align:center;padding:100px;color:#dc2626;"><h1>🚫 Geen toegang</h1><p>Alleen beheerders.</p></div>';
+            throw new Error('Not admin');
         }
+    });
+}
 
-        tbody.innerHTML = docs.map(function(doc) {
-            var safeTitle = doc.title.replace(/'/g, "\\'");
-            return '<tr class="' + (!doc.is_active ? 'row-inactive' : '') + '">' +
-                '<td>' +
-                    '<strong>' + doc.title + '</strong>' +
-                    (doc.description ? '<br><small style="color:#64748b">' + doc.description + '</small>' : '') +
-                '</td>' +
-                '<td><span class="badge badge-' + doc.category + '">' + doc.category + '</span></td>' +
-                '<td>' + (doc.file_type || '?').toUpperCase() + '</td>' +
-                '<td>' + (doc.uploaded_by || '—') + '</td>' +
-                '<td>' + new Date(doc.created_at).toLocaleDateString('nl-NL') + '</td>' +
-                '<td>' +
-                    '<div class="actions-cell">' +
-                        '<a href="' + doc.file_url + '" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">👁 Bekijk</a>' +
-                        (doc.is_active
-                            ? '<button class="btn-sm btn-hide" onclick="toggleDoc(' + doc.id + ', false)">Verberg</button>'
-                            : '<button class="btn-sm btn-hide" onclick="toggleDoc(' + doc.id + ', true)">Toon</button>'
-                        ) +
-                        '<button class="btn-sm btn-delete" onclick="deleteDoc(' + doc.id + ', \'' + safeTitle + '\')">🗑</button>' +
-                    '</div>' +
-                '</td>' +
-            '</tr>';
+function showToast(message, type) {
+    var t = document.createElement('div'); t.className = 'toast toast-' + type; t.textContent = message; document.body.appendChild(t); setTimeout(function() { t.remove(); }, 3000);
+}
+
+// === DOCUMENTS ===
+function loadDocs() {
+    fetch('/api/documents').then(function(res) { return res.json(); }).then(function(data) {
+        var docs = data.success ? data.documents : [];
+        var tb = document.getElementById('docTableBody');
+        if (!docs.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px;">Nog geen documenten.</td></tr>'; return; }
+        tb.innerHTML = docs.map(function(d) {
+            var st = d.title.replace(/'/g, "\\'");
+            return '<tr class="' + (!d.is_active?'row-inactive':'') + '"><td><strong>' + d.title + '</strong>' + (d.description ? '<br><small style="color:#94a3b8">' + d.description + '</small>' : '') + '</td><td><span class="badge badge-' + d.category + '">' + d.category + '</span></td><td>' + (d.file_type||'?').toUpperCase() + '</td><td>' + new Date(d.created_at).toLocaleDateString('nl-NL') + '</td><td><div class="actions-cell"><a href="' + d.file_url + '" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">👁</a>' + (d.is_active ? '<button class="btn-sm btn-toggle" onclick="toggleDoc(' + d.id + ',false)">Verberg</button>' : '<button class="btn-sm btn-toggle" onclick="toggleDoc(' + d.id + ',true)">Toon</button>') + '<button class="btn-danger" onclick="deleteDoc(' + d.id + ',\'' + st + '\')">🗑</button></div></td></tr>';
         }).join('');
     });
 }
 
 document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Uploaden...';
-
-    var formData = new FormData(e.target);
-
-    fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData
-    })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-        if (data.success) {
-            showToast('✅ Document geüpload!', 'success');
-            e.target.reset();
-            renderDocTable();
-        } else {
-            showToast('❌ ' + data.message, 'error');
-        }
-    })
-    .catch(function() {
-        showToast('❌ Upload mislukt', 'error');
-    })
-    .finally(function() {
-        btn.disabled = false;
-        btn.textContent = '📤 Uploaden';
-    });
+    e.preventDefault(); var b = document.getElementById('submitBtn'); b.disabled = true; b.textContent = '⏳ Uploaden...';
+    fetch('/api/documents/upload', { method: 'POST', body: new FormData(e.target) }).then(function(r) { return r.json(); }).then(function(d) { if (d.success) { showToast('✅ Geüpload!', 'success'); e.target.reset(); loadDocs(); } else { showToast('❌ ' + d.message, 'error'); } }).catch(function() { showToast('❌ Fout', 'error'); }).finally(function() { b.disabled = false; b.textContent = '📤 Uploaden'; });
 });
 
-function deleteDoc(id, title) {
-    if (!confirm('Weet je zeker dat je "' + title + '" wilt verwijderen? Dit kan niet ongedaan gemaakt worden.')) return;
+function deleteDoc(id, t) { if (!confirm('Verwijder "' + t + '"?')) return; fetch('/api/documents/' + id, { method: 'DELETE' }).then(function(r) { return r.json(); }).then(function() { showToast('🗑 Verwijderd', 'success'); loadDocs(); }); }
+function toggleDoc(id, s) { fetch('/api/documents/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: s }) }).then(function() { showToast(s ? '✅ Getoond' : '👁 Verborgen', 'success'); loadDocs(); }); }
 
-    fetch('/api/documents/' + id, { method: 'DELETE' })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            if (data.success) {
-                showToast('🗑 Document verwijderd', 'success');
-                renderDocTable();
-            } else {
-                showToast('❌ ' + data.message, 'error');
-            }
-        })
-        .catch(function() {
-            showToast('❌ Verwijderen mislukt', 'error');
-        });
-}
-
-function toggleDoc(id, show) {
-    fetch('/api/documents/' + id, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: show })
-    })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-        if (data.success) {
-            showToast(show ? '✅ Document getoond' : '👁 Document verborgen', 'success');
-            renderDocTable();
-        }
-    })
-    .catch(function() {
-        showToast('❌ Fout bij bijwerken', 'error');
+// === ANNOUNCEMENTS ===
+function loadAnns() {
+    fetch('/api/announcements/all').then(function(res) { return res.json(); }).then(function(data) {
+        var anns = data.success ? data.announcements : [];
+        var tb = document.getElementById('annTableBody');
+        if (!anns.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px;">Nog geen mededelingen.</td></tr>'; return; }
+        tb.innerHTML = anns.map(function(a) {
+            var sm = a.message.replace(/'/g, "\\'"); if (sm.length > 50) sm = sm.substring(0, 50) + '...';
+            return '<tr class="' + (!a.is_active?'row-inactive':'') + '"><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + a.message + '</td><td><span class="badge badge-' + a.type + '">' + a.type + '</span></td><td>' + new Date(a.created_at).toLocaleDateString('nl-NL') + '</td><td><div class="actions-cell">' + (a.is_active ? '<button class="btn-sm btn-toggle" onclick="toggleAnn(' + a.id + ',false)">Verberg</button>' : '<button class="btn-sm btn-toggle" onclick="toggleAnn(' + a.id + ',true)">Toon</button>') + '<button class="btn-danger" onclick="deleteAnn(' + a.id + ',\'' + sm + '\')">🗑</button></div></td></tr>';
+        }).join('');
     });
 }
 
-function showToast(message, type) {
-    var toast = document.createElement('div');
-    toast.className = 'toast toast-' + type;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(function() { toast.remove(); }, 3000);
-}
+document.getElementById('annForm').addEventListener('submit', function(e) {
+    e.preventDefault(); var b = document.getElementById('annSubmitBtn'); b.disabled = true; b.textContent = '⏳ Plaatsen...';
+    var msg = document.getElementById('annMessage').value; var typ = e.target.querySelector('select[name="type"]').value;
+    fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg, type: typ }) }).then(function(r) { return r.json(); }).then(function(d) { if (d.success) { showToast('✅ Geplaatst!', 'success'); e.target.reset(); loadAnns(); } else { showToast('❌ ' + d.message, 'error'); } }).catch(function() { showToast('❌ Fout', 'error'); }).finally(function() { b.disabled = false; b.textContent = '📢 Plaatsen'; });
+});
 
-checkAdmin().then(function() { renderDocTable(); }).catch(function() {});
+function deleteAnn(id) { if (!confirm('Verwijder mededeling?')) return; fetch('/api/announcements/' + id, { method: 'DELETE' }).then(function() { showToast('🗑 Verwijderd', 'success'); loadAnns(); }); }
+function toggleAnn(id, s) { fetch('/api/announcements/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: s }) }).then(function() { showToast(s ? '✅ Getoond' : '👁 Verborgen', 'success'); loadAnns(); }); }
+
+// === START ===
+checkAdminAccess().then(function() { loadDocs(); loadAnns(); }).catch(function() {});
 </script>
 </body>
 </html>

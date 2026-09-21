@@ -160,7 +160,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
             <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-wallet text-8xl text-blue-600"></i></div>
                 <div class="relative z-10">
@@ -170,11 +170,19 @@
                 </div>
             </div>
             <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-users text-8xl text-purple-600"></i></div>
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-users text-8xl text-green-600"></i></div>
                 <div class="relative z-10">
                     <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Active Members</p>
-                    <h2 class="text-3xl font-bold text-gray-900 mt-1">1,100</h2>
-                    <div class="flex items-center mt-4 text-sm text-purple-600 bg-purple-50 w-fit px-2 py-1 rounded-md"><i class="fa-solid fa-user-check mr-1"></i> 98% Paid Up</div>
+                    <h2 id="stat-active" class="text-3xl font-bold text-gray-900 mt-1">-</h2>
+                    <div class="flex items-center mt-4 text-sm text-green-600 bg-green-50 w-fit px-2 py-1 rounded-md"><i class="fa-solid fa-user-check mr-1"></i> Organisation</div>
+                </div>
+            </div>
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-robot text-8xl text-purple-600"></i></div>
+                <div class="relative z-10">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Telegram Leden</p>
+                    <h2 id="stat-telegram" class="text-3xl font-bold text-gray-900 mt-1">-</h2>
+                    <div class="flex items-center mt-4 text-sm text-purple-600 bg-purple-50 w-fit px-2 py-1 rounded-md"><i class="fa-brands fa-telegram mr-1"></i> Online</div>
                 </div>
             </div>
             <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
@@ -279,6 +287,7 @@
 
                     loadDocuments();
                     loadAnnouncements();
+                    loadStats();
                 }
             }).catch(() => {});
         }
@@ -386,6 +395,17 @@
         // ===================================
         // ANNOUNCEMENT BANNER
         // ===================================
+        function loadStats() {
+            fetch('/api/stats').then(function(res) { return res.json(); }).then(function(data) {
+                if (data.success) {
+                    var el1 = document.getElementById('stat-active');
+                    var el2 = document.getElementById('stat-telegram');
+                    if (el1) el1.textContent = data.active_members.toLocaleString();
+                    if (el2) el2.textContent = data.telegram_count.toLocaleString();
+                }
+            }).catch(function() {});
+        }
+
         function loadAnnouncements() {
             fetch('/api/announcements')
                 .then(function(res) { return res.json(); })

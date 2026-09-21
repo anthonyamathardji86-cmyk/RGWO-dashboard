@@ -206,9 +206,36 @@ app.post('/api/profile', async (req, res) => {
     const { naam, badge, afdeling } = req.body;
     if (!naam || !badge || !afdeling) return res.status(400).json({ success: false, message: 'Missing info' });
 
-    const { error } = await supabase.from('RGWO leden').update({ naam, badge, afdeling }).eq('telegram_id', parseInt(userId));
-    if (error) { console.error("[DB ERROR]:", error.message); return res.status(500).json({ success: false }); }
-    res.json({ success: true });
+    try {
+        // Auto-merge: check for manual entry with same badge and null telegram_id
+        const { data: manualEntry } = await supabase
+            .from('RGWO leden')
+            .select('*')
+            .eq('badge', badge)
+            .is('telegram_id', null)
+            .limit(1)
+            .single();
+
+        let mergeRole = null;
+        if (manualEntry) {
+            mergeRole = manualEntry.role;
+            await supabase.from('RGWO leden').delete().eq('id', manualEntry.id);
+            console.log(`[MERGE] Badge ${badge} manual entry merged with Telegram user ${userId}`);
+        }
+
+        const updates = { naam, badge, afdeling };
+        if (mergeRole) updates.role = mergeRole;
+
+        const { error } = await supabase.from('RGWO leden').update(updates).eq('telegram_id', parseInt(userId));
+        if (error) { console.error("[DB ERROR]:", error.message); return res.status(500).json({ success: false }); }
+        res.json({ success: true });
+    } catch (error) {
+        // Fallback: update without merge
+        console.error("[PROFILE MERGE ERROR]:", error.message);
+        const { error: dbErr } = await supabase.from('RGWO leden').update({ naam, badge, afdeling }).eq('telegram_id', parseInt(userId));
+        if (dbErr) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    }
 });
 
 app.post('/api/logout', (req, res) => {
@@ -244,6 +271,137 @@ app.post('/api/maintenance/toggle', async (req, res) => {
         res.json({ success: true, enabled: config.enabled });
     } catch (error) {
         console.error('[MAINTENANCE ERROR]:', error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// ==========================
+// 5C. LEDEN MANAGEMENT (admin)
+// ==========================
+app.get('/api/leden', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (!['admin', 'board'].includes(role)) return res.status(403).json({ success: false });
+
+        const { search, role: filterRole } = req.query;
+        let query = supabase.from('RGWO leden').select('*').order('naam', { ascending: true });
+        if (filterRole) query = query.eq('role', filterRole);
+        if (search) query = query.or('naam.ilike.%' + search + '%,badge.ilike.%' + search + '%,telegram_naam.ilike.%' + search + '%');
+
+        const { data, error } = await query;
+        if (error) throw error;
+        res.json({ success: true, leden: data });
+    } catch (error) {
+        console.error("[LEDEN ERROR]:", error.message);
+        res.status(500).json({ success: false, leden: [] });
+    }
+});
+
+app.post('/api/leden', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false, message: 'Alleen admins.' });
+
+        const { naam, badge, afdeling, member_role, telegram_id, telegram_username, telegram_naam } = req.body;
+        if (!naam || !badge || !afdeling) return res.status(400).json({ success: false, message: 'Naam, badge en afdeling zijn verplicht.' });
+
+        const insertData = {
+            naam,
+            badge,
+            afdeling,
+            role: member_role || 'member',
+            telegram_id: telegram_id ? parseInt(telegram_id) : null,
+            telegram_username: telegram_username || null,
+            telegram_naam: telegram_naam || naam
+        };
+
+        const { data, error } = await supabase.from('RGWO leden').insert(insertData).select().single();
+        if (error) { console.error("[LEDEN INSERT ERROR]:", error.message); return res.status(500).json({ success: false, message: 'Fout bij toevoegen.' }); }
+        console.log(`[LEDEN] Member "${naam}" added manually by admin ${userId}`);
+        res.json({ success: true, lid: data });
+    } catch (error) {
+        console.error("[LEDEN ADD ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.patch('/api/leden/:id', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false, message: 'Alleen admins.' });
+
+        const { naam, badge, afdeling, member_role, telegram_username } = req.body;
+        const updates = {};
+        if (naam !== undefined) updates.naam = naam;
+        if (badge !== undefined) updates.badge = badge;
+        if (afdeling !== undefined) updates.afdeling = afdeling;
+        if (member_role !== undefined) updates.role = member_role;
+        if (telegram_username !== undefined) updates.telegram_username = telegram_username;
+
+        const { data, error } = await supabase.from('RGWO leden').update(updates).eq('id', req.params.id).select().single();
+        if (error) throw error;
+        res.json({ success: true, lid: data });
+    } catch (error) {
+        console.error("[LEDEN UPDATE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.delete('/api/leden/:id', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false, message: 'Alleen admins.' });
+
+        const { error } = await supabase.from('RGWO leden').delete().eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) {
+        console.error("[LEDEN DELETE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// ==========================
+// 5D. SITE SETTINGS & STATS
+// ==========================
+app.get('/api/stats', async (req, res) => {
+    try {
+        let activeMembers = 0;
+        try {
+            const settings = JSON.parse(fs.readFileSync(path.join(__dirname, 'settings.json'), 'utf8'));
+            activeMembers = settings.active_members || 0;
+        } catch (err) {}
+        const { count } = await supabase.from('RGWO leden').select('*', { count: 'exact', head: true });
+        res.json({ success: true, active_members: activeMembers, telegram_count: count || 0 });
+    } catch (error) {
+        res.status(500).json({ success: false, active_members: 0, telegram_count: 0 });
+    }
+});
+
+app.patch('/api/settings', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false });
+
+        const { active_members } = req.body;
+        const settingsPath = path.join(__dirname, 'settings.json');
+        let settings = {};
+        try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (err) {}
+        if (active_members !== undefined) settings.active_members = parseInt(active_members) || 0;
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+        res.json({ success: true, settings });
+    } catch (error) {
+        console.error("[SETTINGS ERROR]:", error.message);
         res.status(500).json({ success: false });
     }
 });

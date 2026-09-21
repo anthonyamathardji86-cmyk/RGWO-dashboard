@@ -55,12 +55,14 @@
 
         /* ===== ANNOUNCEMENT BANNER ===== */
         #announcement-banner {
-            display: none;
-            overflow: hidden;
-            position: relative;
-            padding: 0;
-            white-space: nowrap;
-        }
+        display: none;
+        overflow: hidden;
+        position: relative;
+        padding: 0;
+        white-space: nowrap;
+        border-radius: 12px;
+        margin-top: 8px;
+        }        
         #announcement-banner.visible {
             display: block;
         }
@@ -144,7 +146,7 @@
     </header>
 
     <!-- ANNOUNCEMENT BANNER (looping) -->
-    <div id="announcement-banner">
+    <div id="announcement-banner" class="max-w-7xl mx-auto">
         <button class="banner-close" onclick="dismissBanner()"><i class="fa-solid fa-xmark"></i></button>
         <div class="banner-inner">
             <div class="banner-track" id="banner-track">

@@ -356,6 +356,7 @@
                 var btn = document.createElement('button'); btn.className = 'doc-cat-btn ' + config.catClass;
                 btn.innerHTML = '<i class="fa-solid ' + config.icon + ' text-2xl ' + config.iconColor + '"></i><span class="text-sm font-semibold text-gray-700">' + config.label + '</span><span class="text-xs font-bold ' + config.countColor + '">' + count + ' bestand' + (count !== 1 ? 'en' : '') + '</span>';
                 btn.onclick = function() { showDocFiles(cat); }; container.appendChild(btn);
+            });
 
             // Financiën link
             var finBtn = document.createElement('a');

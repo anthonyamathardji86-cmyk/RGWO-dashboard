@@ -383,21 +383,37 @@
 
         function renderBanner(announcements) {
             var banner = document.getElementById('announcement-banner');
+            var track = document.getElementById('banner-track');
             var text1 = document.getElementById('banner-text-1');
             var text2 = document.getElementById('banner-text-2');
-
+        
             var html = announcements.map(function(a) {
-                var icon = '<i class="fa-solid fa-circle-info"></i> ';
-                return icon + a.message;
+                return '<i class="fa-solid fa-circle-info"></i> ' + a.message;
             }).join('  <span class="separator">★</span>  ');
-
+        
             text1.innerHTML = html;
             text2.innerHTML = html;
-
-            var charCount = html.length;
-            var speed = Math.max(15, Math.min(60, charCount * 0.15));
-            document.getElementById('banner-track').style.setProperty('--banner-speed', speed + 's');
-
+        
+            // Wait for render, then measure actual width
+            requestAnimationFrame(function() {
+                var textWidth = text1.offsetWidth;
+                if (textWidth === 0) textWidth = 500;
+        
+                // Remove old dynamic keyframes if exists
+                var old = document.getElementById('banner-dynamic-css');
+                if (old) old.remove();
+        
+                // Create4 Create new keyframes that scroll exactly one copy's width
+                var style = document.createElement('style');
+                style.id = 'banner-dynamic-css';
+                style.textContent = '@keyframes bannerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-' + textWidth + 'px); } }';
+                document.head.appendChild(style);
+        
+                // Speed: ~40px per second (readable pace)
+                var duration = Math.max(10, textWidth / 40);
+                track.style.animation = 'bannerScroll ' + duration + 's linear infinite';
+            });
+        
             banner.classList.add('visible');
         }
 

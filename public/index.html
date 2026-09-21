@@ -41,7 +41,6 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateX(20px); } }
 
-        /* Document category buttons */
         .doc-cat-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 10px; border-radius: 14px; border: 2px solid #e2e8f0; background: #f8fafc; cursor: pointer; transition: all 0.2s ease; }
         .doc-cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .doc-cat-btn.cat-blue { border-color: #bfdbfe; background: #eff6ff; } .doc-cat-btn.cat-blue:hover { background: #dbeafe; }
@@ -53,7 +52,6 @@
         .doc-file-link { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #1e293b; transition: background 0.15s ease; }
         .doc-file-link:hover { background: #f1f5f9; }
 
-        /* ===== ANNOUNCEMENT BANNER ===== */
         #announcement-banner { display: none; white-space: nowrap; }
         #announcement-banner.visible { display: block; }
         .banner-track { display: flex; animation: bannerScroll var(--banner-speed, 30s) linear infinite; }
@@ -154,7 +152,6 @@
     <!-- MAIN WRAPPER -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
 
-        <!-- ANNOUNCEMENT BANNER (inside main = same margins as cards) -->
         <div id="announcement-banner" class="mb-8">
             <div class="glass-card rounded-2xl p-4 overflow-hidden border border-gray-100">
                 <div class="banner-track" id="banner-track">
@@ -179,7 +176,7 @@
                     <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Active Members</p>
                     <h2 class="text-3xl font-bold text-gray-900 mt-1">1,100</h2>
                     <div class="flex items-center mt-4 text-sm text-purple-600 bg-purple-50 w-fit px-2 py-1 rounded-md"><i class="fa-solid fa-user-check mr-1"></i> 98% Paid Up</div>
-                </div>
+               (<//div>
             </div>
             <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-piggy-bank text-8xl text-orange-500"></i></div>
@@ -216,7 +213,7 @@
             <div class="mt-4 space-y-2">
                 <div class="flex items-center text-sm text-gray-700"><i class="fa-solid fa-location-dot w-6 text-blue-500"></i><span>Burenstraat no. 46</span></div>
                 <div class="flex items-center text-sm text-gray-700"><a href="tel:+597427094" class="flex items-center group hover:text-blue-600 transition"><i class="fa-solid fa-phone w-6 text-blue-500"></i><span>+597427094</span></a></div>
-                <div class="flex items-center text-sm text-gray-700"><a href="mailto:info@rgwo.sr" class="flex items-center group hover:text-blue-600 transition"><i class="fa-solid fa-envelope w-6 text-blue-500"></i><span>info@rgwo.sr</span></a></div>
+                <div class="flex items-center text-sm text-gray-700"><;l"><a href="mailto:info@rgwo.sr" class="flex items-center group hover:text-blue-600 transition"><i class="fa-solid fa-envelope w-6 text-blue-500"></i><span>info@rgwo.sr</span></a></div>
             </div>
         </div></div></div></footer>
     </main>
@@ -242,6 +239,17 @@
     <!-- JAVASCRIPT -->
     <script>
         let currentUserRole = 'member';
+
+        // ===== 503 MAINTENANCE INTERCEPTOR =====
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            return originalFetch.apply(this, args).then(response => {
+                if (response.status === 503) {
+                    window.location.reload();
+                }
+                return response;
+            });
+        };
 
         window.addEventListener('load', () => {
             initCharts();
@@ -352,7 +360,7 @@
             Object.keys(DOC_CATEGORIES).forEach(function(cat) {
                 var config = DOC_CATEGORIES[cat]; var docs = docData[cat] || []; var count = docs.length;
                 var btn = document.createElement('button'); btn.className = 'doc-cat-btn ' + config.catClass;
-                btn.innerHTML = '<i class="fa-solid ' + config.icon + ' text-2xl ' + config.iconColor + '"></i><span class="text-sm font-semibold text-gray-700">' + config.label + '</span><span class="text-xs font-bold ' + config.countColor + '">' + count + ' bestand' + (count !== 1 ? 'en' : '') + '</span>';
+                btn.innerHTML = '<i class="fa-solid ' + config.icon + ' text-2xl ' + config.iconColor + '"></i><span class="text-sm font-semibold text-gray-700">' + config.label + '</span><span class="text-xs font-bold ' + config.countColor&Color + '">' + count + ' bestand' + (count !== 1 ? 'en' : '') + '</span>';
                 btn.onclick = function() { showDocFiles(cat); }; container.appendChild(btn);
             });
         }
@@ -394,22 +402,18 @@
             text1.innerHTML = html;
             text2.innerHTML = html;
         
-            // Wait for render, then measure actual width
             requestAnimationFrame(function() {
                 var textWidth = text1.offsetWidth;
                 if (textWidth === 0) textWidth = 500;
         
-                // Remove old dynamic keyframes if exists
                 var old = document.getElementById('banner-dynamic-css');
                 if (old) old.remove();
         
-                // Create4 Create new keyframes that scroll exactly one copy's width
                 var style = document.createElement('style');
                 style.id = 'banner-dynamic-css';
                 style.textContent = '@keyframes bannerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-' + textWidth + 'px); } }';
                 document.head.appendChild(style);
         
-                // Speed: ~40px per second (readable pace)
                 var duration = Math.max(10, textWidth / 40);
                 track.style.animation = 'bannerScroll ' + duration + 's linear infinite';
             });

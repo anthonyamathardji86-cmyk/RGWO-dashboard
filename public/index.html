@@ -75,9 +75,7 @@
                 </div>
                 <div class="hidden md:flex items-center gap-2">
                     <a href="/beheer.html" id="admin-btn" class="hidden px-3 py-1.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-md transition shadow-sm"><i class="fa-solid fa-gear mr-1"></i> Beheer</a>
-                    <a href="/financien.html" class="px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition"><i class="fa-solid fa-chart-line mr-1"></i> Financiën</a>
                     <button onclick="toggleModal(true, 'docModal')" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-bars mr-1"></i> Menu</button>
-                    <button onclick="toggleModal(true, 'loanModal')" class="px-4 py-1.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm">Leningaanvraag</button>
                     <button onclick="logout()" class="px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                 </div>
                 <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition">
@@ -86,9 +84,7 @@
             </div>
             <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-gray-100 mt-2 pt-4 flex flex-col gap-2">
                 <a href="/beheer.html" id="admin-btn-mobile" class="hidden w-full text-left px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-gear w-5 mr-2"></i> Beheer</a>
-                <a href="/financien.html" class="block px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition"><i class="fa-solid fa-chart-line w-5 mr-2"></i> Financiën</a>
                 <button onclick="toggleModal(true, 'docModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-bars w-5 mr-2"></i> Menu</button>
-                <button onclick="toggleModal(true, 'loanModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-hand-holding-dollar w-5 mr-2"></i> Leningaanvraag</button>
                 <button onclick="logout()" class="w-full text-left px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket w-5 mr-2"></i> Logout</button>
             </div>
         </div>
@@ -345,8 +341,7 @@
             documenten:      { icon: 'fa-folder-open',      label: 'Documenten',     catClass: 'cat-blue',    iconColor: 'text-blue-600',   countColor: 'text-blue-600' },
             bekendmakingen:  { icon: 'fa-bullhorn',         label: 'Bekendmakingen', catClass: 'cat-teal',    iconColor: 'text-teal-600',   countColor: 'text-teal-600' },
             projecten:       { icon: 'fa-diagram-project',  label: 'Projecten',      catClass: 'cat-purple',  iconColor: 'text-purple-600', countColor: 'text-purple-600' },
-            reglementen:     { icon: 'fa-scale-balanced',   label: 'Reglementen',    catClass: 'cat-orange',  iconColor: 'text-orange-600', countColor: 'text-orange-600' },
-            overig:          { icon: 'fa-ellipsis',         label: 'Overig',         catClass: 'cat-gray',    iconColor: 'text-gray-600',   countColor: 'text-gray-500' }
+            
         };
         function getFileIconClass(type) { var icons = { pdf: 'fa-file-pdf', doc: 'fa-file-word', docx: 'fa-file-word', xls: 'fa-file-excel', xlsx: 'fa-file-excel', ppt: 'fa-file-powerpoint', pptx: 'fa-file-powerpoint', png: 'fa-file-image', jpg: 'fa-file-image', jpeg: 'fa-file-image' }; return icons[type] || 'fa-file'; }
         function getFileIconColor(type) { if (type === 'pdf') return 'text-red-500'; if (type === 'doc' || type === 'docx') return 'text-blue-500'; if (type === 'xls' || type === 'xlsx') return 'text-green-600'; if (type === 'ppt' || type === 'pptx') return 'text-orange-500'; return 'text-gray-400'; }
@@ -361,7 +356,20 @@
                 var btn = document.createElement('button'); btn.className = 'doc-cat-btn ' + config.catClass;
                 btn.innerHTML = '<i class="fa-solid ' + config.icon + ' text-2xl ' + config.iconColor + '"></i><span class="text-sm font-semibold text-gray-700">' + config.label + '</span><span class="text-xs font-bold ' + config.countColor + '">' + count + ' bestand' + (count !== 1 ? 'en' : '') + '</span>';
                 btn.onclick = function() { showDocFiles(cat); }; container.appendChild(btn);
-            });
+
+            // Financiën link
+            var finBtn = document.createElement('a');
+            finBtn.href = '/financien.html';
+            finBtn.className = 'doc-cat-btn cat-teal';
+            finBtn.innerHTML = '<i class="fa-solid fa-chart-line text-2xl text-teal-600"></i><span class="text-sm font-semibold text-gray-700">Financiën</span><span class="text-xs font-bold text-teal-600">Bekijken</span>';
+            container.appendChild(finBtn);
+
+            // Leningaanvraag button
+            var loanBtn = document.createElement('button');
+            loanBtn.className = 'doc-cat-btn cat-amber';
+            loanBtn.innerHTML = '<i class="fa-solid fa-hand-holding-dollar text-2xl text-amber-600"></i><span class="text-sm font-semibold text-gray-700">Leningaanvraag</span><span class="text-xs font-bold text-amber-600">Aanvragen</span>';
+            loanBtn.onclick = function() { toggleModal(false, 'docModal'); toggleModal(true, 'loanModal'); };
+            container.appendChild(loanBtn);
         }
         function showDocFiles(category) {
             var config = DOC_CATEGORIES[category]; var docs = docData[category] || [];

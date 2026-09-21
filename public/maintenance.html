@@ -82,7 +82,7 @@
             padding-top: 1.5rem;
             border-top: 1px solid #f1f5f9;
             font-size: 0.8rem;
-            color: #94a?b8;
+            color: #94a3b8;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -116,10 +116,11 @@
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        // Auto-refresh every 30s to check if maintenance is over
+        // Auto-check every 30s if maintenance is over
         setInterval(() => {
             fetch('/api/me', { credentials: 'include' })
                 .then(res => {
+                    // If we get anything other than 503, maintenance is over
                     if (res.status !== 503) {
                         window.location.reload();
                     }

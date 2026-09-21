@@ -2,277 +2,548 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RGWO — Beheer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Beheer - RGWO Portal</title>
+    <meta name="theme-color" content="#1e293b">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; padding: 20px; }
-        a { color: #2563eb; text-decoration: none; }
-        .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; }
-        .header h1 { font-size: 1.4rem; }
-        .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .card h2 { margin-bottom: 16px; font-size: 1.1rem; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .form-group.full { grid-column: 1 / -1; }
-        label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
-        input, select, textarea { background: #f8fafc; border: 1px solid #e2e8f0; color: #1e293b; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; background: white; }
-        input[type="file"] { padding: 8px; cursor: pointer; }
-        textarea { resize: vertical; min-height: 60px; font-family: inherit; }
-        .btn-primary { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-danger { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
-        .btn-danger:hover { background: #b91c1c; }
-        .btn-sm { padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; border: none; }
-        .btn-view { background: #2563eb; color: white; }
-        .btn-toggle { background: #e2e8f0; color: #475569; }
-        .btn-toggle:hover { background: #cbd5e1; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 10px 12px; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
-        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; vertical-align: middle; }
-        tr:hover td { background: #f8fafc; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
-        .badge-formulieren { background: #fef3c7; color: #92400e; }
-        .badge-documenten { background: #dbeafe; color: #1e40af; }
-        .badge-bekendmakingen { background: #ccfbf1; color: #115e59; }
-        .badge-projecten { background: #f3e8ff; color: #6b21a8; }
-        .badge-reglementen { background: #ffedd5; color: #9a3412; }
-        .badge-overig { background: #f3f4f6; color: #374151; }
-        .badge-info { background: #dbeafe; color: #1e40af; }
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .badge-urgent { background: #fee2e2; color: #991b1b; }
-        .row-inactive { opacity: 0.4; }
-        .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
-        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; font-weight: 600; z-index: 9999; color: white; animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; }
-        .toast-success { background: #059669; }
-        .toast-error { background: #dc2626; }
-        @keyframes toastIn { from { transform: translateY(100px); } to { transform: translateY(0); } }
-        @keyframes toastOut { from { transform: translateY(0); } to { transform: translateY(100px); } }
-        .section-divider { border: none; border-top: 2px solid #e2e8f0; margin: 8px 0 24px; }
-        @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } table { font-size: 0.75rem; } .actions-cell { flex-direction: column; } }
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; min-height: 100vh; }
+        .glass-card { background: rgba(255,255,255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255, 0.5); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1); }
+        .form-input { width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; transition: border-color 0.3s; font-family: 'Poppins', sans-serif; font-size: 0.875rem; }
+        .form-input:focus { border-color: #2563EB; }
+        .tab-btn { transition: all 0.2s ease; }
+        .tab-active { background: #1e293b; color: white; }
+        .tab-inactive { background: #e2e8f0; color: #64748b; }
+        .tab-inactive:hover { background: #cbd5e1; }
+        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-left: 4px solid #2563EB; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease forwards; min-width: 300px; }
+        .toast.error { border-left-color: #EF4444; }
+        .toast.success { border-left-color: #10B981; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateX(20px); } }
+        #access-denied { display: none; position: fixed; inset: 0; z-index: 100; background: white; align-items: center; justify-content: center; }
+        #access-denied.active { display: flex; }
     </style>
 </head>
-<body>
+<body class="text-gray-800 antialiased">
 
-<div class="header">
-    <h1>⚙️ RGWO Beheer</h1>
-    <a href="/">← Terug naar Dashboard</a>
-</div>
-
-<!-- DOCUMENTS -->
-<div class="card">
-    <h2>📁 Documenten Uploaden</h2>
-    <form id="uploadForm" class="form-grid">
-        <div class="form-group full">
-            <label>Bestand</label>
-            <input type="file" name="file" id="fileInput" required accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg">
+    <!-- ACCESS DENIED OVERLAY -->
+    <div id="access-denied">
+        <div class="text-center p-8">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600">
+                <i class="fa-solid fa-lock text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Geen Toegang</h2>
+            <p class="text-gray-500 mb-6">U heeft geen beheerdersrechten.</p>
+            <a href="/" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition"><i class="fa-solid fa-arrow-left mr-2"></i>Terug naar Portal</a>
         </div>
-        <div class="form-group">
-            <label>Categorie</label>
-            <select name="category" required>
-                <option value="">— Kies —</option>
-                <option value="formulieren">📝 Formulieren</option>
-                <option value="documenten">📄 Documenten</option>
-                <option value="bekendmakingen">📢 Bekendmakingen</option>
-                <option value="projecten">🔧 Projecten</option>
-                <option value="reglementen">⚖️ Reglementen</option>
-                <option value="overig">📁 Overig</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Titel</label>
-            <input type="text" name="title" required placeholder="Bijv. Lening Aanvraag Formulier">
-        </div>
-        <div class="form-group full">
-            <label>Beschrijving (optioneel)</label>
-            <input type="text" name="description" placeholder="Korte omschrijving">
-        </div>
-        <div class="form-group">
-            <label>Sorteervolgorde</label>
-            <input type="number" name="sort_order" value="0" min="0">
-        </div>
-        <div class="form-group" style="align-self: end;">
-            <button type="submit" class="btn-primary" id="submitBtn" style="width:100%;">📤 Uploaden</button>
-        </div>
-    </form>
-</div>
-
-<div class="card">
-    <h2>📂 Alle Documenten</h2>
-    <div style="overflow-x: auto;">
-        <table>
-            <thead><tr><th>Titel</th><th>Categorie</th><th>Type</th><th>Datum</th><th>Acties</th></tr></thead>
-            <tbody id="docTableBody"><tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px;">Laden...</td></tr></tbody>
-        </table>
     </div>
-</div>
 
-<hr class="section-divider">
-
-<!-- ANNOUNCEMENTS -->
-<div class="card">
-    <h2>📢 Nieuwe Mededeling (Banner)</h2>
-    <form id="annForm" class="form-grid">
-        <div class="form-group full">
-            <label>Bericht</label>
-            <textarea name="message" id="annMessage" required placeholder="Bijv. Algemene vergadering op 15 november om 14:00"></textarea>
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-8 rounded-lg overflow-hidden shadow-lg shadow-blue-500/30">
+                        <img src="/logo.png" alt="RGWO" class="w-full h-full object-contain">
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900 tracking-tight">Beheer</h1>
+                    <span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-md">ADMIN</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="/" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-arrow-left mr-1"></i> Portal</a>
+                    <button onclick="logout()" class="px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Type</label>
-            <select name="type" id="annType">
-                <option value="info">ℹ️ Info (blauw)</option>
-                <option value="warning">⚠️ Waarschuwing (geel)</option>
-                <option value="urgent">🚨 Urgent (rood)</option>
-            </select>
-        </div>
-        <div class="form-group" style="align-self: end;">
-            <button type="submit" class="btn-primary" id="annSubmitBtn" style="width:100%;">📢 Plaatsen</button>
-        </div>
-    </form>
-</div>
+    </header>
 
-<div class="card">
-    <h2>📋 Alle Mededelingen</h2>
-    <div style="overflow-x: auto;">
-        <table>
-            <thead><tr><th>Bericht</th><th>Type</th><th>Datum</th><th>Acties</th></tr></thead>
-            <tbody id="annTableBody"><tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px;">Laden...</td></tr></tbody>
-        </table>
-    </div>
-</div>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-<script>
-function checkAdminAccess() {
-    return fetch('/api/me')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            if (!data.loggedIn || (data.role !== 'admin' && data.role !== 'board')) {
-                document.body.innerHTML = '<div style="text-align:center;padding:100px;color:#dc2626;"><h1>🚫 Geen toegang</h1><p>Alleen beheerders.</p></div>';
-                throw new Error('Not admin');
-            }
+        <!-- TABS -->
+        <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
+            <button onclick="switchTab('maintenance')" id="tab-maintenance" class="tab-btn tab-active px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap">
+                <i class="fa-solid fa-wrench mr-2"></i>Onderhoud
+            </button>
+            <button onclick="switchTab('announcements')" id="tab-announcements" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap">
+                <i class="fa-solid fa-bullhorn mr-2"></i>Mededelingen
+            </button>
+            <button onclick="switchTab('documents')" id="tab-documents" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap">
+                <i class="fa-solid fa-folder-open mr-2"></i>Documenten
+            </button>
+        </div>
+
+        <!-- ============================== -->
+        <!-- MAINTENANCE TAB               -->
+        <!-- ============================== -->
+        <div id="panel-maintenance" class="tab-panel">
+            <div class="glass-card rounded-2xl p-8 border border-gray-100 max-w-2xl">
+                <div class="flex items-start justify-between gap-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">
+                            <i class="fa-solid fa-wrench mr-2 text-amber-500"></i>Onderhoudsmodus
+                        </h2>
+                        <p class="text-sm text-gray-500 mb-4">
+                            Schakel in om het portaal te sluiten voor leden en bestuursleden. Alleen admins behouden toegang.
+                        </p>
+                        <div class="flex items-center gap-3 mb-6">
+                            <span id="maintenance-status" class="text-sm font-semibold text-gray-400">Laden...</span>
+                            <div id="maintenance-indicator" class="w-3 h-3 rounded-full bg-gray-300"></div>
+                        </div>
+                        <button onclick="toggleMaintenance()" id="maintenance-btn"
+                            class="px-6 py-2.5 text-sm font-bold rounded-xl transition shadow-sm">
+                            Inschakelen
+                        </button>
+                    </div>
+                    <div class="hidden sm:block">
+                        <div id="maintenance-icon" class="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center transition">
+                            <i class="fa-solid fa-shield-halved text-4xl text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3">Wat gebeurt er wanneer ingeschakeld?</h3>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-500 w-4"></i><span>Leden zien "Website Onderhoud" pagina</span></div>
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-xmark text-red-500 w-4"></i><span>Bestuursleden zien "Website Onderhoud" pagina</span></div>
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500 w-4"></i><span>Admins behouden volledige toegang</span></div>
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-rotate text-blue-500 w-4"></i><span>Pagina controleert automatisch elke 30s of onderhoud voorbij is</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- ANNOUNCEMENTS TAB             -->
+        <!-- ============================== -->
+        <div id="panel-announcements" class="tab-panel hidden">
+            <!-- Create -->
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-plus mr-2 text-blue-500"></i>Nieuwe Mededeling</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Bericht</label>
+                        <input type="text" id="ann-message" class="form-input" placeholder="v.b. Vergadering op 15 november...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Type</label>
+                        <select id="ann-type" class="form-input">
+                            <option value="info">ℹ️ Info</option>
+                            <option value="warning">⚠️ Waarschuwing</option>
+                            <option value="urgent">🚨 Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="createAnnouncement()" class="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm">
+                    <i class="fa-solid fa-plus mr-1"></i>Toevoegen
+                </button>
+            </div>
+
+            <!-- List -->
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-list mr-2 text-gray-400"></i>Alle Mededelingen</h2>
+                </div>
+                <div id="ann-list" class="divide-y divide-gray-100">
+                    <p class="text-center text-gray-400 py-8 text-sm">Laden...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================== -->
+        <!-- DOCUMENTS TAB                -->
+        <!-- ============================== -->
+        <div id="panel-documents" class="tab-panel hidden">
+            <!-- Upload -->
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-cloud-arrow-up mr-2 text-blue-500"></i>Document Uploaden</h2>
+                <form id="upload-form" onsubmit="uploadDocument(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Bestand</label>
+                        <input type="file" id="doc-file" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Categorie</label>
+                        <select id="doc-category" class="form-input" required>
+                            <option value="">Kies categorie...</option>
+                            <option value="formulieren">Formulieren</option>
+                            <option value="documenten">Documenten</option>
+                            <option value="bekendmakingen">Bekendmakingen</option>
+                            <option value="projecten">Projecten</option>
+                            <option value="reglementen">Reglementen</option>
+                            <option value="overig">Overig</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Titel</label>
+                        <input type="text" id="doc-title" class="form-input" placeholder="v.b. Lidmaatschapsformulier" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Beschrijving (optioneel)</label>
+                        <input type="text" id="doc-description" class="form-input" placeholder="Korte beschrijving...">
+                    </div>
+                    <div class="md:col-span-2 flex justify-end">
+                        <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm">
+                            <i class="fa-solid fa-upload mr-1"></i>Uploaden
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- List -->
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-folder mr-2 text-gray-400"></i>Alle Documenten</h2>
+                    <select id="doc-filter" onchange="loadDocuments()" class="form-input w-auto text-sm">
+                        <option value="">Alle categorieën</option>
+                        <option value="formulieren">Formulieren</option>
+                        <option value="documenten">Documenten</option>
+                        <option value="bekendmakingen">Bekendmakingen</option>
+                        <option value="projecten">Projecten</option>
+                        <option value="reglementen">Reglementen</option>
+                        <option value="overig">Overig</option>
+                    </select>
+                </div>
+                <div id="doc-list" class="divide-y divide-gray-100">
+                    <p class="text-center text-gray-400 py-8 text-sm">Laden...</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        // ===== 503 MAINTENANCE INTERCEPTOR =====
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            return originalFetch.apply(this, args).then(response => {
+                if (response.status === 503) {
+                    window.location.href = '/';
+                }
+                return response;
+            });
+        };
+
+        let currentUserRole = 'member';
+
+        // ===== INIT =====
+        window.addEventListener('load', () => {
+            checkAccess();
         });
-}
 
-function showToastMsg(message, type) {
-    var t = document.createElement('div');
-    t.className = 'toast toast-' + type;
-    t.textContent = message;
-    document.body.appendChild(t);
-    setTimeout(function() { t.remove(); }, 3000);
-}
+        function checkAccess() {
+            fetch('/api/me').then(res => {
+                if (res.ok) return res.json();
+                throw new Error();
+            }).then(data => {
+                if (data.loggedIn && (data.role === 'admin' || data.role === 'board')) {
+                    currentUserRole = data.role;
+                    loadMaintenanceStatus();
+                    loadAnnouncements();
+                    loadDocuments();
+                } else {
+                    document.getElementById('access-denied').classList.add('active');
+                }
+            }).catch(() => {
+                document.getElementById('access-denied').classList.add('active');
+            });
+        }
 
-function loadDocs() {
-    fetch('/api/documents')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            var docs = data.success ? data.documents : [];
-            var tb = document.getElementById('docTableBody');
-            if (!docs.length) {
-                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px;">Nog geen documenten.</td></tr>';
+        function logout() {
+            fetch('/api/logout', { method: 'POST' }).finally(() => window.location.href = '/');
+        }
+
+        // ===== TABS =====
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('tab-inactive');
+            });
+            document.getElementById('tab-' + tab).classList.remove('tab-inactive');
+            document.getElementById('tab-' + tab).classList.add('tab-active');
+
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+            document.getElementById('panel-' + tab).classList.remove('hidden');
+        }
+
+        // ===== TOAST =====
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let iconClass = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+            let colorClass = type === 'error' ? 'text-red-500' : 'text-green-500';
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass} text-lg ${colorClass}"></i><span class="text-sm font-medium text-gray-800">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 5000);
+        }
+
+        // ===================================
+        // MAINTENANCE
+        // ===================================
+        async function loadMaintenanceStatus() {
+            try {
+                const res = await fetch('/api/maintenance');
+                const data = await res.json();
+                if (data.success) updateMaintenanceUI(data.enabled);
+            } catch (err) {
+                document.getElementById('maintenance-status').textContent = 'Fout';
+            }
+        }
+
+        function updateMaintenanceUI(enabled) {
+            const btn = document.getElementById('maintenance-btn');
+            const status = document.getElementById('maintenance-status');
+            const indicator = document.getElementById('maintenance-indicator');
+            const icon = document.getElementById('maintenance-icon');
+
+            if (enabled) {
+                btn.textContent = 'Uitschakelen';
+                btn.className = 'px-6 py-2.5 text-sm font-bold rounded-xl transition shadow-sm bg-red-600 text-white hover:bg-red-700';
+                status.textContent = 'ACTIEF';
+                status.className = 'text-sm font-semibold text-red-600';
+                indicator.className = 'w-3 h-3 rounded-full bg-red-500 animate-pulse';
+                if (icon) {
+                    icon.className = 'w-24 h-24 rounded-2xl bg-red-50 flex items-center justify-center transition';
+                    icon.innerHTML = '<i class="fa-solid fa-wrench text-4xl text-red-500"></i>';
+                }
+            } else {
+                btn.textContent = 'Inschakelen';
+                btn.className = 'px-6 py-2.5 text-sm font-bold rounded-xl transition shadow-sm bg-amber-500 text-white hover:bg-amber-600';
+                status.textContent = 'UIT';
+                status.className = 'text-sm font-semibold text-gray-400';
+                indicator.className = 'w-3 h-3 rounded-full bg-gray-300';
+                if (icon) {
+                    icon.className = 'w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center transition';
+                    icon.innerHTML = '<i class="fa-solid fa-shield-halved text-4xl text-gray-300"></i>';
+                }
+            }
+        }
+
+        async function toggleMaintenance() {
+            const btn = document.getElementById('maintenance-btn');
+            btn.disabled = true;
+            const original = btn.textContent;
+            btn.textContent = '...';
+            try {
+                const res = await fetch('/api/maintenance/toggle', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    updateMaintenanceUI(data.enabled);
+                    showToast(data.enabled ? 'Onderhoudsmodus INGESCHAKELD' : 'Onderhoudsmodus UITGESCHAKELD', data.enabled ? 'error' : 'success');
+                } else {
+                    showToast('Geen rechten om dit te doen.', 'error');
+                }
+            } catch (err) {
+                showToast('Verbindingsfout.', 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = original;
+        }
+
+        // ===================================
+        // ANNOUNCEMENTS
+        // ===================================
+        async function loadAnnouncements() {
+            try {
+                const res = await fetch('/api/announcements/all');
+                const data = await res.json();
+                if (data.success) renderAnnouncements(data.announcements);
+            } catch (err) {
+                document.getElementById('ann-list').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Fout bij laden.</p>';
+            }
+        }
+
+        function renderAnnouncements(announcements) {
+            const container = document.getElementById('ann-list');
+            if (announcements.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen mededelingen.</p>';
                 return;
             }
-            tb.innerHTML = docs.map(function(d) {
-                var safeTitle = d.title.replace(/'/g, "\\'");
-                return '<tr class="' + (!d.is_active ? 'row-inactive' : '') + '">' +
-                    '<td><strong>' + d.title + '</strong>' + (d.description ? '<br><small style="color:#94a3b8">' + d.description + '</small>' : '') + '</td>' +
-                    '<td><span class="badge badge-' + d.category + '">' + d.category + '</span></td>' +
-                    '<td>' + (d.file_type || '?').toUpperCase() + '</td>' +
-                    '<td>' + new Date(d.created_at).toLocaleDateString('nl-NL') + '</td>' +
-                    '<td><div class="actions-cell">' +
-                        '<a href="' + d.file_url + '" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">👁</a>' +
-                        (d.is_active ? '<button class="btn-sm btn-toggle" onclick="toggleDoc(' + d.id + ',false)">Verberg</button>' : '<button class="btn-sm btn-toggle" onclick="toggleDoc(' + d.id + ',true)">Toon</button>') +
-                        '<button class="btn-danger" onclick="deleteDoc(' + d.id + ',\'' + safeTitle + '\')">🗑</button>' +
-                    '</div></td></tr>';
+            container.innerHTML = announcements.map(a => {
+                const typeColors = { info: 'bg-blue-100 text-blue-700', warning: 'bg-amber-100 text-amber-700', urgent: 'bg-red-100 text-red-700' };
+                const typeLabels = { info: 'Info', warning: 'Waarschuwing', urgent: 'Urgent' };
+                const color = typeColors[a.type] || typeColors.info;
+                const label = typeLabels[a.type] || 'Info';
+                const date = new Date(a.created_at).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                return `
+                <div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">${a.message}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded ${color}">${label}</span>
+                            <span class="text-xs text-gray-400">${date}</span>
+                            ${!a.is_active ? '<span class="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">INACTIEF</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="toggleAnnouncementActive(${a.id}, ${!a.is_active})" class="p-2 rounded-lg hover:bg-gray-100 transition text-sm" title="${a.is_active ? 'Deactiveren' : 'Activeren'}">
+                            <i class="fa-solid ${a.is_active ? 'fa-eye text-green-500' : 'fa-eye-slash text-gray-400'}"></i>
+                        </button>
+                        <button onclick="deleteAnnouncement(${a.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen">
+                            <i class="fa-solid fa-trash text-red-400"></i>
+                        </button>
+                    </div>
+                </div>`;
             }).join('');
-        });
-}
+        }
 
-document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Uploaden...';
-    fetch('/api/documents/upload', { method: 'POST', body: new FormData(e.target) })
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            if (d.success) { showToastMsg('✅ Geüpload!', 'success'); e.target.reset(); loadDocs(); }
-            else { showToastMsg('❌ ' + d.message, 'error'); }
-        })
-        .catch(function() { showToastMsg('❌ Fout', 'error'); })
-        .finally(function() { btn.disabled = false; btn.textContent = '📤 Uploaden'; });
-});
+        async function createAnnouncement() {
+            const message = document.getElementById('ann-message').value.trim();
+            const type = document.getElementById('ann-type').value;
+            if (!message) return showToast('Bericht is verplicht.', 'error');
 
-function deleteDoc(id, title) {
-    if (!confirm('Verwijder "' + title + '"?')) return;
-    fetch('/api/documents/' + id, { method: 'DELETE' })
-        .then(function() { showToastMsg('🗑 Verwijderd', 'success'); loadDocs(); });
-}
+            try {
+                const res = await fetch('/api/announcements', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, type })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Mededeling toegevoegd!');
+                    document.getElementById('ann-message').value = '';
+                    loadAnnouncements();
+                } else {
+                    showToast(data.message || 'Fout.', 'error');
+                }
+            } catch (err) {
+                showToast('Verbindingsfout.', 'error');
+            }
+        }
 
-function toggleDoc(id, show) {
-    fetch('/api/documents/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: show }) })
-        .then(function() { showToastMsg(show ? '✅ Getoond' : '👁 Verborgen', 'success'); loadDocs(); });
-}
+        async function toggleAnnouncementActive(id, newActive) {
+            try {
+                const res = await fetch(`/api/announcements/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: newActive })
+                });
+                if (res.ok) loadAnnouncements();
+            } catch (err) {}
+        }
 
-function loadAnns() {
-    fetch('/api/announcements/all')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            var anns = data.success ? data.announcements : [];
-            var tb = document.getElementById('annTableBody');
-            if (!anns.length) {
-                tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px;">Nog geen mededelingen.</td></tr>';
+        async function deleteAnnouncement(id) {
+            if (!confirm('Mededeling verwijderen?')) return;
+            try {
+                const res = await fetch(`/api/announcements/${id}`, { method: 'DELETE' });
+                if (res.ok) { showToast('Verwijderd.'); loadAnnouncements(); }
+            } catch (err) { showToast('Fout.', 'error'); }
+        }
+
+        // ===================================
+        // DOCUMENTS
+        // ===================================
+        async function loadDocuments() {
+            const filter = document.getElementById('doc-filter')?.value || '';
+            const url = '/api/documents' + (filter ? `?category=${filter}` : '');
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) renderDocuments(data.documents);
+            } catch (err) {
+                document.getElementById('doc-list').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Fout bij laden.</p>';
+            }
+        }
+
+        function renderDocuments(docs) {
+            const container = document.getElementById('doc-list');
+            if (docs.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen documenten.</p>';
                 return;
             }
-            tb.innerHTML = anns.map(function(a) {
-                var safeMsg = a.message.replace(/'/g, "\\'");
-                if (safeMsg.length > 50) safeMsg = safeMsg.substring(0, 50) + '...';
-                return '<tr class="' + (!a.is_active ? 'row-inactive' : '') + '">' +
-                    '<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + a.message + '</td>' +
-                    '<td><span class="badge badge-' + a.type + '">' + a.type + '</span></td>' +
-                    '<td>' + new Date(a.created_at).toLocaleDateString('nl-NL') + '</td>' +
-                    '<td><div class="actions-cell">' +
-                        (a.is_active ? '<button class="btn-sm btn-toggle" onclick="toggleAnn(' + a.id + ',false)">Verberg</button>' : '<button class="btn-sm btn-toggle" onclick="toggleAnn(' + a.id + ',true)">Toon</button>') +
-                        '<button class="btn-danger" onclick="deleteAnn(' + a.id + ')">🗑</button>' +
-                    '</div></td></tr>';
+            const catLabels = { formulieren: 'Formulieren', documenten: 'Documenten', bekendmakingen: 'Bekendmakingen', projecten: 'Projecten', reglementen: 'Reglementen', overig: 'Overig' };
+            const catColors = { formulieren: 'bg-amber-100 text-amber-700', documenten: 'bg-blue-100 text-blue-700', bekendmakingen: 'bg-teal-100 text-teal-700', projecten: 'bg-purple-100 text-purple-700', reglementen: 'bg-orange-100 text-orange-700', overig: 'bg-gray-100 text-gray-700' };
+
+            container.innerHTML = docs.map(d => {
+                const date = new Date(d.created_at).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric' });
+                return `
+                <div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition">
+                    <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <iF class="fa-solid fa-file text-gray-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">${d.title}</p>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded ${catColors[d.category] || catColors.overig}">${catLabels[d.category] || d.category}</span>
+                            <span class="text-xs text-gray-400">${date}</span>
+                            ${d.uploaded_by ? `<span class="text-xs text-gray-400">door ${d.uploaded_by}</span>` : ''}
+                            ${!d.is_active ? '<span class="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">INACTIEF</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <a href="${d.file_url}" target="_blank" class="p-2 rounded-lg hover:bg-blue-50 transition text-sm" title="Download">
+                            <i class="fa-solid fa-download text-blue-400"></i>
+                        </a>
+                        <button onclick="toggleDocActive(${d.id}, ${!d.is_active})" class="p-2 rounded-lg hover:bg-gray-100 transition text-sm" title="${d.is_active ? 'Verbergen' : 'Tonen'}">
+                            <i class="fa-solid ${d.is_active ? 'fa-eye text-green-500' : 'fa-eye-slash text-gray-400'}"></i>
+                        </button>
+                        <button onclick="deleteDocument(${d.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen">
+                            <i class="fa-solid fa-trash text-red-400"></i>
+                        </button>
+                    </div>
+                </div>`;
             }).join('');
-        });
-}
+        }
 
-document.getElementById('annForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var btn = document.getElementById('annSubmitBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Plaatsen...';
-    var message = document.getElementById('annMessage').value;
-    var type = document.getElementById('annType').value;
-    fetch('/api/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: message, type: type })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-        if (d.success) { showToastMsg('✅ Geplaatst!', 'success'); e.target.reset(); loadAnns(); }
-        else { showToastMsg('❌ ' + (d.message || 'Fout'), 'error'); }
-    })
-    .catch(function() { showToastMsg('❌ Verbindingsfout', 'error'); })
-    .finally(function() { btn.disabled = false; btn.textContent = '📢 Plaatsen'; });
-});
+        async function uploadDocument(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('doc-file');
+            const category = document.getElementById('doc-category').value;
+            const title = document.getElementById('doc-title').value;
+            const description = document.getElementById('doc-description').value;
 
-function deleteAnn(id) {
-    if (!confirm('Verwijder mededeling?')) return;
-    fetch('/api/announcements/' + id, { method: 'DELETE' })
-        .then(function() { showToastMsg('🗑 Verwijderd', 'success'); loadAnns(); });
-}
+            if (!fileInput.files[0] || !category || !title) {
+                return showToast('Bestand, categorie en titel zijn verplicht.', 'error');
+            }
 
-function toggleAnn(id, show) {
-    fetch('/api/announcements/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: show }) })
-        .then(function() { showToastMsg(show ? '✅ Getoond' : '👁 Verborgen', 'success'); loadAnns(); });
-}
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('category', category);
+            formData.append('title', title);
+            if (description) formData.append('description', description);
 
-checkAdminAccess().then(function() { loadDocs(); loadAnns(); }).catch(function() {});
-</script>
+            try {
+                const res = await fetch('/api/documents/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Document geüpload!');
+                    document.getElementById('upload-form').reset();
+                    loadDocuments();
+                } else {
+                    showToast(data.message || 'Upload mislukt.', 'error');
+                }
+            } catch (err) {
+                showToast('Verbindingsfout.', 'error');
+            }
+        }
+
+        async function toggleDocActive(id, newActive) {
+            try {
+                const res = await fetch(`/api/documents/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: newActive })
+                });
+                if (res.ok) loadDocuments();
+            } catch (err) {}
+        }
+
+        async function deleteDocument(id) {
+            if (!confirm('Document verwijderen? Het bestand wordt permanent verwijderd.')) return;
+            try {
+                const res = await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+                if (res.ok) { showToast('Verwijderd.'); loadDocuments(); }
+            } catch (err) { showToast('Fout.', 'error'); }
+        }
+    </script>
 </body>
 </html>

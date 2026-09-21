@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Onderhoud - RGWO Portal</title>
     <meta name="theme-color" content="#1e293b">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -112,20 +112,12 @@
             <span>RGWO Portal &copy; <span id="year"></span></span>
         </div>
     </div>
-
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
-
-        // Auto-check every 30s if maintenance is over
-        setInterval(() => {
-            fetch('/api/me', { credentials: 'include' })
-                .then(res => {
-                    // If we get anything other than 503, maintenance is over
-                    if (res.status !== 503) {
-                        window.location.reload();
-                    }
-                })
-                .catch(() => {});
+        setInterval(function() {
+            fetch('/api/me', { credentials: 'include' }).then(function(res) {
+                if (res.status !== 503) window.location.reload();
+            }).catch(function() {});
         }, 30000);
     </script>
 </body>

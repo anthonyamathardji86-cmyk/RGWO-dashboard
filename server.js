@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
@@ -23,7 +24,6 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 // 2. MIDDLEWARE
 // ==========================
 app.set('trust proxy', 1);
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET || 'fallback_secret_change_this'));
@@ -33,6 +33,73 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
 });
+
+// ==========================
+// 2B. MAINTENANCE MODE
+// ==========================
+function isMaintenanceEnabled() {
+    try {
+        const config = JSON.parse(
+            fs.readFileSync(path.join(__dirname, 'maintenance.json'), 'utf8')
+        );
+        return config.enabled === true;
+    } catch (err) {
+        return false; // File missing/corrupt = don't block anyone
+    }
+}
+
+async function getUserRole(userId) {
+    if (!userId) return null;
+    try {
+        const { data: member } = await supabase
+            .from('RGWO leden')
+            .select('role')
+            .eq('telegram_id', parseInt(userId))
+            .single();
+        return member?.role || null;
+    } catch (err) {
+        return null;
+    }
+}
+
+const MAINTENANCE_AUTH_WHITELIST = ['/api/auth', '/api/me', '/api/logout', '/api/maintenance'];
+
+app.use(async (req, res, next) => {
+    // If maintenance is OFF, proceed normally
+    if (!isMaintenanceEnabled()) return next();
+
+    // Allow whitelisted auth routes (needed to identify who the user is)
+    if (MAINTENANCE_AUTH_WHITELIST.some(route => req.path.startsWith(route))) {
+        return next();
+    }
+
+    // Check if user is admin → bypass maintenance
+    const userId = req.cookies.rgwo_user;
+    const role = await getUserRole(userId);
+
+    if (role === 'admin') return next();
+
+    // For HTML page requests → show maintenance page
+    const acceptHeader = req.headers.accept || '';
+    if (acceptHeader.includes('text/html')) {
+        return res.sendFile(path.join(__dirname, 'public', 'maintenance.html'));
+    }
+
+    // For API requests → return 503
+    if (req.path.startsWith('/api/')) {
+        return res.status(503).json({
+            success: false,
+            maintenance: true,
+            message: 'Website is momenteel in onderhoud.'
+        });
+    }
+
+    // Everything else (static assets: CSS, JS, images) → allow through
+    next();
+});
+
+// Serve static files AFTER maintenance middleware
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================
 // 3. TELEGRAM WEBHOOK REGISTRATION
@@ -167,6 +234,51 @@ app.post('/api/profile', async (req, res) => {
 app.post('/api/logout', (req, res) => {
     res.clearCookie('rgwo_user');
     res.json({ success: true });
+});
+
+// ==========================
+// 5B. MAINTENANCE TOGGLE (admin only)
+// ==========================
+app.get('/api/maintenance', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+
+        const role = await getUserRole(userId);
+        if (role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Alleen admins.' });
+        }
+
+        const config = JSON.parse(
+            fs.readFileSync(path.join(__dirname, 'maintenance.json'), 'utf8')
+        );
+        res.json({ success: true, enabled: config.enabled });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/api/maintenance/toggle', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+
+        const role = await getUserRole(userId);
+        if (role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Alleen admins.' });
+        }
+
+        const configPath = path.join(__dirname, 'maintenance.json');
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        config.enabled = !config.enabled;
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+        console.log(`[MAINTENANCE] Mode ${config.enabled ? 'ENABLED ✅' : 'DISABLED ❌'} by user ${userId}`);
+        res.json({ success: true, enabled: config.enabled });
+    } catch (error) {
+        console.error('[MAINTENANCE ERROR]:', error.message);
+        res.status(500).json({ success: false });
+    }
 });
 
 // ==========================
@@ -314,13 +426,9 @@ app.post('/api/webhook', async (req, res) => {
 // 8. DOCUMENT MANAGEMENT (Supabase Storage)
 // ==========================
 
-// Categories that are allowed
 const VALID_CATEGORIES = ['formulieren', 'documenten', 'bekendmakingen', 'projecten', 'reglementen', 'overig'];
-
-// File types that are allowed
 const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.png', '.jpg', '.jpeg'];
 
-// --- GET documents grouped by category (for the member dashboard) ---
 app.get('/api/documents/grouped', async (req, res) => {
     try {
         const { data, error } = await supabase
@@ -332,7 +440,6 @@ app.get('/api/documents/grouped', async (req, res) => {
 
         if (error) throw error;
 
-        // Group them: { formulieren: [...], documenten: [...], ... }
         const grouped = {};
         data.forEach(doc => {
             if (!grouped[doc.category]) {
@@ -354,7 +461,6 @@ app.get('/api/documents/grouped', async (req, res) => {
     }
 });
 
-// --- GET all documents (flat list, for admin page) ---
 app.get('/api/documents', async (req, res) => {
     try {
         const { category } = req.query;
@@ -365,7 +471,6 @@ app.get('/api/documents', async (req, res) => {
             .order('category', { ascending: true })
             .order('sort_order', { ascending: true });
 
-        // If a category filter is given, use it
         if (category) {
             query = query.eq('category', category);
         }
@@ -380,14 +485,11 @@ app.get('/api/documents', async (req, res) => {
     }
 });
 
-// --- UPLOAD a new document (admin only) ---
 app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
     try {
-        // Step A: Check if user is logged in
         const userId = req.cookies.rgwo_user;
         if (!userId) return res.status(401).json({ success: false, message: 'Niet ingelogd.' });
 
-        // Step B: Check if user is admin or board
         const { data: member } = await supabase
             .from('RGWO leden')
             .select('role, naam, telegram_naam')
@@ -398,7 +500,6 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
             return res.status(403).json({ success: false, message: 'Geen beheerdersrechten.' });
         }
 
-        // Step C: Get form fields
         const { category, title, description, sort_order } = req.body;
         const file = req.file;
 
@@ -406,23 +507,19 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
             return res.status(400).json({ success: false, message: 'Bestand, categorie en titel zijn verplicht.' });
         }
 
-        // Step D: Validate category
         if (!VALID_CATEGORIES.includes(category)) {
             return res.status(400).json({ success: false, message: 'Ongeldige categorie.' });
         }
 
-        // Step E: Validate file extension
         const ext = path.extname(file.originalname).toLowerCase();
         if (!ALLOWED_EXTENSIONS.includes(ext)) {
             return res.status(400).json({ success: false, message: 'Bestandstype niet toegestaan.' });
         }
 
-        // Step F: Create a safe storage path
         const timestamp = Date.now();
         const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
         const storagePath = `${category}/${timestamp}_${safeName}`;
 
-        // Step G: Upload file to Supabase Storage
         const { data: uploadData, error: uploadError } = await supabase.storage
             .from('documents')
             .upload(storagePath, file.buffer, {
@@ -435,14 +532,12 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
             return res.status(500).json({ success: false, message: 'Fout bij uploaden naar opslag.' });
         }
 
-        // Step H: Get the public URL of the uploaded file
         const { data: urlData } = supabase.storage
             .from('documents')
             .getPublicUrl(storagePath);
 
         const fileUrl = urlData.publicUrl;
 
-        // Step I: Save document info to the Documenten table
         const { data: docRecord, error: dbError } = await supabase
             .from('Documenten')
             .insert({
@@ -461,7 +556,6 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
 
         if (dbError) {
             console.error("[DB INSERT ERROR]:", dbError);
-            // If database insert fails, remove the uploaded file to keep things clean
             await supabase.storage.from('documents').remove([storagePath]);
             return res.status(500).json({ success: false, message: 'Fout bij opslaan metadata.' });
         }
@@ -475,7 +569,6 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
     }
 });
 
-// --- DELETE a document (admin only) ---
 app.delete('/api/documents/:id', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
@@ -493,7 +586,6 @@ app.delete('/api/documents/:id', async (req, res) => {
 
         const docId = req.params.id;
 
-        // Find the document so we know its storage_path
         const { data: doc } = await supabase
             .from('Documenten')
             .select('storage_path, title')
@@ -504,7 +596,6 @@ app.delete('/api/documents/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Document niet gevonden.' });
         }
 
-        // Delete the actual file from Supabase Storage
         const { error: storageError } = await supabase.storage
             .from('documents')
             .remove([doc.storage_path]);
@@ -513,7 +604,6 @@ app.delete('/api/documents/:id', async (req, res) => {
             console.error("[STORAGE DELETE WARNING]:", storageError);
         }
 
-        // Delete the record from the Documenten table
         const { error: dbError } = await supabase
             .from('Documenten')
             .delete()
@@ -530,7 +620,6 @@ app.delete('/api/documents/:id', async (req, res) => {
     }
 });
 
-// --- UPDATE document info (admin only, for editing title/description/hiding) ---
 app.patch('/api/documents/:id', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
@@ -549,7 +638,6 @@ app.patch('/api/documents/:id', async (req, res) => {
         const docId = req.params.id;
         const { title, description, category, sort_order, is_active } = req.body;
 
-        // Build update object with only the fields that were sent
         const updates = {};
         if (title !== undefined) updates.title = title;
         if (description !== undefined) updates.description = description;
@@ -574,18 +662,9 @@ app.patch('/api/documents/:id', async (req, res) => {
 });
 
 // ==========================
-// 9. START SERVER & WEBHOOK
-// ==========================
-app.listen(PORT, async () => {
-    console.log(`Server listening on port ${PORT}`);
-    await registerWebhook();
-});
-
-// ==========================
-// 10. ANNOUNCEMENTS (Mededelingen)
+// 9. ANNOUNCEMENTS (Mededelingen)
 // ==========================
 
-// --- GET active announcements (public) ---
 app.get('/api/announcements', async (req, res) => {
     try {
         const { data, error } = await supabase
@@ -602,7 +681,6 @@ app.get('/api/announcements', async (req, res) => {
     }
 });
 
-// --- GET all announcements (admin, includes inactive) ---
 app.get('/api/announcements/all', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
@@ -631,7 +709,6 @@ app.get('/api/announcements/all', async (req, res) => {
     }
 });
 
-// --- CREATE announcement (admin only) ---
 app.post('/api/announcements', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
@@ -667,7 +744,6 @@ app.post('/api/announcements', async (req, res) => {
     }
 });
 
-// --- UPDATE announcement (admin only) ---
 app.patch('/api/announcements/:id', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
@@ -706,7 +782,6 @@ app.patch('/api/announcements/:id', async (req, res) => {
     }
 });
 
-// --- DELETE announcement (admin only) ---
 app.delete('/api/announcements/:id', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
@@ -733,4 +808,12 @@ app.delete('/api/announcements/:id', async (req, res) => {
         console.error("[ANNOUNCEMENT DELETE ERROR]:", error.message);
         res.status(500).json({ success: false });
     }
+});
+
+// ==========================
+// 10. START SERVER & WEBHOOK
+// ==========================
+app.listen(PORT, async () => {
+    console.log(`Server listening on port ${PORT}`);
+    await registerWebhook();
 });

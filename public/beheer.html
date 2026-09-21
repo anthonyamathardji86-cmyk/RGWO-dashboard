@@ -63,6 +63,7 @@
 
         <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
             <button onclick="switchTab('maintenance')" id="tab-maintenance" class="tab-btn tab-active px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-wrench mr-2"></i>Onderhoud</button>
+            <button onclick="switchTab('leden')" id="tab-leden" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-users mr-2"></i>Leden</button>
             <button onclick="switchTab('announcements')" id="tab-announcements" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-bullhorn mr-2"></i>Mededelingen</button>
             <button onclick="switchTab('documents')" id="tab-documents" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-folder-open mr-2"></i>Documenten</button>
         </div>
@@ -97,7 +98,68 @@
                 </div>
             </div>
         </div>
+        
+        <!-- LEDEN TAB -->
+        <div id="panel-leden" class="tab-panel hidden">
+            <!-- Active Members Setting -->
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-chart-simple mr-2 text-green-500"></i>Active Members (Handmatig)</h2>
+                <div class="flex items-center gap-4">
+                    <input type="number" id="active-members-input" class="form-input w-40" placeholder="v.b. 1100" min="0">
+                    <button onclick="saveActiveMembers()" class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition shadow-sm"><i class="fa-solid fa-save mr-1"></i>Opslaan</button>
+                    <span id="active-members-status" class="text-sm text-gray-400"></span>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">Dit aantal wordt getoond op de hoofdpagina als "Active Members".</p>
+            </div>
 
+            <!-- Search & Filter -->
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <input type="text" id="leden-search" class="form-input" placeholder="Zoek op naam, badge..." oninput="loadLeden()">
+                        <select id="leden-role-filter" class="form-input w-auto" onchange="loadLeden()">
+                            <option value="">Alle rollen</option>
+                            <option value="member">Member</option>
+                            <option value="board">Board</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button onclick="showAddLidModal()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i>Lid Toevoegen</button>
+                </div>
+            </div>
+
+            <!-- Member List -->
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100"><h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-users mr-2 text-gray-400"></i>RGWO Leden</h2></div>
+                <div id="leden-list" class="divide-y divide-gray-100"><p class="text-center text-gray-400 py-8 text-sm">Laden...</p></div>
+            </div>
+        </div>
+
+        <!-- ADD/EDIT LID MODAL -->
+        <div id="lidModal" class="modal-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:100;display:none;justify-content:center;align-items:center">
+            <div style="background:white;width:90%;max-width:500px;border-radius:20px;padding:30px;max-height:90vh;overflow-y:auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="lid-modal-title" class="text-xl font-bold text-gray-900">Lid Toevoegen</h2>
+                    <button onclick="closeLidModal()" class="text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                </div>
+                <form onsubmit="saveLid(event)">
+                    <input type="hidden" id="lid-edit-id">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Volledige Naam *</label><input type="text" id="lid-naam" class="form-input" required>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer *</label><input type="text" id="lid-badge" class="form-input" required>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Afdeling *</label><input type="text" id="lid-afdeling" class="form-input" required>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Role *</label>
+                    <select id="lid-role" class="form-input" required>
+                        <option value="member">Member</option>
+                        <option value="board">Board</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telegram ID <span class="text-gray-400 font-normal">(optioneel)</span></label><input type="text" id="lid-telegram-id" class="form-input" placeholder="Automatisch bij Telegram login">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telegram Username <span class="text-gray-400 font-normal">(optioneel)</span></label><input type="text" id="lid-telegram-username" class="form-input" placeholder="v.b. johndoe123">
+                    <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition mt-2">Opslaan</button>
+                </form>
+            </div>
+        </div>
+        
         <!-- ANNOUNCEMENTS TAB -->
         <div id="panel-announcements" class="tab-panel hidden">
             <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
@@ -196,6 +258,8 @@
                 if (data.loggedIn && (data.role === 'admin' || data.role === 'board')) {
                     currentUserRole = data.role;
                     loadMaintenanceStatus();
+                    loadLeden();
+                    loadActiveMembers();
                     loadAnnouncements();
                     loadDocuments();
                 } else {
@@ -273,6 +337,129 @@
             btn.disabled = false;
         }
 
+        // LEDEN
+        async function loadLeden() {
+            try {
+                const search = document.getElementById('leden-search')?.value || '';
+                const roleFilter = document.getElementById('leden-role-filter')?.value || '';
+                let url = '/api/leden?';
+                if (search) url += 'search=' + encodeURIComponent(search) + '&';
+                if (roleFilter) url += 'role=' + roleFilter;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) renderLeden(data.leden);
+            } catch (err) { document.getElementById('leden-list').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Fout bij laden.</p>'; }
+        }
+
+        function renderLeden(leden) {
+            const container = document.getElementById('leden-list');
+            if (leden.length === 0) { container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen leden gevonden.</p>'; return; }
+            const roleColors = { admin: 'bg-red-100 text-red-700', board: 'bg-amber-100 text-amber-700', member: 'bg-blue-100 text-blue-700' };
+            const roleLabels = { admin: 'Admin', board: 'Board', member: 'Member' };
+            container.innerHTML = leden.map(l => {
+                const rc = roleColors[l.role] || roleColors.member;
+                const rl = roleLabels[l.role] || 'Member';
+                return `<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">${l.naam || l.telegram_naam || '-'}</p>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <span class="text-xs font-mono text-gray-500">Badge: ${l.badge || '-'}</span>
+                            <span class="text-xs text-gray-400">•</span>
+                            <span class="text-xs text-gray-500">${l.afdeling || '-'}</span>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded ${rc}">${rl}</span>
+                            ${!l.telegram_id ? '<span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Handmatig</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="editLid(${l.id})" class="p-2 rounded-lg hover:bg-blue-50 transition text-sm" title="Bewerken"><i class="fa-solid fa-pen text-blue-400"></i></button>
+                        <button onclick="deleteLid(${l.id}, '${(l.naam||'').replace(/'/g,"\\'")}')" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function showAddLidModal() {
+            document.getElementById('lid-modal-title').textContent = 'Lid Toevoegen';
+            document.getElementById('lid-edit-id').value = '';
+            document.getElementById('lid-naam').value = '';
+            document.getElementById('lid-badge').value = '';
+            document.getElementById('lid-afdeling').value = '';
+            document.getElementById('lid-role').value = 'member';
+            document.getElementById('lid-telegram-id').value = '';
+            document.getElementById('lid-telegram-username').value = '';
+            document.getElementById('lidModal').style.display = 'flex';
+        }
+
+        function closeLidModal() { document.getElementById('lidModal').style.display = 'none'; }
+
+        async function editLid(id) {
+            try {
+                const res = await fetch('/api/leden');
+                const data = await res.json();
+                if (!data.success) return;
+                const lid = data.leden.find(l => l.id === id);
+                if (!lid) return;
+                document.getElementById('lid-modal-title').textContent = 'Lid Bewerken';
+                document.getElementById('lid-edit-id').value = id;
+                document.getElementById('lid-naam').value = lid.naam || '';
+                document.getElementById('lid-badge').value = lid.badge || '';
+                document.getElementById('lid-afdeling').value = lid.afdeling || '';
+                document.getElementById('lid-role').value = lid.role || 'member';
+                document.getElementById('lid-telegram-id').value = lid.telegram_id || '';
+                document.getElementById('lid-telegram-username').value = lid.telegram_username || '';
+                document.getElementById('lidModal').style.display = 'flex';
+            } catch (err) { showToast('Fout.', 'error'); }
+        }
+
+        async function saveLid(event) {
+            event.preventDefault();
+            const editId = document.getElementById('lid-edit-id').value;
+            const formData = {
+                naam: document.getElementById('lid-naam').value,
+                badge: document.getElementById('lid-badge').value,
+                afdeling: document.getElementById('lid-afdeling').value,
+                member_role: document.getElementById('lid-role').value,
+                telegram_id: document.getElementById('lid-telegram-id').value || null,
+                telegram_username: document.getElementById('lid-telegram-username').value || null
+            };
+            try {
+                let res;
+                if (editId) {
+                    res = await fetch('/api/leden/' + editId, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+                } else {
+                    res = await fetch('/api/leden', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+                }
+                const data = await res.json();
+                if (data.success) { showToast(editId ? 'Lid bijgewerkt!' : 'Lid toegevoegd!'); closeLidModal(); loadLeden(); }
+                else { showToast(data.message || 'Fout.', 'error'); }
+            } catch (err) { showToast('Verbindingsfout.', 'error'); }
+        }
+
+        async function deleteLid(id, naam) {
+            if (!confirm('Lid "' + naam + '" verwijderen?')) return;
+            try {
+                const res = await fetch('/api/leden/' + id, { method: 'DELETE' });
+                if (res.ok) { showToast('Verwijderd.'); loadLeden(); }
+            } catch (err) { showToast('Fout.', 'error'); }
+        }
+
+        async function loadActiveMembers() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                if (data.success) document.getElementById('active-members-input').value = data.active_members;
+            } catch (err) {}
+        }
+
+        async function saveActiveMembers() {
+            const val = document.getElementById('active-members-input').value;
+            try {
+                const res = await fetch('/api/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active_members: val }) });
+                const data = await res.json();
+                if (data.success) { showToast('Opgeslagen!'); document.getElementById('active-members-status').textContent = '✅ Opgeslagen'; }
+            } catch (err) { showToast('Fout.', 'error'); }
+        }
+        
         // ANNOUNCEMENTS
         async function loadAnnouncements() {
             try {

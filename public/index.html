@@ -244,9 +244,7 @@
         const originalFetch = window.fetch;
         window.fetch = function(...args) {
             return originalFetch.apply(this, args).then(response => {
-                if (response.status === 503) {
-                    window.location.reload();
-                }
+                if (response.status === 503) { window.location.reload(); }
                 return response;
             });
         };

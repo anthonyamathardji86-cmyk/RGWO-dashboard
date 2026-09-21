@@ -61,7 +61,7 @@
     <a href="/">← Terug naar Dashboard</a>
 </div>
 
-<!-- DOCUMENTS SECTION -->
+<!-- DOCUMENTS -->
 <div class="card">
     <h2>📁 Documenten Uploaden</h2>
     <form id="uploadForm" class="form-grid">
@@ -104,14 +104,14 @@
     <div style="overflow-x: auto;">
         <table>
             <thead><tr><th>Titel</th><th>Categorie</th><th>Type</th><th>Datum</th><th>Acties</th></tr></thead>
-            <tbody id="docTableBody"><tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:30px;">Laden...</td></tr></tbody>
+            <tbody id="docTableBody"><tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px;">Laden...</td></tr></tbody>
         </table>
     </div>
 </div>
 
 <hr class="section-divider">
 
-<!-- ANNOUNCEMENTS SECTION -->
+<!-- ANNOUNCEMENTS -->
 <div class="card">
     <h2>📢 Nieuwe Mededeling (Banner)</h2>
     <form id="annForm" class="form-grid">
@@ -121,7 +121,7 @@
         </div>
         <div class="form-group">
             <label>Type</label>
-            <select name="type">
+            <select name="type" id="annType">
                 <option value="info">ℹ️ Info (blauw)</option>
                 <option value="warning">⚠️ Waarschuwing (geel)</option>
                 <option value="urgent">🚨 Urgent (rood)</option>
@@ -138,69 +138,140 @@
     <div style="overflow-x: auto;">
         <table>
             <thead><tr><th>Bericht</th><th>Type</th><th>Datum</th><th>Acties</th></tr></thead>
-            <tbody id="annTableBody"><tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:30px;">Laden...</td></tr></tbody>
+            <tbody id="annTableBody"><tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px;">Laden...</td></tr></tbody>
         </table>
     </div>
 </div>
 
 <script>
 function checkAdminAccess() {
-    return fetch('/api/me').then(function(res) { return res.json(); }).then(function(data) {
-        if (!data.loggedIn || (data.role !== 'admin' && data.role !== 'board')).{
-            document.body.innerHTML = '<div style="text-align:center;padding:100px;color:#dc2626;"><h1>🚫 Geen toegang</h1><p>Alleen beheerders.</p></div>';
-            throw new Error('Not admin');
-        }
-    });
+    return fetch('/api/me')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data.loggedIn || (data.role !== 'admin' && data.role !== 'board')) {
+                document.body.innerHTML = '<div style="text-align:center;padding:100px;color:#dc2626;"><h1>🚫 Geen toegang</h1><p>Alleen beheerders.</p></div>';
+                throw new Error('Not admin');
+            }
+        });
 }
 
-function showToast(message, type) {
-    var t = document.createElement('div'); t.className = 'toast toast-' + type; t.textContent = message; document.body.appendChild(t); setTimeout(function() { t.remove(); }, 3000);
+function showToastMsg(message, type) {
+    var t = document.createElement('div');
+    t.className = 'toast toast-' + type;
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(function() { t.remove(); }, 3000);
 }
 
-// === DOCUMENTS ===
 function loadDocs() {
-    fetch('/api/documents').then(function(res) { return res.json(); }).then(function(data) {
-        var docs = data.success ? data.documents : [];
-        var tb = document.getElementById('docTableBody');
-        if (!docs.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px;">Nog geen documenten.</td></tr>'; return; }
-        tb.innerHTML = docs.map(function(d) {
-            var st = d.title.replace(/'/g, "\\'");
-            return '<tr class="' + (!d.is_active?'row-inactive':'') + '"><td><strong>' + d.title + '</strong>' + (d.description ? '<br><small style="color:#94a3b8">' + d.description + '</small>' : '') + '</td><td><span class="badge badge-' + d.category + '">' + d.category + '</span></td><td>' + (d.file_type||'?').toUpperCase() + '</td><td>' + new Date(d.created_at).toLocaleDateString('nl-NL') + '</td><td><div class="actions-cell"><a href="' + d.file_url + '" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">👁</a>' + (d.is_active ? '<button class="btn-sm btn-toggle" onclick="toggleDoc(' + d.id + ',false)">Verberg</button>' : '<button class="btn-sm btn-toggle" onclick="toggleDoc(' + d.id + ',true)">Toon</button>') + '<button class="btn-danger" onclick="deleteDoc(' + d.id + ',\'' + st + '\')">🗑</button></div></td></tr>';
-        }).join('');
-    });
+    fetch('/api/documents')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            var docs = data.success ? data.documents : [];
+            var tb = document.getElementById('docTableBody');
+            if (!docs.length) {
+                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px;">Nog geen documenten.</td></tr>';
+                return;
+            }
+            tb.innerHTML = docs.map(function(d) {
+                var safeTitle = d.title.replace(/'/g, "\\'");
+                return '<tr class="' + (!d.is_active ? 'row-inactive' : '') + '">' +
+                    '<td><strong>' + d.title + '</strong>' + (d.description ? '<br><small style="color:#94a3b8">' + d.description + '</small>' : '') + '</td>' +
+                    '<td><span class="badge badge-' + d.category + '">' + d.category + '</span></td>' +
+                    '<td>' + (d.file_type || '?').toUpperCase() + '</td>' +
+                    '<td>' + new Date(d.created_at).toLocaleDateString('nl-NL') + '</td>' +
+                    '<td><div class="actions-cell">' +
+                        '<a href="' + d.file_url + '" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">👁</a>' +
+                        (d.is_active ? '<button class="btn-sm btn-toggle" onclick="toggleDoc(' + d.id + ',false)">Verberg</button>' : '<button class="btn-sm btn-toggle" onclick="toggleDoc(' + d.id + ',true)">Toon</button>') +
+                        '<button class="btn-danger" onclick="deleteDoc(' + d.id + ',\'' + safeTitle + '\')">🗑</button>' +
+                    '</div></td></tr>';
+            }).join('');
+        });
 }
 
 document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    e.preventDefault(); var b = document.getElementById('submitBtn'); b.disabled = true; b.textContent = '⏳ Uploaden...';
-    fetch('/api/documents/upload', { method: 'POST', body: new FormData(e.target) }).then(function(r) { return r.json(); }).then(function(d) { if (d.success) { showToast('✅ Geüpload!', 'success'); e.target.reset(); loadDocs(); } else { showToast('❌ ' + d.message, 'error'); } }).catch(function() { showToast('❌ Fout', 'error'); }).finally(function() { b.disabled = false; b.textContent = '📤 Uploaden'; });
+    e.preventDefault();
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Uploaden...';
+    fetch('/api/documents/upload', { method: 'POST', body: new FormData(e.target) })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.success) { showToastMsg('✅ Geüpload!', 'success'); e.target.reset(); loadDocs(); }
+            else { showToastMsg('❌ ' + d.message, 'error'); }
+        })
+        .catch(function() { showToastMsg('❌ Fout', 'error'); })
+        .finally(function() { btn.disabled = false; btn.textContent = '📤 Uploaden'; });
 });
 
-function deleteDoc(id, t) { if (!confirm('Verwijder "' + t + '"?')) return; fetch('/api/documents/' + id, { method: 'DELETE' }).then(function(r) { return r.json(); }).then(function() { showToast('🗑 Verwijderd', 'success'); loadDocs(); }); }
-function toggleDoc(id, s) { fetch('/api/documents/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: s }) }).then(function() { showToast(s ? '✅ Getoond' : '👁 Verborgen', 'success'); loadDocs(); }); }
+function deleteDoc(id, title) {
+    if (!confirm('Verwijder "' + title + '"?')) return;
+    fetch('/api/documents/' + id, { method: 'DELETE' })
+        .then(function() { showToastMsg('🗑 Verwijderd', 'success'); loadDocs(); });
+}
 
-// === ANNOUNCEMENTS ===
+function toggleDoc(id, show) {
+    fetch('/api/documents/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: show }) })
+        .then(function() { showToastMsg(show ? '✅ Getoond' : '👁 Verborgen', 'success'); loadDocs(); });
+}
+
 function loadAnns() {
-    fetch('/api/announcements/all').then(function(res) { return res.json(); }).then(function(data) {
-        var anns = data.success ? data.announcements : [];
-        var tb = document.getElementById('annTableBody');
-        if (!anns.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px;">Nog geen mededelingen.</td></tr>'; return; }
-        tb.innerHTML = anns.map(function(a) {
-            var sm = a.message.replace(/'/g, "\\'"); if (sm.length > 50) sm = sm.substring(0, 50) + '...';
-            return '<tr class="' + (!a.is_active?'row-inactive':'') + '"><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + a.message + '</td><td><span class="badge badge-' + a.type + '">' + a.type + '</span></td><td>' + new Date(a.created_at).toLocaleDateString('nl-NL') + '</td><td><div class="actions-cell">' + (a.is_active ? '<button class="btn-sm btn-toggle" onclick="toggleAnn(' + a.id + ',false)">Verberg</button>' : '<button class="btn-sm btn-toggle" onclick="toggleAnn(' + a.id + ',true)">Toon</button>') + '<button class="btn-danger" onclick="deleteAnn(' + a.id + ',\'' + sm + '\')">🗑</button></div></td></tr>';
-        }).join('');
-    });
+    fetch('/api/announcements/all')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            var anns = data.success ? data.announcements : [];
+            var tb = document.getElementById('annTableBody');
+            if (!anns.length) {
+                tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px;">Nog geen mededelingen.</td></tr>';
+                return;
+            }
+            tb.innerHTML = anns.map(function(a) {
+                var safeMsg = a.message.replace(/'/g, "\\'");
+                if (safeMsg.length > 50) safeMsg = safeMsg.substring(0, 50) + '...';
+                return '<tr class="' + (!a.is_active ? 'row-inactive' : '') + '">' +
+                    '<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + a.message + '</td>' +
+                    '<td><span class="badge badge-' + a.type + '">' + a.type + '</span></td>' +
+                    '<td>' + new Date(a.created_at).toLocaleDateString('nl-NL') + '</td>' +
+                    '<td><div class="actions-cell">' +
+                        (a.is_active ? '<button class="btn-sm btn-toggle" onclick="toggleAnn(' + a.id + ',false)">Verberg</button>' : '<button class="btn-sm btn-toggle" onclick="toggleAnn(' + a.id + ',true)">Toon</button>') +
+                        '<button class="btn-danger" onclick="deleteAnn(' + a.id + ')">🗑</button>' +
+                    '</div></td></tr>';
+            }).join('');
+        });
 }
 
 document.getElementById('annForm').addEventListener('submit', function(e) {
-    e.preventDefault(); var b = document.getElementById('annSubmitBtn'); b.disabled = true; b.textContent = '⏳ Plaatsen...';
-    var msg = document.getElementById('annMessage').value; var typ = e.target.querySelector('select[name="type"]').value;
-    fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg, type: typ }) }).then(function(r) { return r.json(); }).then(function(d) { if (d.success) { showToast('✅ Geplaatst!', 'success'); e.target.reset(); loadAnns(); } else { showToast('❌ ' + d.message, 'error'); } }).catch(function() { showToast('❌ Fout', 'error'); }).finally(function() { b.disabled = false; b.textContent = '📢 Plaatsen'; });
+    e.preventDefault();
+    var btn = document.getElementById('annSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Plaatsen...';
+    var message = document.getElementById('annMessage').value;
+    var type = document.getElementById('annType').value;
+    fetch('/api/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message, type: type })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        if (d.success) { showToastMsg('✅ Geplaatst!', 'success'); e.target.reset(); loadAnns(); }
+        else { showToastMsg('❌ ' + (d.message || 'Fout'), 'error'); }
+    })
+    .catch(function() { showToastMsg('❌ Verbindingsfout', 'error'); })
+    .finally(function() { btn.disabled = false; btn.textContent = '📢 Plaatsen'; });
 });
 
-function deleteAnn(id) { if (!confirm('Verwijder mededeling?')) return; fetch('/api/announcements/' + id, { method: 'DELETE' }).then(function() { showToast('🗑 Verwijderd', 'success'); loadAnns(); }); }
-function toggleAnn(id, s) { fetch('/api/announcements/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: s }) }).then(function() { showToast(s ? '✅ Getoond' : '👁 Verborgen', 'success'); loadAnns(); }); }
+function deleteAnn(id) {
+    if (!confirm('Verwijder mededeling?')) return;
+    fetch('/api/announcements/' + id, { method: 'DELETE' })
+        .then(function() { showToastMsg('🗑 Verwijderd', 'success'); loadAnns(); });
+}
 
-// === START ===
+function toggleAnn(id, show) {
+    fetch('/api/announcements/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: show }) })
+        .then(function() { showToastMsg(show ? '✅ Getoond' : '👁 Verborgen', 'success'); loadAnns(); });
+}
+
 checkAdminAccess().then(function() { loadDocs(); loadAnns(); }).catch(function() {});
 </script>
 </body>

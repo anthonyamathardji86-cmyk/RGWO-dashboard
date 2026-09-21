@@ -54,65 +54,12 @@
         .doc-file-link:hover { background: #f1f5f9; }
 
         /* ===== ANNOUNCEMENT BANNER ===== */
-        #announcement-banner {
-        display: none;
-        overflow: hidden;
-        position: relative;
-        padding: 0;
-        white-space: nowrap;
-        border-radius: 12px;
-        margin-top: 8px;
-        }        
-        #announcement-banner.visible {
-            display: block;
-        }
-        #announcement-banner.banner-info    { background: #2563eb; color: white; }
-        #announcement-banner.banner-warning  { background: #d97706; color: white; }
-        #announcement-banner.banner-urgent   { background: #dc2626; color: white; }
-
-        .banner-inner {
-            display: flex;
-            align-items: center;
-        }
-        .banner-track {
-            display: flex;
-            animation: bannerScroll var(--banner-speed, 30s) linear infinite;
-            padding: 10px 0;
-        }
-        .banner-text {
-            padding-right: 80px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-        .banner-text .separator {
-            margin: 0 20px;
-            opacity: 0.5;
-        }
-        @keyframes bannerScroll {
-            0%   { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        .banner-close {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: inherit;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            z-index: 2;
-            transition: background 0.2s;
-        }
-        .banner-close:hover { background: rgba(255,255,255,0.35); }
+        #announcement-banner { display: none; white-space: nowrap; }
+        #announcement-banner.visible { display: block; }
+        .banner-track { display: flex; animation: bannerScroll var(--banner-speed, 30s) linear infinite; }
+        .banner-text { padding-right: 80px; font-size: 0.9rem; font-weight: 600; color: #2563eb; letter-spacing: 0.02em; }
+        .banner-text .separator { margin: 0 20px; opacity: 0.3; }
+        @keyframes bannerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
     </style>
 </head>
 <body class="text-gray-800 antialiased dashboard-locked">
@@ -128,6 +75,7 @@
                 </div>
                 <div class="hidden md:flex items-center gap-2">
                     <a href="/beheer.html" id="admin-btn" class="hidden px-3 py-1.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-md transition shadow-sm"><i class="fa-solid fa-gear mr-1"></i> Beheer</a>
+                    <a href="/financien.html" class="px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition"><i class="fa-solid fa-chart-line mr-1"></i> Financiën</a>
                     <button onclick="toggleModal(true, 'docModal')" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open mr-1"></i> Documenten</button>
                     <button onclick="toggleModal(true, 'loanModal')" class="px-4 py-1.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm">Leningaanvraag</button>
                     <button onclick="logout()" class="px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
@@ -138,23 +86,13 @@
             </div>
             <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-gray-100 mt-2 pt-4 flex flex-col gap-2">
                 <a href="/beheer.html" id="admin-btn-mobile" class="hidden w-full text-left px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-gear w-5 mr-2"></i> Beheer</a>
+                <a href="/financien.html" class="block px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition"><i class="fa-solid fa-chart-line w-5 mr-2"></i> Financiën</a>
                 <button onclick="toggleModal(true, 'docModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open w-5 mr-2"></i> Documenten</button>
                 <button onclick="toggleModal(true, 'loanModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-hand-holding-dollar w-5 mr-2"></i> Leningaanvraag</button>
                 <button onclick="logout()" class="w-full text-left px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket w-5 mr-2"></i> Logout</button>
             </div>
         </div>
     </header>
-
-    <!-- ANNOUNCEMENT BANNER (looping) -->
-    <div id="announcement-banner" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="banner-inner">
-            <div class="banner-track" id="banner-track">
-                <!-- Content is duplicated by JS for seamless loop -->
-                <span class="banner-text" id="banner-text-1"></span>
-                <span class="banner-text" id="banner-text-2"></span>
-            </div>
-        </div>
-    </div>
 
     <!-- LOCK SCREEN -->
     <div id="dashboard-lock">
@@ -215,6 +153,17 @@
 
     <!-- MAIN WRAPPER -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+
+        <!-- ANNOUNCEMENT BANNER (inside main = same margins as cards) -->
+        <div id="announcement-banner" class="mb-8">
+            <div class="glass-card rounded-2xl p-4 overflow-hidden border border-gray-100">
+                <div class="banner-track" id="banner-track">
+                    <span class="banner-text" id="banner-text-1"></span>
+                    <span class="banner-text" id="banner-text-2"></span>
+                </div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-wallet text-8xl text-blue-600"></i></div>
@@ -267,7 +216,7 @@
             <div class="mt-4 space-y-2">
                 <div class="flex items-center text-sm text-gray-700"><i class="fa-solid fa-location-dot w-6 text-blue-500"></i><span>Burenstraat no. 46</span></div>
                 <div class="flex items-center text-sm text-gray-700"><a href="tel:+597427094" class="flex items-center group hover:text-blue-600 transition"><i class="fa-solid fa-phone w-6 text-blue-500"></i><span>+597427094</span></a></div>
-                <div class="flex items-center text-sm text-gray-700"><a href="mailto:info@rgwo.sr" class="flex items-center group hover:text-blue-600 transition"><i class="fa-solid fa-envelope w-6 text-blue-500"></i><span>info@rgwo.org</span></a></div>
+                <div class="flex items-center text-sm text-gray-700"><a href="mailto:info@rgwo.sr" class="flex items-center group hover:text-blue-600 transition"><i class="fa-solid fa-envelope w-6 text-blue-500"></i><span>info@rgwo.sr</span></a></div>
             </div>
         </div></div></div></footer>
     </main>
@@ -381,7 +330,7 @@
         }
 
         // ===================================
-        // DOCUMENTS — Supabase Integration
+        // DOCUMENTS
         // ===================================
         var docData = {};
         var DOC_CATEGORIES = {
@@ -419,7 +368,7 @@
         function closeDocModal() { toggleModal(false, 'docModal'); setTimeout(showDocCategories, 300); }
 
         // ===================================
-        // ANNOUNCEMENT BANNER — Supabase
+        // ANNOUNCEMENT BANNER
         // ===================================
         function loadAnnouncements() {
             fetch('/api/announcements')
@@ -437,39 +386,19 @@
             var text1 = document.getElementById('banner-text-1');
             var text2 = document.getElementById('banner-text-2');
 
-            // Determine banner color based on most urgent type
-            var hasUrgent = announcements.some(function(a) { return a.type === 'urgent'; });
-            var hasWarning = announcements.some(function(a) { return a.type === 'warning'; });
-
-            banner.classList.remove('banner-info', 'banner-warning', 'banner-urgent');
-            if (hasUrgent) banner.classList.add('banner-urgent');
-            else if (hasWarning) banner.classList.add('banner-warning');
-            else banner.classList.add('banner-info');
-
-            // Build the text with separators between announcements
             var html = announcements.map(function(a) {
-                var icon = '';
-                if (a.type === 'urgent') icon = '<i class="fa-solid fa-circle-exclamation"></i> ';
-                else if (a.type === 'warning') icon = '<i class="fa-solid fa-triangle-exclamation"></i> ';
-                else icon = '<i class="fa-solid fa-circle-info"></i> ';
+                var icon = '<i class="fa-solid fa-circle-info"></i> ';
                 return icon + a.message;
             }).join('  <span class="separator">★</span>  ');
 
-            // Duplicate for seamless loop
             text1.innerHTML = html;
             text2.innerHTML = html;
 
-            // Adjust speed based on text length (longer text = slower)
             var charCount = html.length;
             var speed = Math.max(15, Math.min(60, charCount * 0.15));
             document.getElementById('banner-track').style.setProperty('--banner-speed', speed + 's');
 
             banner.classList.add('visible');
-        }
-
-        function dismissBanner() {
-            var banner = document.getElementById('announcement-banner');
-            banner.classList.remove('visible');
         }
 
         // ===================================
@@ -485,6 +414,7 @@
             const ctxPie = document.getElementById('pieChart').getContext('2d');
             pieChartInstance = new Chart(ctxPie, { type: 'doughnut', data: { labels: ['Legal', 'Operations', 'Benefits', 'Rent', 'Misc'], datasets: [{ data: [35, 25, 20, 15, 5], backgroundColor: ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#94a3b8'], borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } } });
         }
+
         function updateTimeframe(period) {
             const tabs = ['monthly', 'quarterly', 'yearly'];
             tabs.forEach(t => { const btn = document.getElementById(`tab-${t}`); btn.classList.remove('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm'); btn.classList.add('tab-inactive', 'bg-gray-200', 'text-gray-500'); });

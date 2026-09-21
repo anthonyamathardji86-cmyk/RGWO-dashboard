@@ -76,7 +76,7 @@
                 <div class="hidden md:flex items-center gap-2">
                     <a href="/beheer.html" id="admin-btn" class="hidden px-3 py-1.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-md transition shadow-sm"><i class="fa-solid fa-gear mr-1"></i> Beheer</a>
                     <a href="/financien.html" class="px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition"><i class="fa-solid fa-chart-line mr-1"></i> Financiën</a>
-                    <button onclick="toggleModal(true, 'docModal')" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open mr-1"></i> Documenten</button>
+                    <button onclick="toggleModal(true, 'docModal')" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-bars mr-1"></i> Menu</button>
                     <button onclick="toggleModal(true, 'loanModal')" class="px-4 py-1.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm">Leningaanvraag</button>
                     <button onclick="logout()" class="px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                 </div>
@@ -87,7 +87,7 @@
             <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-gray-100 mt-2 pt-4 flex flex-col gap-2">
                 <a href="/beheer.html" id="admin-btn-mobile" class="hidden w-full text-left px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-gear w-5 mr-2"></i> Beheer</a>
                 <a href="/financien.html" class="block px-3 py-2 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition"><i class="fa-solid fa-chart-line w-5 mr-2"></i> Financiën</a>
-                <button onclick="toggleModal(true, 'docModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-folder-open w-5 mr-2"></i> Documenten</button>
+                <button onclick="toggleModal(true, 'docModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-bars w-5 mr-2"></i> Menu</button>
                 <button onclick="toggleModal(true, 'loanModal'); document.getElementById('mobile-menu').classList.add('hidden');" class="w-full text-left px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-hand-holding-dollar w-5 mr-2"></i> Leningaanvraag</button>
                 <button onclick="logout()" class="w-full text-left px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket w-5 mr-2"></i> Logout</button>
             </div>
@@ -371,7 +371,7 @@
             if (docs.length === 0) { listContainer.innerHTML = '<p class="text-center text-gray-400 py-10 text-sm">Nog geen documenten in deze categorie.</p>'; return; }
             listContainer.innerHTML = docs.map(function(doc) { var icon = getFileIconClass(doc.type); var iconColor = getFileIconColor(doc.type); return '<a href="' + doc.url + '" target="_blank" rel="noopener" class="doc-file-link group"><i class="fa-solid ' + icon + ' text-xl ' + iconColor + '"></i><div class="flex-1 min-w-0"><span class="block text-sm font-semibold text-gray-800 truncate">' + doc.title + '</span>' + (doc.description ? '<span class="block text-xs text-gray-400 truncate">' + doc.description + '</span>' : '') + '</div><i class="fa-solid fa-arrow-up-right-from-square text-gray-300 group-hover:text-blue-500 transition"></i></a>'; }).join('');
         }
-        function showDocCategories() { document.getElementById('doc-modal-title').innerHTML = '<i class="fa-solid fa-folder-open mr-2 text-blue-500"></i>Documenten'; document.getElementById('doc-categories-view').classList.remove('hidden'); document.getElementById('doc-files-view').classList.add('hidden'); }
+        function showDocCategories() { document.getElementById('doc-modal-title').innerHTML = '<i class="fa-solid fa-bars mr-2 text-blue-500"></i>Menu'; document.getElementById('doc-categories-view').classList.remove('hidden'); document.getElementById('doc-files-view').classList.add('hidden'); }
         function closeDocModal() { toggleModal(false, 'docModal'); setTimeout(showDocCategories, 300); }
 
         // ===================================

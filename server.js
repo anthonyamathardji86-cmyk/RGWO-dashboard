@@ -24,6 +24,10 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 // 2. MIDDLEWARE
 // ==========================
 app.set('trust proxy', 1);
+app.use(cors({ origin: '*' }));
+app.use(express.json());
+app.use(cookieParser(process.env.COOKIE_SECRET || 'fallback_secret_change_this'));
+
 // ==========================
 // 2B. MAINTENANCE MODE
 // ==========================
@@ -45,25 +49,31 @@ async function getUserRole(userId) {
 const MAINTENANCE_AUTH_WHITELIST = ['/api/auth', '/api/me', '/api/logout', '/api/maintenance'];
 
 app.use(async (req, res, next) => {
-    if (!isMaintenanceEnabled()) return next();
-    if (MAINTENANCE_AUTH_WHITELIST.some(route => req.path.startsWith(route))) return next();
-    const userId = req.cookies.rgwo_user;
-    const role = await getUserRole(userId);
-    if (role === 'admin') return next();
-    const acceptHeader = req.headers.accept || '';
-    if (acceptHeader.includes('text/html')) {
-        return res.sendFile(path.join(__dirname, 'public', 'maintenance.html'));
+    try {
+        if (!isMaintenanceEnabled()) return next();
+        if (MAINTENANCE_AUTH_WHITELIST.some(route => req.path.startsWith(route))) return next();
+        const userId = req.cookies.rgwo_user;
+        const role = await getUserRole(userId);
+        if (role === 'admin') return next();
+        const acceptHeader = req.headers.accept || '';
+        if (acceptHeader.includes('text/html')) {
+            return res.sendFile(path.join(__dirname, 'public', 'maintenance.html'));
+        }
+        if (req.path.startsWith('/api/')) {
+            return res.status(503).json({ success: false, maintenance: true, message: 'Website is momenteel in onderhoud.' });
+        }
+        next();
+    } catch (err) {
+        console.error('[MAINTENANCE MW ERROR]:', err.message);
+        var acceptHeader = req.headers.accept || '';
+        if (acceptHeader.includes('text/html')) {
+            return res.sendFile(path.join(__dirname, 'public', 'maintenance.html'));
+        }
+        next();
     }
-    if (req.path.startsWith('/api/')) {
-        return res.status(503).json({ success: false, maintenance: true, message: 'Website is momenteel in onderhoud.' });
-    }
-    next();
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors({ origin: '*' }));
-app.use(express.json());
-app.use(cookieParser(process.env.COOKIE_SECRET || 'fallback_secret_change_this'));
 
 // Multer setup for file uploads (stores file in memory temporarily)
 const upload = multer({

@@ -374,32 +374,37 @@ app.delete('/api/leden/:id', async (req, res) => {
 // ==========================
 // 5D. KLACHTENFORMULIER
 // ==========================
-async function sendKlachtEmail(klacht) {
+async function sendKlachtTelegram(klacht) {
     try {
         const doc = new PDFDocument({ margin: 50 });
         const buffers = [];
         doc.on('data', buffers.push.bind(buffers));
         doc.on('end', async () => {
             const pdfData = Buffer.concat(buffers);
-            const transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST,
-                port: parseInt(process.env.SMTP_PORT),
-                secure: parseInt(process.env.SMTP_PORT) === 465,
-                auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+            
+            // Prepare Telegram document upload
+            const formData = new FormData();
+            formData.append('chat_id', CHAT_IDS[0]); // Sends to the main admin chat
+            formData.append('caption', `📄 *Nieuwe Klacht - ${klacht.naam}*\nBadge: ${klacht.badge || '-'}\nCategorieën: ${klacht.categories}`);
+            
+            const pdfBlob = new Blob([pdfData], { type: 'application/pdf' });
+            formData.append('document', pdfBlob, `KLACHT-${klacht.badge || 'unknown'}-${Date.now()}.pdf`);
+
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`;
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
             });
-            await transporter.sendMail({
-                from: process.env.SMTP_USER,
-                to: process.env.KLACHT_EMAIL,
-                subject: `Nieuwe Klacht - ${klacht.naam} (Badge: ${klacht.badge || '-'})`,
-                text: 'Zie bijlage voor het klachtenformulier.',
-                attachments: [{
-                    filename: `KLACHT-${klacht.badge || 'unknown'}-${Date.now()}.pdf`,
-                    content: pdfData
-                }]
-            });
-            console.log(`[KLACHT EMAIL] Sent to ${process.env.KLACHT_EMAIL}`);
+
+            const result = await response.json();
+            if (!result.ok) {
+                console.error('[TELEGRAM PDF ERROR]', result.description);
+            } else {
+                console.log(`[KLACHT TELEGRAM] PDF sent to admin chat`);
+            }
         });
 
+        // Generate the PDF content
         doc.fontSize(22).text('RGWO', { align: 'center' });
         doc.fontSize(16).text('KLACHTENFORMULIER', { align: 'center' });
         doc.moveDown(0.5);
@@ -426,7 +431,7 @@ async function sendKlachtEmail(klacht) {
         doc.fontSize(10).fillColor('gray').text('Dit is een automatisch gegenereerd document van het RGWO Portal.', { align: 'center' });
         doc.end();
     } catch (err) {
-        console.error('[KLACHT PDF/EMAIL ERROR]:', err.message);
+        console.error('[KLACHT PDF/TELEGRAM ERROR]:', err.message);
     }
 }
 
@@ -457,7 +462,7 @@ app.post('/api/klacht', async (req, res) => {
             return res.status(500).json({ success: false, message: 'Fout bij indienen.' });
         }
 
-        await sendKlachtEmail({ naam, badge, afdeling, incident_date, categories, description, resolution });
+        await sendKlachtTelegram({ naam, badge, afdeling, incident_date, categories, description, resolution });
         console.log(`[KLACHT] New complaint from ${naam}`);
         res.json({ success: true });
     } catch (error) {

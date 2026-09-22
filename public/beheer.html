@@ -737,19 +737,52 @@
             
             container.innerHTML = klachten.map(k => {
                 const date = new Date(k.created_at).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                const statusColors = { pending: 'bg-amber-100 text-amber-700', resolved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700' };
-                const color = statusColors[k.status] || 'bg-gray-100 text-gray-700';
                 
                 return `<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition">
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-gray-800 truncate">${k.klacht_id || '-'} - ${k.naam}</p>
                         <div class="flex items-center gap-2 mt-1">
-                            <span class="text-xs font-bold px-2 py-0.5 rounded ${color}">${k.status}</span>
                             <span class="text-xs text-gray-400">${date}</span>
                         </div>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <select onchange="updateKlachtStatus(${k.id}, this.value)" class="form-input w-auto text-xs py-1 px-2 font-bold cursor-pointer">
+                            <option value="pending" ${k.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                            <option value="open" ${k.status === 'open' ? 'selected' : ''}>🔵 Open</option>
+                            <option value="close" ${k.status === 'close' ? 'selected' : ''}>✅ Closed</option>
+                        </select>
+                        <button onclick="deleteKlacht(${k.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button>
+                    </div>
                 </div>`;
             }).join('');
+        }
+
+        async function updateKlachtStatus(id, newStatus) {
+            try {
+                const res = await fetch(`/api/klachten/${id}`, { 
+                    method: 'PATCH', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ status: newStatus }) 
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Klacht bijgewerkt!');
+                } else {
+                    showToast('Fout bij bijwerken.', 'error');
+                    loadKlachten(); 
+                }
+            } catch (err) { 
+                showToast('Verbindingsfout.', 'error'); 
+                loadKlachten();
+            }
+        }
+
+        async function deleteKlacht(id) {
+            if (!confirm('Klacht verwijderen?')) return;
+            try {
+                const res = await fetch('/api/klachten/' + id, { method: 'DELETE' });
+                if (res.ok) { showToast('Verwijderd.'); loadKlachten(); }
+            } catch (err) { showToast('Fout.', 'error'); }
         }
 
         // LENINGEN

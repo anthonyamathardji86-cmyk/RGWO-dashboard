@@ -785,8 +785,15 @@
             try {
                 const res = await fetch('/api/leningen');
                 const data = await res.json();
-                if (data.success) renderLeningen(data.leningen);
-            } catch (err) { document.getElementById('lening-list').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Fout bij laden.</p>'; }
+                if (data.success) {
+                    renderLeningen(data.leningen);
+                } else {
+                    // If the backend says it failed, show the reason
+                    document.getElementById('lening-list').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Fout: ' + (data.message || 'Geen rechten') + '</p>';
+                }
+            } catch (err) { 
+                document.getElementById('lening-list').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Kan geen verbinding maken met de server.</p>'; 
+            }
         }
 
         function renderLeningen(leningen) {

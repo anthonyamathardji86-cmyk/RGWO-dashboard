@@ -590,6 +590,10 @@
                 else updateChartData([180000, 24000, 0, 0, 0], [0, 0, 26400, 62400, 18000]);
             }
         }
+        function exitPreviewMode() {
+            localStorage.removeItem('preview_as');
+            window.location.href = '/beheer.html';
+        }
         function updateChartData(incomeData, expenseData) { if (mainChartInstance) { mainChartInstance.data.datasets[0].data = incomeData; mainChartInstance.data.datasets[1].data = expenseData; mainChartInstance.update(); } }
     </script>
 </body>

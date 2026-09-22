@@ -385,8 +385,7 @@ async function sendKlachtTelegram(klacht) {
             // Prepare Telegram document upload
             const formData = new FormData();
             formData.append('chat_id', CHAT_IDS[0]); // Sends to the main admin chat
-            formData.append('caption', `📄 *Nieuwe Klacht - ${klacht.naam}*\nBadge: ${klacht.badge || '-'}\nCategorieën: ${klacht.categories}`);
-            
+            formData.append('caption', `📄 *Nieuwe Klacht ${klacht.klacht_id} - ${klacht.naam}*\nBadge: ${klacht.badge || '-'}\nCategorieën: ${klacht.categories}`);            
             const pdfBlob = new Blob([pdfData], { type: 'application/pdf' });
             formData.append('document', pdfBlob, `KLACHT-${klacht.badge || 'unknown'}-${Date.now()}.pdf`);
 
@@ -410,7 +409,7 @@ async function sendKlachtTelegram(klacht) {
         doc.moveDown(0.5);
         doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
         doc.moveDown();
-        doc.fontSize(10).fillColor('gray').text(`Referentie: KLACHT-${Date.now()}`, 50);
+        doc.fontSize(10).fillColor('gray').text(`Referentie: ${klacht.klacht_id}`, 50);
         doc.text(`Datum: ${new Date().toLocaleDateString('nl-NL', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 50);
         doc.moveDown();
         doc.fillColor('black').fontSize(12);
@@ -445,7 +444,13 @@ app.post('/api/klacht', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Naam, categorie en beschrijving zijn verplicht.' });
         }
 
+        // Generate the Klacht ID
+        const { count } = await supabase.from('Klachten').select('*', { count: 'exact', head: true });
+        const nextNumber = (count || 0) + 1;
+        const klachtId = `Klacht_${String(nextNumber).padStart(4, '0')}`;
+
         const { error } = await supabase.from('Klachten').insert({
+            klacht_id: klachtId,
             telegram_id: parseInt(userId),
             naam,
             badge: badge || null,
@@ -462,8 +467,8 @@ app.post('/api/klacht', async (req, res) => {
             return res.status(500).json({ success: false, message: 'Fout bij indienen.' });
         }
 
-        await sendKlachtTelegram({ naam, badge, afdeling, incident_date, categories, description, resolution });
-        console.log(`[KLACHT] New complaint from ${naam}`);
+        await sendKlachtTelegram({ klacht_id: klachtId, naam, badge, afdeling, incident_date, categories, description, resolution });
+        console.log(`[KLACHT] New complaint ${klachtId} from ${naam}`);
         res.json({ success: true });
     } catch (error) {
         console.error("[KLACHT ERROR]:", error.message);
@@ -1036,6 +1041,22 @@ app.patch('/api/documents/:id', async (req, res) => {
 // ==========================
 // 9. START SERVER & WEBHOOK
 // ==========================
+app.delete('/api/klachten/:id', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const { data: member } = await supabase.from('RGWO leden').select('role').eq('telegram_id', parseInt(userId)).single();
+        if (!member || !['admin'].includes(member.role)) return res.status(403).json({ success: false });
+        
+        const { error } = await supabase.from('Klachten').delete().eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) {
+        console.error("[KLACHT DELETE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
 app.listen(PORT, async () => {
     console.log(`Server listening on port ${PORT}`);
     await registerWebhook();

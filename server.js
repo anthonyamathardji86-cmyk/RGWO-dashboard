@@ -1094,15 +1094,22 @@ app.delete('/api/klachten/:id', async (req, res) => {
 app.get('/api/leningen', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
-        if (!userId) return res.status(401).json({ success: false });
+        if (!userId) return res.status(401).json({ success: false, message: 'Niet ingelogd.' });
+        
         const { data: member } = await supabase.from('RGWO leden').select('role').eq('telegram_id', parseInt(userId)).single();
-        if (!member || member.role !== 'admin') return res.status(403).json({ success: false });
+        if (!member || member.role !== 'admin') return res.status(403).json({ success: false, message: 'Alleen admins.' });
+
         const { data, error } = await supabase.from('Leningen').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
+        
+        if (error) {
+            // Send the exact database error to the browser
+            return res.status(500).json({ success: false, message: 'Database Error: ' + error.message });
+        }
+        
         res.json({ success: true, leningen: data });
     } catch (error) {
-        console.error("[LENINGEN ERROR]:", error.message);
-        res.status(500).json({ success: false, leningen: [] });
+        // Send the exact crash error to the browser
+        res.status(500).json({ success: false, message: 'Server Crash: ' + error.message });
     }
 });
 

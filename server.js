@@ -1104,7 +1104,7 @@ app.get('/api/leningen', async (req, res) => {
         const { data: member } = await supabase.from('RGWO leden').select('role').eq('telegram_id', parseInt(userId)).single();
         if (!member || member.role !== 'admin') return res.status(403).json({ success: false, message: 'Alleen admins.' });
 
-        const { data, error } = await supabase.from('Leningen').select('*').order('loan_id', { ascending: false });
+        const { data, error } = await supabase.from('Leningen').select('*').order('loan_id', { ascending: true });
         
         if (error) {
             // Send the exact database error to the browser

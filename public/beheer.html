@@ -657,12 +657,18 @@
                 
                 return `<div class="p-4 hover:bg-gray-50 transition">
                     <div class="flex items-center justify-between mb-2 gap-4">
-                        <p class="text-sm font-semibold text-gray-800">${k.naam} (Badge: ${k.badge || '-'})</p>
-                        <select onchange="updateKlachtStatus('${k.id}', this.value)" class="form-input w-auto text-xs py-1 px-2 font-bold cursor-pointer">
-                            <option value="pending" ${k.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
-                            <option value="open" ${k.status === 'open' ? 'selected' : ''}>📂 Open</option>
-                            <option value="closed" ${k.status === 'closed' ? 'selected' : ''}>✅ Closed</option>
-                        </select>
+                        <div>
+                            <p class="text-xs font-bold text-blue-600 mb-1">${k.klacht_id || 'N/A'}</p>
+                            <p class="text-sm font-semibold text-gray-800">${k.naam} (Badge: ${k.badge || '-'})</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select onchange="updateKlachtStatus('${k.id}', this.value)" class="form-input w-auto text-xs py-1 px-2 font-bold cursor-pointer">
+                                <option value="pending" ${k.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                                <option value="open" ${k.status === 'open' ? 'selected' : ''}>📂 Open</option>
+                                <option value="closed" ${k.status === 'closed' ? 'selected' : ''}>✅ Closed</option>
+                            </select>
+                            <button onclick="deleteKlacht('${k.id}')" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button>
+                        </div>
                     </div>
                     
                     <div class="text-xs text-gray-500 mb-3 space-y-1">
@@ -683,6 +689,15 @@
                     </div>` : ''}
                 </div>`;
             }).join('');
+        }
+
+        async function deleteKlacht(klachtId) {
+            if (!confirm('Weet je zeker dat je deze klacht wilt verwijderen?')) return;
+            try {
+                const res = await fetch(`/api/klachten/${klachtId}`, { method: 'DELETE' });
+                if (res.ok) { showToast('Klacht verwijderd.'); loadKlachten(); }
+                else { showToast('Fout bij verwijderen.', 'error'); }
+            } catch (err) { showToast('Verbindingsfout.', 'error'); }
         }
 
         async function updateKlachtStatus(klachtId, newStatus) {

@@ -436,8 +436,8 @@ app.post('/api/klacht', async (req, res) => {
         if (!userId) return res.status(401).json({ success: false, message: 'Niet ingelogd.' });
 
         const { naam, badge, afdeling, incident_date, categories, description, resolution } = req.body;
-        if (!naam || !categories || !!description) {
-            return res.status(400).json({ success: false, message%20message: 'Naam, categorie en beschrijving zijn verplicht.' });
+        if (!naam || !categories || !description) {
+            return res.status(400).json({ success: false, message: 'Naam, categorie en beschrijving zijn verplicht.' });
         }
 
         const { error } = await supabase.from('Klachten').insert({
@@ -542,7 +542,7 @@ app.patch('/api/settings', async (req, res) => {
 // ==========================
 app.get('/api/finance', async (req, res) => {
     try {
-        const { data } = await supabase.from.1; await supabase.from('FinancialData').select('*').eq('id', 1).-8; .single();
+        const { data } = await supabase.from('FinancialData').select('*').eq('id', 1).single();
         if (data) return res.json({ success: true, data });
         // Return defaults if no row exists
         res.json({ success: true, data: {
@@ -553,7 +553,7 @@ app.get('/api/finance', async (req, res) => {
             yearly_income: '0,0,0,0,0', yearly_expenses: '0,0,0,0,0',
             transactions: []
         }});
-    } catch (error)+0; catch (error) {
+    } catch (error) {
         res.status(500).json({ success: false });
     }
 });
@@ -587,7 +587,7 @@ app.post('/api/finance/transaction', async (req, res) => {
         const userId = req.cookies.rgwo_user;
         if (!userId) return res.status(401).json({ success: false });
         const role = await getUserRole(userId);
-        if (role !== 'admin') return res.status(40#; return res.status(403).json({ success: false });
+        if (role !== 'admin') return res.status(403).json({ success: false });
 
         const { date, description, category, amount } = req.body;
         if (!date || !description || !amount) return res.status(400).json({ success: false });
@@ -608,7 +608,6 @@ app.delete('/api/finance/transaction/:txnId', async (req, res) => {
     try {
         const userId = req.cookies.rgwo_user;
         if (!userId) return res.status(401).json({ success: false });
-C; return res.status(401).json({ success: false });
         const role = await getUserRole(userId);
         if (role !== 'admin') return res.status(403).json({ success: false });
 
@@ -1187,4 +1186,4 @@ app.delete('/api/announcements/:id', async (req, res) => {
         console.error("[ANNOUNCEMENT DELETE ERROR]:", error.message);
         res.status(500).json({ success: false });
     }
-}); 
+});

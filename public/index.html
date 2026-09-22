@@ -64,8 +64,8 @@
     </style>
 </head>
 <body class="text-gray-800 antialiased dashboard-locked">
-    <div id="preview-banner" style="display:none; position:fixed; top:0; left:0; width:100%; background:#7c3aed; color:white; text-align:center; padding:12px; z-index:9999; font-family:sans-serif;">
-    👁️ You are previewing as a Member. 
+<div id="preview-banner" style="display:none; position:fixed; top:0; left:0; width:100%; background:#7c3aed; color:white; text-align:center; padding:12px; z-index:9999; font-family:sans-serif;">
+    👁️ You are previewing as: <b id="preview-role-text">Member</b>. 
     <button onclick="exitPreviewMode()" style="margin-left:15px; background:white; color:#7c3aed; padding:4px 12px; border-radius:5px; font-weight:bold; cursor:pointer; border:none;">Exit Preview</button>
 </div>
 
@@ -291,7 +291,12 @@
                 throw new Error();
             }).then(data => {
                 if (localStorage.getItem('preview_as')) data.role = localStorage.getItem('preview_as');
-                if (localStorage.getItem('preview_as')) { document.getElementById('preview-banner').style.display = 'block'; document.body.style.paddingTop = '45px'; }
+                if (localStorage.getItem('preview_as')) { 
+                    data.role = localStorage.getItem('preview_as');
+                    document.getElementById('preview-banner').style.display = 'block'; 
+                    document.getElementById('preview-role-text').innerText = data.role.charAt(0).toUpperCase() + data.role.slice(1);
+                    document.body.style.paddingTop = '45px'; 
+                }
                 
                 if (data.loggedIn) {
                     unlockDashboard();

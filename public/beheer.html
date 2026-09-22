@@ -67,6 +67,7 @@
             <button onclick="switchTab('announcements')" id="tab-announcements" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-bullhorn mr-2"></i>Mededelingen</button>
             <button onclick="switchTab('finance')" id="tab-finance" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-chart-line mr-2"></i>Financiën</button>
             <button onclick="switchTab('documents')" id="tab-documents" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-folder-open mr-2"></i>Documenten</button>
+            <button onclick="switchTab('klachten')" id="tab-klachten" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Klachten</button>        
         </div>
 
         <!-- MAINTENANCE TAB -->
@@ -273,6 +274,14 @@
             </div>
         </div>
 
+        <!-- KLACHTEN TAB -->
+        <div id="panel-klachten" class="tab-panel hidden">
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100"><h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-triangle-exclamation mr-2 text-red-500"></i>Overzicht Klachten</h2></div>
+                <div id="klacht-list" class="divide-y divide-gray-100"><p class="text-center text-gray-400 py-8 text-sm">Laden...</p></div>
+            </div>
+        </div>
+        
     </main>
 
     <div id="toast-container" class="toast-container"></div>
@@ -303,6 +312,7 @@
                     loadActiveMembers();
                     loadAnnouncements();
                     loadDocuments();
+                    loadKlachten();
                 } else {
                     document.getElementById('access-denied').classList.add('active');
                 }
@@ -630,6 +640,43 @@
         }
 
         // DOCUMENTS
+        async function loadKlachten() {
+            try {
+                const res = await fetch('/api/klachten');
+                const data = await res.json();
+                if (data.success) renderKlachten(data.klachten);
+            } catch (err) { document.getElementById('klacht-list').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Fout bij laden.</p>'; }
+        }
+
+        function renderKlachten(klachten) {
+            const container = document.getElementById('klacht-list');
+            if (!klachten.length) { container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen klachten gevonden.</p>'; return; }
+            container.innerHTML = klachten.map(k => {
+                const date = new Date(k.created_at).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                return `<div class="p-4 hover:bg-gray-50 transition">
+                    <div class="flex items-center justify-between mb-1 gap-4">
+                        <p class="text-sm font-semibold text-gray-800">${k.naam} (Badge: ${k.badge || '-'})</p>
+                        <select onchange="updateKlachtStatus('${k.id}', this.value)" class="form-input w-auto text-xs py-1 px-2 font-bold cursor-pointer">
+                            <option value="pending" ${k.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                            <option value="open" ${k.status === 'open' ? 'selected' : ''}>📂 Open</option>
+                            <option value="closed" ${k.status === 'closed' ? 'selected' : ''}>✅ Closed</option>
+                        </select>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-2">${date} • Afdeling: ${k.afdeling || '-'}</p>
+                    <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">${k.description}</p>
+                </div>`;
+            }).join('');
+        }
+
+        async function updateKlachtStatus(klachtId, newStatus) {
+            try {
+                const res = await fetch(`/api/klachten/${klachtId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
+                const data = await res.json();
+                if (data.success) showToast(`Status bijgewerkt!`);
+                else { showToast('Fout bij bijwerken.', 'error'); loadKlachten(); }
+            } catch (err) { showToast('Verbindingsfout.', 'error'); loadKlachten(); }
+        }
+        
         async function loadDocuments() {
             const filter = document.getElementById('doc-filter')?.value || '';
             const url = '/api/documents' + (filter ? `?category=${filter}` : '');

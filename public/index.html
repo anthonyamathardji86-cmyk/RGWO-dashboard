@@ -291,7 +291,7 @@
                 throw new Error();
             }).then(data => {
                 if (localStorage.getItem('preview_as')) data.role = localStorage.getItem('preview_as');
-                if (localStorage.getItem('preview_as')) { document.getElementById('preview-banner').style.display = 'block'; }
+                if (localStorage.getItem('preview_as')) { document.getElementById('preview-banner').style.display = 'block'; document.body.style.paddingTop = '45px'; }
                 
                 if (data.loggedIn) {
                     unlockDashboard();

@@ -150,13 +150,14 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer *</label><input type="text" id="lid-badge" class="form-input" required>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Afdeling *</label><input type="text" id="lid-afdeling" class="form-input" required>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Role *</label>
-                        <select id="lid-role" class="form-input" required>
-                            <option value="member">Member</option>
-                            <6A; value="board">Board</option>
-                            <option value="daily_board">Daily Board</option>
-                            <option value="admin">Admin</option>
-                        </select>
+                    <select id="lid-role" class="form-input" required>
+                        <option value="member">Member</option>
+                        <option value="board">Board</option>
+                        <option value="daily_board">Daily Board</option>
+                        <option value="admin">Admin</option>
+                    </select>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Telegram ID <span class="text-gray-400 font-normal">(optioneel)</span></label><input type="text" id="lid-telegram-id" class="form-input" placeholder="Automatisch bij Telegram login">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telegram Gebruikersnaam <span class="text-gray-400 font-normal">(optioneel)</span></label><input type="text" id="lid-telegram-username" class="form-input">
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Telegram Naam <span class="text-gray-400 font-normal">(auto)</span></label><input type="text" id="lid-telegram-naam" class="form-input" readonly style="background:#f8fafc">
                     <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition mt-2">Opslaan</button>
                 </form>
@@ -189,7 +190,7 @@
             </div>
         </div>
 
-                <!-- FINANCIEN TAB -->
+        <!-- FINANCIEN TAB -->
         <div id="panel-finance" class="tab-panel hidden">
             <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
                 <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-chart-line mr-2 text-green-500"></i>Dashboard Cijfers</h2>
@@ -207,7 +208,7 @@
                     <div><label class="block text-sm font-semibold text-gray-700 mb-1">Quarterly Income</label><input type="text" id="fin-qi" class="form-input" placeholder="45000,6000,0,0,0"></div>
                     <div><label class="block text-sm font-semibold text-gray-700 mb-1">Quarterly Expenses</label><input type="text" id="fin-qe" class="form-input" placeholder="0,0,6600,15600,4500"></div>
                     <div><label class="block text-sm font-semibold text-gray-700 mb-1">Yearly Income</label><input type="text" id="fin-yi" class="form-input" placeholder="180000,24000,0,0,0"></div>
-                    <div><label class="block text-sm font-semibold textB; font-semibold text-gray-700 mb-1">Yearly Expenses</label><input type="text" id="fin-ye" class="form-input" placeholder="0,0,26400,62400,18000"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Yearly Expenses</label><input type="text" id="fin-ye" class="form-input" placeholder="0,0,26400,62400,18000"></div>
                 </div>
                 <button onclick="saveFinance()" class="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm"><i class="fa-solid fa-save mr-1"></i>Opslaan</button>
             </div>
@@ -427,6 +428,7 @@
             document.getElementById('lid-role').value = 'member';
             document.getElementById('lid-telegram-id').value = '';
             document.getElementById('lid-telegram-username').value = '';
+            document.getElementById('lid-telegram-naam').value = '';
             document.getElementById('lidModal').style.display = 'flex';
         }
 
@@ -508,7 +510,7 @@
                 const data = await res.json();
                 if (data.success) {
                     const d = data.data;
-                    document.getElementById('fin-balance').value = d.total_balance || =0; d.total_balance || 0;
+                    document.getElementById('fin-balance').value = d.total_balance || 0;
                     document.getElementById('fin-surplus').value = d.net_surplus || 0;
                     document.getElementById('fin-labels').value = d.chart_labels || '';
                     document.getElementById('fin-mi').value = d.monthly_income || '';

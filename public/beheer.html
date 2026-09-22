@@ -649,14 +649,75 @@
             try { const res = await fetch(`/api/announcements/${id}`, { method: 'DELETE' }); if (res.ok) { showToast('Verwijderd.'); loadAnnouncements(); } } catch (err) { showToast('Fout.', 'error'); }
         }
 
-        // DOCUMENTS (Placeholder so page doesn't crash)
+        // DOCUMENTS
         async function loadDocuments() {
-            const container = document.getElementById('doc-list');
-            if(container) container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Documenten tab is niet volledig gebouwd.</p>';
+            try {
+                const category = document.getElementById('doc-filter')?.value || '';
+                let url = '/api/documents';
+                if (category) url += '?category=' + encodeURIComponent(category);
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) renderDocuments(data.documents);
+            } catch (err) { 
+                document.getElementById('doc-list').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Fout bij laden.</p>'; 
+            }
         }
-        function uploadDocument(event) {
+
+        function renderDocuments(docs) {
+            const container = document.getElementById('doc-list');
+            if (!docs.length) { container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen documenten gevonden.</p>'; return; }
+            
+            container.innerHTML = docs.map(d => {
+                return `<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate"><i class="fa-solid fa-file mr-2 text-gray-400"></i>${d.title}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">${d.category}</span>
+                            <span class="text-xs text-gray-400">${d.filename || ''}</span>
+                            ${!d.is_active ? '<span class="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">INACTIEF</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <a href="${d.file_url}" target="_blank" class="p-2 rounded-lg hover:bg-blue-50 transition text-sm" title="Bekijken"><i class="fa-solid fa-eye text-blue-400"></i></a>
+                        <button onclick="deleteDocument(${d.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function uploadDocument(event) {
             event.preventDefault();
-            showToast('Upload functie is niet volledig gebouwd.', 'error');
+            const fileInput = document.getElementById('doc-file');
+            if (!fileInput.files[0]) return showToast('Kies een bestand.', 'error');
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('category', document.getElementById('doc-category').value);
+            formData.append('title', document.getElementById('doc-title').value);
+            formData.append('description', document.getElementById('doc-description').value);
+
+            try {
+                const res = await fetch('/api/documents/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Document geüpload!');
+                    document.getElementById('upload-form').reset();
+                    loadDocuments();
+                } else {
+                    showToast(data.message || 'Fout bij uploaden.', 'error');
+                }
+            } catch (err) {
+                showToast('Verbindingsfout.', 'error');
+            }
+        }
+
+        async function deleteDocument(id) {
+            if (!confirm('Document verwijderen?')) return;
+            try {
+                const res = await fetch('/api/documents/' + id, { method: 'DELETE' });
+                if (res.ok) { showToast('Verwijderd.'); loadDocuments(); }
+            } catch (err) { showToast('Fout.', 'error'); }
         }
 
         // KLACHTEN

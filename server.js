@@ -7,6 +7,8 @@ const crypto = require('crypto');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
+const nodemailer = require('nodemailer');
+const PDFDocument = require('pdfkit');
 
 const app = express();
 
@@ -283,7 +285,7 @@ app.get('/api/leden', async (req, res) => {
         const userId = req.cookies.rgwo_user;
         if (!userId) return res.status(401).json({ success: false });
         const role = await getUserRole(userId);
-        if (!['admin', 'board'].includes(role)) return res.status(403).json({ success: false });
+        if (!['admin'].includes(role)) return res.status(403).json({ success: false });
 
         const { search, role: filterRole } = req.query;
         let query = supabase.from('RGWO leden').select('*').order('naam', { ascending: true });
@@ -370,7 +372,136 @@ app.delete('/api/leden/:id', async (req, res) => {
 });
 
 // ==========================
-// 5D. SITE SETTINGS & STATS
+// 5D. KLACHTENFORMULIER
+// ==========================
+async function sendKlachtEmail(klacht) {
+    try {
+        const doc = new PDFDocument({ margin: 50 });
+        const buffers = [];
+        doc.on('data', buffers.push.bind(buffers));
+        doc.on('end', async () => {
+            const pdfData = Buffer.concat(buffers);
+            const transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: parseInt(process.env.SMTP_PORT),
+                secure: parseInt(process.env.SMTP_PORT) === 465,
+                auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+            });
+            await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: process.env.KLACHT_EMAIL,
+                subject: `Nieuwe Klacht - ${klacht.naam} (Badge: ${klacht.badge || '-'})`,
+                text: 'Zie bijlage voor het klachtenformulier.',
+                attachments: [{
+                    filename: `KLACHT-${klacht.badge || 'unknown'}-${Date.now()}.pdf`,
+                    content: pdfData
+                }]
+            });
+            console.log(`[KLACHT EMAIL] Sent to ${process.env.KLACHT_EMAIL}`);
+        });
+
+        doc.fontSize(22).text('RGWO', { align: 'center' });
+        doc.fontSize(16).text('KLACHTENFORMULIER', { align: 'center' });
+        doc.moveDown(0.5);
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+        doc.moveDown();
+        doc.fontSize(10).fillColor('gray').text(`Referentie: KLACHT-${Date.now()}`, 50);
+        doc.text(`Datum: ${new Date().toLocaleDateString('nl-NL', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 50);
+        doc.moveDown();
+        doc.fillColor('black').fontSize(12);
+        doc.text(`Naam:          ${klacht.naam}`);
+        doc.text(`Badge:         ${klacht.badge || '-'}`);
+        doc.text(`Afdeling:      ${klacht.afdeling || '-'}`);
+        doc.text(`Incident:      ${klacht.incident_date || '-'}`);
+        doc.moveDown();
+        doc.text('Categorieen:');
+        klacht.categories.split(',').forEach(c => doc.text(`  - ${c.trim()}`));
+        doc.moveDown();
+        doc.text('Beschrijving:');
+        doc.fontSize(10).text(klacht.description, { width: 445 });
+        doc.fontSize(12).moveDown();
+        doc.text('Gewenste oplossing:');
+        doc.fontSize(10).text(klacht.resolution || '-', { width: 445 });
+        doc.moveDown(2);
+        doc.fontSize(10).fillColor('gray').text('Dit is een automatisch gegenereerd document van het RGWO Portal.', { align: 'center' });
+        doc.end();
+    } catch (err) {
+        console.error('[KLACHT PDF/EMAIL ERROR]:', err.message);
+    }
+}
+
+app.post('/api/klacht', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false, message: 'Niet ingelogd.' });
+
+        const { naam, badge, afdeling, incident_date, categories, description, resolution } = req.body;
+        if (!naam || !categories || !!description) {
+            return res.status(400).json({ success: false, message%20message: 'Naam, categorie en beschrijving zijn verplicht.' });
+        }
+
+        const { error } = await supabase.from('Klachten').insert({
+            telegram_id: parseInt(userId),
+            naam,
+            badge: badge || null,
+            afdeling: afdeling || null,
+            incident_date: incident_date || null,
+            categories,
+            description,
+            resolution: resolution || null,
+            status: 'pending'
+        });
+
+        if (error) {
+            console.error("[KLACHT ERROR]:", error.message);
+            return res.status(500).json({ success: false, message: 'Fout bij indienen.' });
+        }
+
+        await sendKlachtEmail({ naam, badge, afdeling, incident_date, categories, description, resolution });
+        console.log(`[KLACHT] New complaint from ${naam}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error("[KLACHT ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.get('/api/klachten', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const { data: member } = await supabase.from('RGWO leden').select('role').eq('telegram_id', parseInt(userId)).single();
+        if (!member || !['admin'].includes(member.role)) return res.status(403).json({ success: false });
+        const { data, error } = await supabase.from('Klachten').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        res.json({ success: true, klachten: data });
+    } catch (error) {
+        console.error("[KLACHTEN ERROR]:", error.message);
+        res.status(500).json({ success: false, klachten: [] });
+    }
+});
+
+app.patch('/api/klachten/:id', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const { data: member } = await supabase.from('RGWO leden').select('role').eq('telegram_id', parseInt(userId)).single();
+        if (!member || !['admin'].includes(member.role)) return res.status(403).json({ success: false });
+        const { status, admin_notes } = req.body;
+        const updates = {};
+        if (status !== undefined) updates.status = status;
+        if (admin_notes !== undefined) updates.admin_notes = admin_notes;
+        const { data, error } = await supabase.from('Klachten').update(updates).eq('id', req.params.id).select().single();
+        if (error) throw error;
+        res.json({ success: true, klacht: data });
+    } catch (error) {
+        console.error("[KLACHT UPDATE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// ==========================
+// 5E. SITE SETTINGS & STATS
 // ==========================
 app.get('/api/stats', async (req, res) => {
     try {
@@ -402,6 +533,92 @@ app.patch('/api/settings', async (req, res) => {
         res.json({ success: true, settings });
     } catch (error) {
         console.error("[SETTINGS ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// ==========================
+// 5F. FINANCIAL DATA
+// ==========================
+app.get('/api/finance', async (req, res) => {
+    try {
+        const { data } = await supabase.from.1; await supabase.from('FinancialData').select('*').eq('id', 1).-8; .single();
+        if (data) return res.json({ success: true, data });
+        // Return defaults if no row exists
+        res.json({ success: true, data: {
+            total_balance: 0, net_surplus: 0,
+            chart_labels: 'Dues,Events,Rent,Legal,Ops',
+            monthly_income: '0,0,0,0,0', monthly_expenses: '0,0,0,0,0',
+            quarterly_income: '0,0,0,0,0', quarterly_expenses: '0,0,0,0,0',
+            yearly_income: '0,0,0,0,0', yearly_expenses: '0,0,0,0,0',
+            transactions: []
+        }});
+    } catch (error)+0; catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.patch('/api/finance', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false });
+
+        const fields = ['total_balance', 'net_surplus', 'chart_labels',
+            'monthly_income', 'monthly_expenses',
+            'quarterly_income', 'quarterly_expenses',
+            'yearly_income', 'yearly_expenses', 'transactions'];
+        const updates = {};
+        fields.forEach(f => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
+        updates.updated_at = new Date().toISOString();
+
+        const { data, error } = await supabase.from('FinancialData').update(updates).eq('id', 1).select().single();
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error("[FINANCE UPDATE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/api/finance/transaction', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(40#; return res.status(403).json({ success: false });
+
+        const { date, description, category, amount } = req.body;
+        if (!date || !description || !amount) return res.status(400).json({ success: false });
+
+        const { data: finance } = await supabase.from('FinancialData').select('transactions').eq('id', 1).single();
+        const txns = finance?.transactions || [];
+        txns.push({ date, description, category, amount, id: Date.now() });
+
+        const { data, error } = await supabase.from('FinancialData').update({ transactions: txns }).eq('id', 1).select().single();
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.delete('/api/finance/transaction/:txnId', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+C; return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false });
+
+        const { data: finance } = await supabase.from('FinancialData').select('transactions').eq('id', 1).single();
+        const txns = (finance?.transactions || []).filter(t => String(t.id) !== req.params.txnId);
+
+        const { data, error } = await supabase.from('FinancialData').update({ transactions: txns }).eq('id', 1).select().single();
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (error) {
         res.status(500).json({ success: false });
     }
 });
@@ -552,7 +769,7 @@ app.post('/api/webhook', async (req, res) => {
 // ==========================
 
 // Categories that are allowed
-const VALID_CATEGORIES = ['formulieren', 'documenten', 'bekendmakingen', 'projecten', 'reglementen', 'overig'];
+const VALID_CATEGORIES = ['formulieren', 'documenten', 'bekendmakingen', 'reglementen', 'overig'];
 
 // File types that are allowed
 const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.png', '.jpg', '.jpeg'];
@@ -631,7 +848,7 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
             .eq('telegram_id', parseInt(userId))
             .single();
 
-        if (!member || !['admin', 'board'].includes(member.role)) {
+        if (!member || !['admin'].includes(member.role)) {
             return res.status(403).json({ success: false, message: 'Geen beheerdersrechten.' });
         }
 
@@ -724,7 +941,7 @@ app.delete('/api/documents/:id', async (req, res) => {
             .eq('telegram_id', parseInt(userId))
             .single();
 
-        if (!member || !['admin', 'board'].includes(member.role)) {
+        if (!member || !['admin'].includes(member.role)) {
             return res.status(403).json({ success: false, message: 'Geen beheerdersrechten.' });
         }
 
@@ -779,7 +996,7 @@ app.patch('/api/documents/:id', async (req, res) => {
             .eq('telegram_id', parseInt(userId))
             .single();
 
-        if (!member || !['admin', 'board'].includes(member.role)) {
+        if (!member || !['admin'].includes(member.role)) {
             return res.status(403).json({ success: false, message: 'Geen beheerdersrechten.' });
         }
 
@@ -851,7 +1068,7 @@ app.get('/api/announcements/all', async (req, res) => {
             .eq('telegram_id', parseInt(userId))
             .single();
 
-        if (!member || !['admin', 'board'].includes(member.role)) {
+        if (!member || !['admin'].includes(member.role)) {
             return res.status(403).json({ success: false });
         }
 
@@ -880,7 +1097,7 @@ app.post('/api/announcements', async (req, res) => {
             .eq('telegram_id', parseInt(userId))
             .single();
 
-        if (!member || !['admin', 'board'].includes(member.role)) {
+        if (!member || !['admin'].includes(member.role)) {
             return res.status(403).json({ success: false, message: 'Geen beheerdersrechten.' });
         }
 
@@ -916,7 +1133,7 @@ app.patch('/api/announcements/:id', async (req, res) => {
             .eq('telegram_id', parseInt(userId))
             .single();
 
-        if (!member || !['admin', 'board'].includes(member.role)) {
+        if (!member || !['admin'].includes(member.role)) {
             return res.status(403).json({ success: false });
         }
 
@@ -955,7 +1172,7 @@ app.delete('/api/announcements/:id', async (req, res) => {
             .eq('telegram_id', parseInt(userId))
             .single();
 
-        if (!member || !['admin', 'board'].includes(member.role)) {
+        if (!member || !['admin'].includes(member.role)) {
             return res.status(403).json({ success: false });
         }
 

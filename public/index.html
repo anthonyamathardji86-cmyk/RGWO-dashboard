@@ -161,11 +161,11 @@
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+            <div id="card-balance" class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-wallet text-8xl text-blue-600"></i></div>
                 <div class="relative z-10">
                     <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Balance</p>
-                    <h2 class="text-3xl font-bold text-gray-900 mt-1">SRD 145,230.50</h2>
+                    <h2 id="stat-balance" class="text-3xl font-bold text-gray-900 mt-1">-</h2>
                     <div class="flex items-center mt-4 text-sm text-green-600 bg-green-50 w-fit px-2 py-1 rounded-md"><i class="fa-solid fa-arrow-trend-up mr-1"></i> +4.2% vs last month</div>
                 </div>
             </div>
@@ -182,14 +182,13 @@
                 <div class="relative z-10">
                     <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Telegram Leden</p>
                     <h2 id="stat-telegram" class="text-3xl font-bold text-gray-900 mt-1">-</h2>
-                    <div class="flex items-center mt-4 text-sm text-purple-600 bg-purple-50 w-fit px-2 py-1 rounded-md"><i class="fa-brands fa-telegram mr-1"></i> Online</div>
                 </div>
             </div>
-            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+            <div id="card-surplus" class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-piggy-bank text-8xl text-orange-500"></i></div>
                 <div class="relative z-10">
                     <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Net Surplus</p>
-                    <h2 class="text-3xl font-bold text-gray-900 mt-1">SRD +4,500</h2>
+                    <h2 id="stat-surplus" class="text-3xl font-bold text-gray-900 mt-1">-</h2>
                     <div class="flex items-center mt-4 text-sm text-gray-500 w-fit px-2 py-1"><i class="fa-regular fa-clock mr-1"></i> Month to Date</div>
                 </div>
             </div>
@@ -204,8 +203,8 @@
         <div class="glass-card rounded-2xl p-8 mb-8 border border-gray-100"><div class="relative w-full h-80"><canvas id="mainChart"></canvas></div></div>
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="glass-card rounded-2xl p-8 border border-gray-100 lg:col-span-1"><div class="relative h-64 flex justify-center"><canvas id="pieChart"></canvas><div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span class="text-gray-400 text-xs uppercase font-bold">Total</span><span class="text-xl font-bold text-gray-800">SRD 14.8k</span></div></div></div>
-            <div class="glass-card rounded-2xl p-0 overflow-hidden border border-gray-100 lg:col-span-2">
+            <div id="card-pie" class="glass-card rounded-2xl p-8 border border-gray-100 lg:col-span-(8; lg:col-span-1"><div class="relative h-64 flex justify-center"><canvas id="pieChart"></canvas><div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"><span class="text-gray-400 text-xs uppercase font-bold">Total</span><span class="text-xl font-bold text-gray-800">SRD 14.8k</span></div></div></div>
+            <div id="card-transactions" class="glass-card rounded-2xl p-0 overflow-hidden border border-gray-100 lg:col-span-2">
                 <div class="p-6 border-b border-gray-100"><h3 class="text-lg font-bold text-gray-900">Recent Transactions</h3></div>
                 <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-gray-50 text-gray-500 uppercase text-xs font-semibold"><tr><th class="px-6 py-4">Date</th><th class="px-6 py-4">Description</th><th class="px-6 py-4">Category</th><th class="px-6 py-4 text-right">Amount</th></tr></thead><tbody class="divide-y divide-gray-100">
                     <tr class="hover:bg-blue-50/30 transition"><td class="px-6 py-4">Oct 28</td><td class="px-6 py-4">Monthly Lawyer Retainer</td><td class="px-6 py-4"><span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">LEGAL</span></td><td class="px-6 py-4 text-right font-bold">SRD 2,500.00</td></tr>
@@ -275,7 +274,7 @@
                     unlockDashboard();
                     
                     currentUserRole = data.role || 'member';
-                    if (currentUserRole === 'admin' || currentUserRole === 'board') {
+                    if (currentUserRole === 'admin') {
                         document.getElementById('admin-btn').classList.remove('hidden');
                         document.getElementById('admin-btn-mobile').classList.remove('hidden');
                     }
@@ -288,6 +287,8 @@
                     loadDocuments();
                     loadAnnouncements();
                     loadStats();
+                    loadFinance();
+                    applyRoleView(currentUserRole);
                 }
             }).catch(() => {});
         }
@@ -348,8 +349,6 @@
         var DOC_CATEGORIES = {
             formulieren:     { icon: 'fa-clipboard-list',   label: 'Formulieren',    catClass: 'cat-amber',   iconColor: 'text-amber-600',  countColor: 'text-amber-600' },
             documenten:      { icon: 'fa-folder-open',      label: 'Documenten',     catClass: 'cat-blue',    iconColor: 'text-blue-600',   countColor: 'text-blue-600' },
-            bekendmakingen:  { icon: 'fa-bullhorn',         label: 'Bekendmakingen', catClass: 'cat-teal',    iconColor: 'text-teal-600',   countColor: 'text-teal-600' },
-            projecten:       { icon: 'fa-diagram-project',  label: 'Projecten',      catClass: 'cat-purple',  iconColor: 'text-purple-600', countColor: 'text-purple-600' },
             
         };
         function getFileIconClass(type) { var icons = { pdf: 'fa-file-pdf', doc: 'fa-file-word', docx: 'fa-file-word', xls: 'fa-file-excel', xlsx: 'fa-file-excel', ppt: 'fa-file-powerpoint', pptx: 'fa-file-powerpoint', png: 'fa-file-image', jpg: 'fa-file-image', jpeg: 'fa-file-image' }; return icons[type] || 'fa-file'; }
@@ -366,13 +365,6 @@
                 btn.innerHTML = '<i class="fa-solid ' + config.icon + ' text-2xl ' + config.iconColor + '"></i><span class="text-sm font-semibold text-gray-700">' + config.label + '</span><span class="text-xs font-bold ' + config.countColor + '">' + count + ' bestand' + (count !== 1 ? 'en' : '') + '</span>';
                 btn.onclick = function() { showDocFiles(cat); }; container.appendChild(btn);
             });
-
-            // Financiën link
-            var finBtn = document.createElement('a');
-            finBtn.href = '/financien.html';
-            finBtn.className = 'doc-cat-btn cat-teal';
-            finBtn.innerHTML = '<i class="fa-solid fa-chart-line text-2xl text-teal-600"></i><span class="text-sm font-semibold text-gray-700">Financiën</span><span class="text-xs font-bold text-teal-600">Bekijken</span>';
-            container.appendChild(finBtn);
 
             // Leningaanvraag button
             var loanBtn = document.createElement('button');
@@ -395,6 +387,79 @@
         // ===================================
         // ANNOUNCEMENT BANNER
         // ===================================
+>js:
+        var financeData = null;
+
+        function loadFinance() {
+            fetch('/api/finance').then(function(res) { return res.json(); }).then(function(data) {
+                if (data.success) {
+                    financeData = data.data;
+                    applyFinanceData(financeData);
+                }
+            }).catch(function() {});
+        }
+
+        function applyFinanceData(fd) {
+            if (!fd) return;
+
+            // Balance & Surplus
+            var balEl = document.getElementById('stat-balance');
+            var surEl = document.getElementById('stat-surplus');
+            if (balEl) balEl.textContent = 'SRD ' + Number(fd.total_balance || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+            if (surEl) surEl.textContent = 'SRD ' + (fd.net_surplus >= 0 ? '+' : '') + Number(fd.net_surplus || 0).toLocaleString('en-US', {minimumFractionDigits: 0});
+
+            // Chart labels
+            var labels = (fd.chart_labels || 'Dues,Events,Rent,Legal,Ops').split(',');
+
+            // Monthly: Monthly
+            var mi = (fd.monthly_income || '').split(',').map(Number);
+            var me = (fd.monthly_expenses || '').split(',').map(Number);
+            // Quarterly
+            var qi = (fd.quarterly_income || '').split(',').map(Number);
+            var qe = (fd.quarterly_expenses || '').split(',').map(Number);
+            // Yearly
+            var yi = (fd.yearly_income || '').split(',').map(Number);
+            var ye = (fd.yearly_expenses || '').split(',').map(Number);
+
+            // Update chart
+            if (mainChartInstance) {
+                mainChartInstance.data.labels = labels;
+                mainChartInstance.data.datasets[0].data = mi;
+                mainChartInstance.data.datasets[1].data = me;
+                mainChartInstance.update();
+            }
+
+            // Store all periods for timeframe switching
+            window._financePeriods = {
+                monthly: { income: mi, expense: me },
+                quarterly: { income: qi, expense: qe },
+               8D; qe },
+                yearly:) { income: yi, expense: ye }
+            };
+
+            // Transactions
+            var txns = fd.transactions || [];
+            var tbody = document.querySelector('#card-transactions tbody');
+            if (tbody && txns.length > 0) {
+                tbody.innerHTML = txns.map(function(t) {
+                    var catColors = { LEGAL: 'bg-red-100 text-red-600', UTILS: 'bg-orange-100 text-orange-600', DUES: 'bg-blue-100 text-blue-600', EVENTS: 'bg-purple-'8A; 'bg-purple-100 text-purple-600', RENT: 'bg-amber-100 text-amber-600', OPS: 'bg-gray-100 text-gray-600' };
+                    var cc = catColors[t.category] || 'bg-gray-100 text-gray-600';
+                    return '<tr class="hover:bg-blue-50/30 transition"><td class="px-6 py-4">' + t.date + '</td><td class="px-6 py-4">' + t.description + '</td><td class="px-6 py-4"><span class="' + cc + ' px-2 py-1 rounded text-xs font-bold">' + t.category + '</span></td><td class="px-6 py-4 text-right font-bold">SRD ' + Number(t.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</td></tr>';
+                }).join('');
+            } else if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center?0A;4 text-center text-gray-400 text-sm">No transactions</td></tr>';
+            }
+        }
+
+        function applyRoleView(role) {
+            var isMember = role === 'member';
+            var cards = ['card-balance', 'card-surplus', 'card-pie', 'card-transactions'];
+            cards.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = isMember ? 'none' : '';
+            });
+        }
+
         function loadStats() {
             fetch('/api/stats').then(function(res) { return res.json(); }).then(function(data) {
                 if (data.success) {
@@ -467,13 +532,19 @@
             pieChartInstance = new Chart(ctxPie, { type: 'doughnut', data: { labels: ['Legal', 'Operations', 'Benefits', 'Rent', 'Misc'], datasets: [{ data: [35, 25, 20, 15, 5], backgroundColor: ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#94a3b8'], borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } } });
         }
 
-        function updateTimeframe(period) {
+         function updateTimeframe(period) {
             const tabs = ['monthly', 'quarterly', 'yearly'];
             tabs.forEach(t => { const btn = document.getElementById(`tab-${t}`); btn.classList.remove('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm'); btn.classList.add('tab-inactive', 'bg-gray-200', 'text-gray-500'); });
             const activeBtn = document.getElementById(`tab-${period}`); activeBtn.classList.remove('tab-inactive', 'bg-gray-200', 'text-gray-500'); activeBtn.classList.add('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm');
-            if (period === 'monthly') updateChartData([15000, 2000, 0, 0, 0], [0, 0, 2200, 5200, 1500]);
-            else if (period === 'quarterly') updateChartData([45000, 6000, 0, 0, 0], [0, 0, 6600, 15600, 4500]);
-            else updateChartData([180000, 24000, 0, 0, 0], [0, 0, 26400, 62400, 18000]);
+
+            if (window._financePeriods && window._financePeriods[period]) {
+                var p = window._financePeriods[period];
+                updateChartData(p.income, p.expense);
+            } else {
+                if (period === 'monthly') updateChartData([15000, 2000, 0, 0, 0], [0, 0, 2200, 5200, 1500]);
+                else if (period === 'quarterly') updateChartData([45000, 6000, 0, 0, 0], [0, 0, 6600, 15600, 4500]);
+                else updateChartData([180000, 24000, 0, 0, 0], [0, 0, 26400, 62400, 18000]);
+            }
         }
         function updateChartData(incomeData, expenseData) { if (mainChartInstance) { mainChartInstance.data.datasets[0].data = incomeData; mainChartInstance.data.datasets[1].data = expenseData; mainChartInstance.update(); } }
     </script>

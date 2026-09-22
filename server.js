@@ -665,7 +665,7 @@ app.post('/api/loan', async (req, res) => {
         const nextNumber = (count || 0) + 1;
         const loanId = `LOAN_${String(nextNumber).padStart(5, '0')}`;
 
-        await supabase.from('Leningen').insert({
+        const { data: insertData, error: insertError } = await supabase.from('Leningen').insert({
             loan_id: loanId,
             telegram_id: parseInt(userId),
             naam: name,
@@ -673,10 +673,15 @@ app.post('/api/loan', async (req, res) => {
             afdeling: afdeling || null,
             telefoon: telefoon || null,
             reason: reason,
-            bedrag: parseInt(amount),
+            bedrag: amount ? parseInt(amount) : null,
             term: term ? parseInt(term) : null,
             status: 'pending'
-        });
+        }).select().single();
+
+        if (insertError) {
+            console.error("[LENING INSERT ERROR]:", insertError.message);
+            return res.status(500).json({ success: false, message: "Database Save Error: " + insertError.message });
+        }
 
         // --- CREATE PDF ---
         const doc = new PDFDocument({ margin: 50 });

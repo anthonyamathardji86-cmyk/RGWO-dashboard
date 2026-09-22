@@ -512,9 +512,10 @@ app.get('/api/stats', async (req, res) => {
     try {
         let activeMembers = 0;
         try {
-            const settings = JSON.parse(fs.readFileSync(path.join(__dirname, 'settings.json'), 'utf8'));
-            activeMembers = settings.active_members || 0;
+            const { data } = await supabase.from('SiteSettings').select('active_members').eq('id', 1).single();
+            activeMembers = data?.active_members || 0;
         } catch (err) {}
+        
         const { count } = await supabase.from('RGWO leden').select('*', { count: 'exact', head: true });
         res.json({ success: true, active_members: activeMembers, telegram_count: count || 0 });
     } catch (error) {
@@ -530,12 +531,13 @@ app.patch('/api/settings', async (req, res) => {
         if (role !== 'admin') return res.status(403).json({ success: false });
 
         const { active_members } = req.body;
-        const settingsPath = path.join(__dirname, 'settings.json');
-        let settings = {};
-        try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (err) {}
-        if (active_members !== undefined) settings.active_members = parseInt(active_members) || 0;
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-        res.json({ success: true, settings });
+        const updates = {};
+        if (active_members !== undefined) updates.active_members = parseInt(active_members) || 0;
+
+        const { data, error } = await supabase.from('SiteSettings').update(updates).eq('id', 1).select().single();
+        if (error) throw error;
+        
+        res.json({ success: true, settings: data });
     } catch (error) {
         console.error("[SETTINGS ERROR]:", error.message);
         res.status(500).json({ success: false });

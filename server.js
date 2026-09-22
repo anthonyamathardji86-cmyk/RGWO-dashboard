@@ -678,44 +678,73 @@ app.post('/api/loan', async (req, res) => {
             status: 'pending'
         });
 
-        const keyboard = {
-            inline_keyboard: [
-                [
-                    { text: "✅ Goedkeuren", callback_data: `approve_${loanId}` },
-                    { text: "❌ Afwijzen", callback_data: `reject_${loanId}` }
+        // --- CREATE PDF ---
+        const doc = new PDFDocument({ margin: 50 });
+        const buffers = [];
+        doc.on('data', buffers.push.bind(buffers));
+        doc.on('end', async () => {
+            const pdfData = Buffer.concat(buffers);
+            
+            // Prepare Telegram document upload
+            const formData = new FormData();
+            formData.append('chat_id', CHAT_IDS[0]);
+            formData.append('caption', `📄 *Nieuwe Leningaanvraag ${loanId} - ${name}*\nBadge: ${badge || '-'}\nBedrag: SRD ${amount}`);
+            
+            const pdfBlob = new Blob([pdfData], { type: 'application/pdf' });
+            formData.append('document', pdfBlob, `LENING-${loanId}.pdf`);
+
+            // Add the Approve/Reject buttons
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        { text: "✅ Goedkeuren", callback_data: `approve_${loanId}` },
+                        { text: "❌ Afwijzen", callback_data: `reject_${loanId}` }
+                    ]
                 ]
-            ]
-        };
+            };
+            formData.append('reply_markup', JSON.stringify(keyboard));
 
-        const message = `
-<b>🛡️ NIEUWE LENINGAANVRAAG RGWO 🛡️</b>
-<b>ID:</b> <code>${loanId}</code>
-
-<b>👤 Aangevraagd door:</b>
-• <b>${name}</b> (Badge: ${badge || 'Onbekend'})
-• Telefoon: ${telefoon || 'Onbekend'}
-• Afdeling: ${afdeling || 'Onbekend'}
-
-<b>💰 Lening Details:</b>
-• Doel: ${reason}
-• Bedrag: <b>SRD ${amount}</b>
-• Termijn: ${term} maanden
-        `.trim();
-
-        const sendPromises = CHAT_IDS.map(chatId => {
-            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-            return fetch(url, {
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`;
+            const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML', reply_markup: keyboard })
+                body: formData
             });
+
+            const result = await response.json();
+            if (!result.ok) {
+                console.error('[TELEGRAM PDF ERROR]', result.description);
+            } else {
+                console.log(`[LENING TELEGRAM] PDF sent to admin chat`);
+            }
         });
 
-        await Promise.all(sendPromises);
-        console.log(`[SUCCESS] Loan ${loanId} from ${name} sent to Telegram.`);
+        // Generate the PDF content
+        doc.fontSize(22).text('RGWO', { align: 'center' });
+        doc.fontSize(16).text('LENINGAANVRAAG', { align: 'center' });
+        doc.moveDown(0.5);
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+        doc.moveDown();
+        doc.fontSize(10).fillColor('@gray').text(`Referentie: ${loanId}`, 50);
+        doc.text(`Datum: ${new Date().toLocaleDateString('nl-NL', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 50);
+        doc.moveDown();
+        doc.fillColor('black').fontSize(12);
+        doc.text(`Naam:          ${name}`);
+        doc.text(`Badge:         ${badge || '-'}`);
+        doc.text(`Afdeling:      ${afdeling || '-'}`);
+        doc.text(`Telefoon:      ${telefoon || '-'}`);
+        doc.moveDown();
+        doc.text('Lening Details:');
+        doc.text(`  Doel:        ${reason}`);
+        doc.text(`  Bedrag:      SRD ${amount}`);
+        doc.text(`  Termijn:     ${term ? term + ' maanden' : '-'}`);
+        doc.moveDown(2);
+        doc.fontSize(10).fillColor('gray').text('Dit is een automatisch gegenereerd document van het RGWO Portal.', { align: 'center' });
+        doc.end();
+
+        console.log(`[SUCCESS] Loan ${loanId} from ${name} saved to database.`);
         res.json({ success: true });
     } catch (error) {
-        console.error("[TELEGRAM ERROR]:", error.message);
+        console.error("[LOAN ERROR]:", error.message);
         res.status(500).json({ success: false });
     }
 });

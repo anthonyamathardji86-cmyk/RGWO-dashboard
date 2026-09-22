@@ -50,6 +50,7 @@
         .doc-cat-btn.cat-purple { border-color: #d8b4fe; background: #faf5ff; } .doc-cat-btn.cat-purple:hover { background: #f3e8ff; }
         .doc-cat-btn.cat-orange { border-color: #fed7aa; background: #fff7ed; } .doc-cat-btn.cat-orange:hover { background: #ffedd5; }
         .doc-cat-btn.cat-gray { border-color: #d1d5db; background: #f9fafb; } .doc-cat-btn.cat-gray:hover { background: #f3f4f6; }
+        .doc-cat-btn.cat-red { border-color: #fecaca; background: #fef2f2; } .doc-cat-btn.cat-red:hover { background: #fee2e2; }
         .doc-file-link { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #1e293b; transition: background 0.15s ease; }
         .doc-file-link:hover { background: #f1f5f9; }
 
@@ -242,6 +243,21 @@
 
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- KLACHT MODAL -->
+    <div id="klachtModal"><div class="modal-overlay"><div class="modal-content">
+        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-gray-900">Klachtenformulier</h2><button onclick="toggleModal(false, 'klachtModal')" class="text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-2xl"></i></button></div>
+        <form onsubmit="submitKlacht(event)">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Volledige Naam</label><input type="text" id="klacht-naam" class="form-input" placeholder="v.b. Anthony Amathardji" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Badge nummer</label><input type="text" id="klacht-badge" class="form-input" placeholder="v.b. 7224" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Afdeling</label><input type="text" id="klacht-afdeling" class="form-input" placeholder="v.b. Regional Exploration" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Datum Incident</label><input type="date" id="klacht-incident-date" class="form-input" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Categorieën <span class="text-gray-400 font-normal">(kommagescheiden)</span></label><input type="text" id="klacht-categories" class="form-input" placeholder="v.b. Veiligheid, Salaris" required>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Beschrijving</label><textarea id="klacht-description" class="form-input" rows="4" placeholder="Beschrijf het incident in detail..." required></textarea>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Gewenste oplossing <span class="text-gray-400 font-normal">(optioneel)</span></label><input type="text" id="klacht-resolution" class="form-input" placeholder="v.b. Compensatie, Onderzoek">
+            <button type="submit" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold shadow-lg shadow-red-500/30 hover:bg-red-700 transition mt-2">Klacht Indienen</button>
+        </form>
+    </div></div></div>
+    
     <!-- JAVASCRIPT -->
     <script>
         let currentUserRole = 'member';
@@ -341,6 +357,28 @@
             } catch (error) { showToast("Verbindingsfout met server.", 'error'); }
             finally { btn.innerText = originalText; btn.classList.remove('opacity-75', 'cursor-not-allowed'); }
         }
+        
+        async function submitKlacht(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button');
+            const originalText = btn.innerText;
+            const formData = { 
+                naam: document.getElementById('klacht-naam').value, 
+                badge: document.getElementById('klacht-badge').value, 
+                afdeling: document.getElementById('klacht-afdeling').value, 
+                incident_date: document.getElementById('klacht-incident-date').value, 
+                categories: document.getElementById('klacht-categories').value, 
+                description: document.getElementById('klacht-description').value, 
+                resolution: document.getElementById('klacht-resolution').value 
+            };
+            btn.innerText = "Verzenden..."; btn.classList.add('opacity-75', 'cursor-not-allowed');
+            try {
+                const response = await fetch('/api/klacht', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+                if (response.ok) { showToast("Klacht succesvol ingediend!", 'success'); toggleModal(false, 'klachtModal'); event.target.reset(); }
+                else { const errorData = await response.json(); showToast(errorData.message || "Er ging iets mis.", 'error'); }
+            } catch (error) { showToast("Verbindingsfout met server.", 'error'); }
+            finally { btn.innerText = originalText; btn.classList.remove('opacity-75', 'cursor-not-allowed'); }
+        }
 
         // ===================================
         // DOCUMENTS
@@ -371,6 +409,12 @@
             loanBtn.innerHTML = '<i class="fa-solid fa-hand-holding-dollar text-2xl text-amber-600"></i><span class="text-sm font-semibold text-gray-700">Leningaanvraag</span><span class="text-xs font-bold text-amber-600">Aanvragen</span>';
             loanBtn.onclick = function() { toggleModal(false, 'docModal'); toggleModal(true, 'loanModal'); };
             container.appendChild(loanBtn);
+            // Klachtenformulier button
+            var klachtBtn = document.createElement('button');
+            klachtBtn.className = 'doc-cat-btn cat-red';
+            klachtBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-2xl text-red-600"></i><span class="text-sm font-semibold text-gray-700">Klachtenformulier</span><span class="text-xs font-bold text-red-600">Indienen</span>';
+            klachtBtn.onclick = function() { toggleModal(false, 'docModal'); toggleModal(true, 'klachtModal'); };
+            container.appendChild(klachtBtn);
         }
         function showDocFiles(category) {
             var config = DOC_CATEGORIES[category]; var docs = docData[category] || [];

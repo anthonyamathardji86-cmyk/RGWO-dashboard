@@ -54,6 +54,7 @@
                 <div class="flex items-center gap-2">
                     <a href="/" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-arrow-left mr-1"></i> Portal</a>
                     <button onclick="logout()" class="px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                    <button onclick="enterPreviewMode()" class="px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-md transition"><i class="fa-solid fa-eye mr-1"></i> Preview</button>
                 </div>
             </div>
         </div>
@@ -350,6 +351,11 @@
             toast.innerHTML = `<i class="fa-solid ${iconClass} text-lg ${colorClass}"></i><span class="text-sm font-medium text-gray-800">${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 5000);
+        }
+
+        function enterPreviewMode() {
+            localStorage.setItem('preview_as', 'member');
+            window.location.href = '/';
         }
 
         // MAINTENANCE

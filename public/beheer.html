@@ -651,10 +651,12 @@
         function renderKlachten(klachten) {
             const container = document.getElementById('klacht-list');
             if (!klachten.length) { container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen klachten gevonden.</p>'; return; }
+            
             container.innerHTML = klachten.map(k => {
                 const date = new Date(k.created_at).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                
                 return `<div class="p-4 hover:bg-gray-50 transition">
-                    <div class="flex items-center justify-between mb-1 gap-4">
+                    <div class="flex items-center justify-between mb-2 gap-4">
                         <p class="text-sm font-semibold text-gray-800">${k.naam} (Badge: ${k.badge || '-'})</p>
                         <select onchange="updateKlachtStatus('${k.id}', this.value)" class="form-input w-auto text-xs py-1 px-2 font-bold cursor-pointer">
                             <option value="pending" ${k.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
@@ -662,8 +664,23 @@
                             <option value="closed" ${k.status === 'closed' ? 'selected' : ''}>✅ Closed</option>
                         </select>
                     </div>
-                    <p class="text-xs text-gray-500 mb-2">${date} • Afdeling: ${k.afdeling || '-'}</p>
-                    <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">${k.description}</p>
+                    
+                    <div class="text-xs text-gray-500 mb-3 space-y-1">
+                        <p><span class="font-semibold">Ingediend:</span> ${date}</p>
+                        <p><span class="font-semibold">Afdeling:</span> ${k.afdeling || '-'}</p>
+                        <p><span class="font-semibold">Incident Datum:</span> ${k.incident_date || '-'}</p>
+                        <p><span class="font-semibold">Categorieën:</span> ${k.categories || '-'}</p>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <p class="text-xs font-semibold text-gray-700 mb-1">Beschrijving:</p>
+                        <p style="white-space: pre-wrap; word-break: break-word;" class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">${k.description}</p>
+                    </div>
+                    
+                    ${k.resolution ? `<div>
+                        <p class="text-xs font-semibold text-gray-700 mb-1">Gewenste Oplossing:</p>
+                        <p style="white-space: pre-wrap; word-break: break-word;" class="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-100">${k.resolution}</p>
+                    </div>` : ''}
                 </div>`;
             }).join('');
         }

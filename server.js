@@ -669,7 +669,12 @@ app.post('/api/loan', async (req, res) => {
             loan_id: loanId,
             telegram_id: parseInt(userId),
             naam: name,
+            badge: badge || null,
+            afdeling: afdeling || null,
+            telefoon: telefoon || null,
+            reason: reason,
             bedrag: parseInt(amount),
+            term: term ? parseInt(term) : null,
             status: 'pending'
         });
 
@@ -1053,6 +1058,37 @@ app.delete('/api/klachten/:id', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error("[KLACHT DELETE ERROR]:", error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.get('/api/leningen', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const { data: member } = await supabase.from('RGWO leden').select('role').eq('telegram_id', parseInt(userId)).single();
+        if (!member || member.role !== 'admin') return res.status(403).json({ success: false });
+        const { data, error } = await supabase.from('Leningen').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        res.json({ success: true, leningen: data });
+    } catch (error) {
+        console.error("[LENINGEN ERROR]:", error.message);
+        res.status(500).json({ success: false, leningen: [] });
+    }
+});
+
+app.patch('/api/leningen/:loan_id', async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const { data: member } = await supabase.from('RGWO leden').select('role').eq('telegram_id', parseInt(userId)).single();
+        if (!member || member.role !== 'admin') return res.status(403).json({ success: false });
+        const { status } = req.body;
+        const { data, error } = await supabase.from('Leningen').update({ status }).eq('loan_id', req.params.loan_id).select().single();
+        if (error) throw error;
+        res.json({ success: true, lening: data });
+    } catch (error) {
+        console.error("[LENING UPDATE ERROR]:", error.message);
         res.status(500).json({ success: false });
     }
 });

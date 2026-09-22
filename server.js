@@ -482,7 +482,7 @@ app.get('/api/klachten', async (req, res) => {
         if (!userId) return res.status(401).json({ success: false });
         const { data: member } = await supabase.from('RGWO leden').select('role').eq('telegram_id', parseInt(userId)).single();
         if (!member || !['admin'].includes(member.role)) return res.status(403).json({ success: false });
-        const { data, error } = await supabase.from('Klachten').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('Klachten').select('*').order('klacht_id', { ascending: true });
         if (error) throw error;
         res.json({ success: true, klachten: data });
     } catch (error) {

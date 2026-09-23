@@ -303,6 +303,22 @@
                     unlockDashboard();
                     
                     currentUserRole = data.role || 'member';
+
+                    // === TAWK.TO OPTIONS 1 & 2: IDENTIFY USER & HIDE FOR ADMIN ===
+                    if (typeof Tawk_API !== 'undefined') {
+                        Tawk_API.setVisitorName(data.name || 'Onbekend lid');
+                        Tawk_API.setVisitorAttributes({
+                            'Badge': data.badge || 'N/A',
+                            'Role': currentUserRole
+                        });
+                        if (currentUserRole === 'admin') {
+                            Tawk_API.hideWidget();
+                        } else {
+                            Tawk_API.showWidget();
+                        }
+                    }
+                    // ============================================================
+
                     if (currentUserRole === 'admin') {
                         document.getElementById('admin-btn').classList.remove('hidden');
                         document.getElementById('admin-btn-mobile').classList.remove('hidden');
@@ -420,13 +436,23 @@
             var loanBtn = document.createElement('button');
             loanBtn.className = 'doc-cat-btn cat-amber';
             loanBtn.innerHTML = '<i class="fa-solid fa-hand-holding-dollar text-2xl text-amber-600"></i><span class="text-sm font-semibold text-gray-700">Leningaanvraag</span><span class="text-xs font-bold text-amber-600">Aanvragen</span>';
-            loanBtn.onclick = function() { toggleModal(false, 'docModal'); toggleModal(true, 'loanModal'); };
+            loanBtn.onclick = function() { 
+                toggleModal(false, 'docModal'); 
+                toggleModal(true, 'loanModal'); 
+                // === TAWK.TO OPTION 3: Route to Leningen department ===
+                if (typeof Tawk_API !== 'undefined') Tawk_API.switchToDepartment('Leningen'); 
+            };
             container.appendChild(loanBtn);
             // Klachtenformulier button
             var klachtBtn = document.createElement('button');
             klachtBtn.className = 'doc-cat-btn cat-red';
             klachtBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-2xl text-red-600"></i><span class="text-sm font-semibold text-gray-700">Klachtenformulier</span><span class="text-xs font-bold text-red-600">Indienen</span>';
-            klachtBtn.onclick = function() { toggleModal(false, 'docModal'); toggleModal(true, 'klachtModal'); };
+            klachtBtn.onclick = function() { 
+                toggleModal(false, 'docModal'); 
+                toggleModal(true, 'klachtModal'); 
+                // === TAWK.TO OPTION 3: Route to Klachten department ===
+                if (typeof Tawk_API !== 'undefined') Tawk_API.switchToDepartment('Klachten'); 
+            };
             container.appendChild(klachtBtn);
         }
         function showDocFiles(category) {

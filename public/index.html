@@ -624,6 +624,23 @@
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    
+    // Wait for Tawk.to to fully load before trying to hide/show it
+    Tawk_API.onLoad = function() {
+        if (window.currentUserRole === 'admin') {
+            Tawk_API.hideWidget();
+        } else {
+            Tawk_API.showWidget();
+            if(window.currentUserName) Tawk_API.setVisitorName(window.currentUserName);
+            if(window.currentUserBadge) {
+                Tawk_API.setVisitorAttributes({
+                    'Badge': window.currentUserBadge,
+                    'Role': window.currentUserRole
+                });
+            }
+        }
+    };
+
     (function(){
     var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
     s1.async=true;

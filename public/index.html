@@ -304,22 +304,11 @@
                     
                     currentUserRole = data.role || 'member';
 
-                    // === TAWK.TO OPTIONS 1 & 2: IDENTIFY USER & HIDE FOR ADMIN ===
-                    try {
-                        if (typeof Tawk_API !== 'undefined' && Tawk_API.setVisitorName) {
-                            Tawk_API.setVisitorName(data.name || 'Onbekend lid');
-                            Tawk_API.setVisitorAttributes({
-                                'Badge': data.badge || 'N/A',
-                                'Role': currentUserRole
-                            });
-                            if (currentUserRole === 'admin') {
-                                Tawk_API.hideWidget();
-                            } else {
-                                Tawk_API.showWidget();
-                            }
-                        }
-                    } catch (e) { console.log("Tawk API not ready yet."); }
-                    // ============================================================
+                    // === SAVE USER DATA FOR TAWK.TO ===
+                    window.currentUserRole = currentUserRole;
+                    window.currentUserName = data.name || 'Onbekend lid';
+                    window.currentUserBadge = data.badge || 'N/A';
+                    // ===================================
 
                     if (currentUserRole === 'admin') {
                         document.getElementById('admin-btn').classList.remove('hidden');

@@ -227,7 +227,7 @@
                 <div class="flex items-center text-sm text-gray-700"><a href="tel:+597427094" class="flex items-center group hover:text-blue-600 transition"><i class="fa-solid fa-phone w-6 text-blue-500"></i><span>+597427094</span></a></div>
                 <div class="flex items-center text-sm text-gray-700"><a href="mailto:info@rgwo.sr" class="flex items-center group hover:text-blue-600 transition"><i class="fa-solid fa-envelope w-6 text-blue-500"></i><span>info@rgwo.sr</span></a></div>
             </div>
-        </div></div></div></div></footer>
+        </div></div></div></footer>
     </main>
 
     <!-- LOAN MODAL -->
@@ -305,18 +305,20 @@
                     currentUserRole = data.role || 'member';
 
                     // === TAWK.TO OPTIONS 1 & 2: IDENTIFY USER & HIDE FOR ADMIN ===
-                    if (typeof Tawk_API !== 'undefined') {
-                        Tawk_API.setVisitorName(data.name || 'Onbekend lid');
-                        Tawk_API.setVisitorAttributes({
-                            'Badge': data.badge || 'N/A',
-                            'Role': currentUserRole
-                        });
-                        if (currentUserRole === 'admin') {
-                            Tawk_API.hideWidget();
-                        } else {
-                            Tawk_API.showWidget();
+                    try {
+                        if (typeof Tawk_API !== 'undefined' && Tawk_API.setVisitorName) {
+                            Tawk_API.setVisitorName(data.name || 'Onbekend lid');
+                            Tawk_API.setVisitorAttributes({
+                                'Badge': data.badge || 'N/A',
+                                'Role': currentUserRole
+                            });
+                            if (currentUserRole === 'admin') {
+                                Tawk_API.hideWidget();
+                            } else {
+                                Tawk_API.showWidget();
+                            }
                         }
-                    }
+                    } catch (e) { console.log("Tawk API not ready yet."); }
                     // ============================================================
 
                     if (currentUserRole === 'admin') {
@@ -440,9 +442,10 @@
                 toggleModal(false, 'docModal'); 
                 toggleModal(true, 'loanModal'); 
                 // === TAWK.TO OPTION 3: Route to Leningen department ===
-                if (typeof Tawk_API !== 'undefined') Tawk_API.switchToDepartment('Leningen'); 
+                if (typeof Tawk_API !== 'undefined' && Tawk_API.switchToDepartment) Tawk_API.switchToDepartment('Leningen'); 
             };
             container.appendChild(loanBtn);
+            
             // Klachtenformulier button
             var klachtBtn = document.createElement('button');
             klachtBtn.className = 'doc-cat-btn cat-red';
@@ -451,7 +454,7 @@
                 toggleModal(false, 'docModal'); 
                 toggleModal(true, 'klachtModal'); 
                 // === TAWK.TO OPTION 3: Route to Klachten department ===
-                if (typeof Tawk_API !== 'undefined') Tawk_API.switchToDepartment('Klachten'); 
+                if (typeof Tawk_API !== 'undefined' && Tawk_API.switchToDepartment) Tawk_API.switchToDepartment('Klachten'); 
             };
             container.appendChild(klachtBtn);
         }
@@ -626,9 +629,6 @@
             localStorage.removeItem('preview_as');
             window.location.href = '/beheer.html';
         }
-        function updateChartData(incomeData, expenseData) { if (mainChartInstance) { mainChartInstance.data.datasets[0].data = incomeData; mainChartInstance.data.datasets[1].data = expenseData; mainChartInstance.update(); } }
-    </script>
-
         function updateChartData(incomeData, expenseData) { if (mainChartInstance) { mainChartInstance.data.datasets[0].data = incomeData; mainChartInstance.data.datasets[1].data = expenseData; mainChartInstance.update(); } }
     </script>
 

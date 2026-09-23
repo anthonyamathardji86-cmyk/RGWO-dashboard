@@ -428,25 +428,39 @@ function enterPreviewMode(role) {
             container.innerHTML = leden.map(l => {
                 const rc = roleColors[l.role] || roleColors.member;
                 const rl = roleLabels[l.role] || 'Member';
-                return `<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-gray-800 truncate">${l.naam || l.telegram_naam || '-'}</p>
-                        <div class="flex items-center gap-2 mt-1 flex-wrap">
-                            <span class="text-xs font-mono text-gray-500">Badge: ${l.badge || '-'}</span>
-                            <span class="text-xs text-gray-400">•</span>
-                            <span class="text-xs text-gray-500">${l.afdeling || '-'}</span>
-                            <span class="text-xs font-bold px-2 py-0.5 rounded ${rc}">${rl}</span>
-                            ${!l.telegram_id ? '<span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Handmatig</span>' : ''}
+                return `<div class="p-4 hover:bg-gray-50 transition">
+                    <div class="flex items-center justify-between gap-4 cursor-pointer" onclick="this.parentElement.querySelector('.lid-details').classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-90')">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-chevron-down chevron text-gray-400 text-xs transition-transform"></i>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-800 truncate">${l.naam || l.telegram_naam || '-'}</p>
+                                <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                    <span class="text-xs font-mono text-gray-500">Badge: ${l.badge || '-'}</span>
+                                    <span class="text-xs text-gray-400">•</span>
+                                    <span class="text-xs text-gray-500">${l.afdeling || '-'}</span>
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded ${rc}">${rl}</span>
+                                    ${!l.telegram_id ? '<span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Handmatig</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                            <button onclick="editLid(${l.id})" class="p-2 rounded-lg hover:bg-blue-50 transition text-sm" title="Bewerken"><i class="fa-solid fa-pen text-blue-400"></i></button>
+                            <button onclick="deleteLid(${l.id}, '${(l.naam||'').replace(/'/g,"\\'")}')" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button>
                         </div>
                     </div>
-                    <div class="flex items-center gap-1">
-                        <button onclick="editLid(${l.id})" class="p-2 rounded-lg hover:bg-blue-50 transition text-sm" title="Bewerken"><i class="fa-solid fa-pen text-blue-400"></i></button>
-                        <button onclick="deleteLid(${l.id}, '${(l.naam||'').replace(/'/g,"\\'")}')" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button>
+                    
+                    <div class="lid-details hidden mt-4 pl-7 border-l-2 border-blue-100">
+                        <div class="text-xs text-gray-500 space-y-1">
+                            <p><span class="font-semibold">Database ID:</span> ${l.id}</p>
+                            <p><span class="font-semibold">Telegram ID:</span> ${l.telegram_id || '-'}</p>
+                            <p><span class="font-semibold">Telegram Gebruikersnaam:</span> ${l.telegram_username ? '@' + l.telegram_username : '-'}</p>
+                            <p><span class="font-semibold">Telegram Naam:</span> ${l.telegram_naam || '-'}</p>
+                        </div>
                     </div>
                 </div>`;
             }).join('');
         }
-
+        
         function showAddLidModal() {
             document.getElementById('lid-modal-title').textContent = 'Lid Toevoegen';
             document.getElementById('lid-edit-id').value = '';

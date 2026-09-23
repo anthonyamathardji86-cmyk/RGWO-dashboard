@@ -304,10 +304,17 @@
                     
                     currentUserRole = data.role || 'member';
 
-                    // === SAVE USER DATA FOR TAWK.TO ===
+                    // === TAWK.TO INTEGRATION ===
                     window.currentUserRole = currentUserRole;
                     window.currentUserName = data.name || 'Onbekend lid';
                     window.currentUserBadge = data.badge || 'N/A';
+                    
+                    // Pre-set the visitor name so Tawk gets it immediately on load
+                    if (typeof Tawk_API !== 'undefined') {
+                        Tawk_API.visitor = {
+                            name  : window.currentUserName
+                        };
+                    }
                     // ===================================
 
                     if (currentUserRole === 'admin') {
@@ -625,19 +632,21 @@
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     
-    // Wait for Tawk.to to fully load before trying to hide/show it
+    // Wait for Tawk.to to fully load before applying custom attributes and hiding for admins
     Tawk_API.onLoad = function() {
-        if (window.currentUserRole === 'admin') {
-            Tawk_API.hideWidget();
-        } else {
-            Tawk_API.showWidget();
-            if(window.currentUserName) Tawk_API.setVisitorName(window.currentUserName);
-            if(window.currentUserBadge) {
+        // Set Custom Attributes (Badge & Role)
+        if(window.currentUserBadge) {
+            try {
                 Tawk_API.setVisitorAttributes({
                     'Badge': window.currentUserBadge,
                     'Role': window.currentUserRole
                 });
-            }
+            } catch(e) { console.error("Tawk attribute error", e); }
+        }
+        
+        // Hide widget for admins
+        if (window.currentUserRole === 'admin') {
+            Tawk_API.hideWidget();
         }
     };
 

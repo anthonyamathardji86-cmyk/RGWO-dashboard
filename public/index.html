@@ -309,12 +309,8 @@
                     window.currentUserName = data.name || 'Onbekend lid';
                     window.currentUserBadge = data.badge || 'N/A';
                     
-                    // Pre-set the visitor name so Tawk gets it immediately on load
-                    if (typeof Tawk_API !== 'undefined') {
-                        Tawk_API.visitor = {
-                            name  : window.currentUserName
-                        };
-                    }
+                    // Trigger the Tawk bridge function now that we have the user data
+                    if(typeof window.updateTawkUser === 'function') { window.updateTawkUser(); }
                     // ===================================
 
                     if (currentUserRole === 'admin') {
@@ -632,22 +628,19 @@
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     
-    // Wait for Tawk.to to fully load before applying custom attributes and hiding for admins
+    window.updateTawkUser = function() {
+        if (!window.currentUserName) return; 
+        console.log("TAWK BRIDGE RUNNING: Name=", window.currentUserName, "Badge=", window.currentUserBadge, "Role=", window.currentUserRole);
+        try {
+            if (Tawk_API.setVisitorName) Tawk_API.setVisitorName(window.currentUserName);
+            if (Tawk_API.setVisitorAttributes) Tawk_API.setVisitorAttributes({ 'Badge': window.currentUserBadge || 'N/A', 'Role': window.currentUserRole || 'N/A' });
+            if (window.currentUserRole === 'admin' && Tawk_API.hideWidget) { Tawk_API.hideWidget(); } else if (Tawk_API.showWidget) { Tawk_API.showWidget(); }
+        } catch (e) { console.error("Tawk Update Error:", e); }
+    };
+
     Tawk_API.onLoad = function() {
-        // Set Custom Attributes (Badge & Role)
-        if(window.currentUserBadge) {
-            try {
-                Tawk_API.setVisitorAttributes({
-                    'Badge': window.currentUserBadge,
-                    'Role': window.currentUserRole
-                });
-            } catch(e) { console.error("Tawk attribute error", e); }
-        }
-        
-        // Hide widget for admins
-        if (window.currentUserRole === 'admin') {
-            Tawk_API.hideWidget();
-        }
+        console.log("TAWK WIDGET FINISHED LOADING");
+        if(typeof window.updateTawkUser === 'function') { window.updateTawkUser(); }
     };
 
     (function(){

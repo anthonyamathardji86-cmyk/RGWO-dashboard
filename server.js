@@ -1134,6 +1134,50 @@ app.patch('/api/leningen/:loan_id', async (req, res) => {
     }
 });
 
+// ==========================
+// TAWK.TO TO TELEGRAM BRIDGE
+// ==========================
+app.post('/api/tawk-webhook', async (req, res) => {
+    try {
+        const { event, visitor, message } = req.body;
+        
+        // We only notify Telegram on new chats or incoming messages
+        if (event === 'chat:start' || event === 'chat:message') {
+            const visitorName = visitor?.name || 'Anoniem';
+            const badge = visitor?.attributes?.Badge || 'Onbekend';
+            const role = visitor?.attributes?.Role || 'Onbekend';
+            
+            let telegramMsg = `💬 *Nieuwe Tawk.to Chat Bericht!* (${event})\n`;
+            telegramMsg += `👤 Naam: ${visitorName}\n`;
+            telegramMsg += `🏷️ Badge: ${badge}\n`;
+            telegramMsg += `👔 Role: ${role}\n`;
+            
+            if (message?.text) {
+                telegramMsg += `💬 Bericht: ${message.text}`;
+            }
+
+            // Send to your Telegram Admin Chat(s)
+            for (const chatId of CHAT_IDS) {
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: telegramMsg,
+                        parse_mode: 'Markdown'
+                    })
+                });
+            }
+        }
+        
+        // Always return 200 OK so Tawk doesn't retry
+        res.status(200).send('OK'); 
+    } catch (error) {
+        console.error('[TAWK WEBHOOK ERROR]', error.message);
+        res.status(500).send('Error');
+    }
+});
+
 app.listen(PORT, async () => {
     console.log(`Server listening on port ${PORT}`);
     await registerWebhook();

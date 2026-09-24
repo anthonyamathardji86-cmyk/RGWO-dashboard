@@ -615,7 +615,7 @@ Tawk_API.onLoad = function() {
         'Afdeling': window.currentUserAfdeling || 'N/A'
     }, function(error) {
         if (error) console.log('TAWK ATTR ERROR:', error);
-        else console.log('TAWK ATTR OK — Badge:', window.currentUserBadge, 'Role:', window.currentUserRole);
+        else console.log('TAWK ATTR OK — Badge:', window.currentUserBadge, 'Afdeling:', window.currentUserAfdeling);
     });
     if (window.currentUserRole === 'admin') {
         Tawk_API.hideWidget();

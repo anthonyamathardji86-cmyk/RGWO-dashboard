@@ -65,6 +65,7 @@
     </style>
 </head>
 <body class="text-gray-800 antialiased dashboard-locked">
+<script>var Tawk_API=Tawk_API||{};</script>
 <div id="preview-banner" style="display:none; position:fixed; top:0; left:0; width:100%; background:#7c3aed; color:white; text-align:center; padding:12px; z-index:9999; font-family:sans-serif;">
     👁️ You are previewing as: <b id="preview-role-text">Member</b>. 
     <button onclick="exitPreviewMode()" style="margin-left:15px; background:white; color:#7c3aed; padding:4px 12px; border-radius:5px; font-weight:bold; cursor:pointer; border:none;">Exit Preview</button>
@@ -304,14 +305,11 @@
                     
                     currentUserRole = data.role || 'member';
 
-                    // === TAWK.TO INTEGRATION ===
-                    window.currentUserRole = currentUserRole;
-                    window.currentUserName = data.name || 'Onbekend lid';
-                    window.currentUserBadge = data.badge || 'N/A';
-                    
-                    // Trigger the Tawk bridge function now that we have the user data
-                    if(typeof window.updateTawkUser === 'function') { window.updateTawkUser(); }
-                    // ===================================
+window.currentUserRole = currentUserRole;
+window.currentUserName = data.name || 'Onbekend lid';
+window.currentUserBadge = data.badge || 'N/A';
+
+initTawkWhenReady();
 
                     if (currentUserRole === 'admin') {
                         document.getElementById('admin-btn').classList.remove('hidden');
@@ -603,6 +601,31 @@
             pieChartInstance = new Chart(ctxPie, { type: 'doughnut', data: { labels: ['Legal', 'Operations', 'Benefits', 'Rent', 'Misc'], datasets: [{ data: [35, 25, 20, 15, 5], backgroundColor: ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#94a3b8'], borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } } });
         }
 
+        function initTawkWhenReady() {
+            if (!window.currentUserName) return;
+            if (window._tawkLoaded) return;
+            window._tawkLoaded = true;
+        
+            Tawk_API.visitor = { name: window.currentUserName };
+        
+            Tawk_API.onLoad = function() {
+                Tawk_API.setVisitorAttributes({
+                    'Badge': window.currentUserBadge || 'N/A',
+                    'Role': window.currentUserRole || 'N/A'
+                });
+                if (window.currentUserRole === 'admin') {
+                    Tawk_API.hideWidget();
+                }
+            };
+        
+            var s1 = document.createElement("script");
+            s1.async = true;
+            s1.src = 'https://embed.tawk.to/6ab419f4b7e55a3452d02758/1k37oaon1';
+            s1.charset = 'UTF-8';
+            s1.setAttribute('crossorigin', '*');
+            document.body.appendChild(s1);
+        }
+        
         function updateTimeframe(period) {
             const tabs = ['monthly', 'quarterly', 'yearly'];
             tabs.forEach(t => { const btn = document.getElementById(`tab-${t}`); btn.classList.remove('tab-active', 'bg-slate-800', 'text-white', 'shadow-sm'); btn.classList.add('tab-inactive', 'bg-gray-200', 'text-gray-500'); });
@@ -623,36 +646,5 @@
         }
         function updateChartData(incomeData, expenseData) { if (mainChartInstance) { mainChartInstance.data.datasets[0].data = incomeData; mainChartInstance.data.datasets[1].data = expenseData; mainChartInstance.update(); } }
     </script>
-
-    <!--Start of Tawk.to Script-->
-    <script type="text/javascript">
-    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    
-    window.updateTawkUser = function() {
-        if (!window.currentUserName) return; 
-        console.log("TAWK BRIDGE RUNNING: Name=", window.currentUserName, "Badge=", window.currentUserBadge, "Role=", window.currentUserRole);
-        try {
-            if (Tawk_API.setVisitorName) Tawk_API.setVisitorName(window.currentUserName);
-            if (Tawk_API.setVisitorAttributes) Tawk_API.setVisitorAttributes({ 'Badge': window.currentUserBadge || 'N/A', 'Role': window.currentUserRole || 'N/A' });
-            if (window.currentUserRole === 'admin' && Tawk_API.hideWidget) { Tawk_API.hideWidget(); } else if (Tawk_API.showWidget) { Tawk_API.showWidget(); }
-        } catch (e) { console.error("Tawk Update Error:", e); }
-    };
-
-    Tawk_API.onLoad = function() {
-        console.log("TAWK WIDGET FINISHED LOADING");
-        if(typeof window.updateTawkUser === 'function') { window.updateTawkUser(); }
-    };
-
-    (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true;
-    s1.src='https://embed.tawk.to/6ab419f4b7e55a3452d02758/1k37oaon1';
-    s1.charset='UTF-8';
-    s1.setAttribute('crossorigin','*');
-    s0.parentNode.insertBefore(s1,s0);
-    })();
-    </script>
-    <!--End of Tawk.to Script-->
-
 </body>
 </html>

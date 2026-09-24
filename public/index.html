@@ -611,7 +611,7 @@ initTawkWhenReady();
 Tawk_API.onLoad = function() {
     Tawk_API.setAttributes({
         'Badge': window.currentUserBadge || 'N/A',
-        'Role': window.currentUserRole || 'N/A'
+        'Afdeling': window.currentUserAfdeling || 'N/A'
     }, function(error) {
         if (error) console.log('TAWK ATTR ERROR:', error);
         else console.log('TAWK ATTR OK — Badge:', window.currentUserBadge, 'Role:', window.currentUserRole);

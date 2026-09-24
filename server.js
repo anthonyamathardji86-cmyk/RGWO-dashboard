@@ -174,7 +174,7 @@ app.get('/api/me', async (req, res) => {
         const data = await response.json();
 
         if (['member', 'administrator', 'creator'].includes(data.result?.status)) {
-            const { data: member } = await supabase.from('RGWO leden').select('naam, telegram_naam, badge, role').eq('telegram_id', parseInt(userId)).single();
+            const { data: member } = await supabase.from('RGWO leden').select('naam, telegram_naam, badge, role, afdeling').eq('telegram_id', parseInt(userId)).single();
 
             if (member && member.badge) {
                 return res.json({
@@ -182,7 +182,8 @@ app.get('/api/me', async (req, res) => {
                     needsSetup: false,
                     name: member.naam,
                     badge: member.badge,
-                    role: member.role
+                    role: member.role,
+                    afdeling: member.afdeling
                 });
             } else {
                 return res.json({

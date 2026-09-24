@@ -608,15 +608,18 @@ initTawkWhenReady();
         
             Tawk_API.visitor = { name: window.currentUserName };
         
-            Tawk_API.onLoad = function() {
-                Tawk_API.setVisitorAttributes({
-                    'Badge': window.currentUserBadge || 'N/A',
-                    'Role': window.currentUserRole || 'N/A'
-                });
-                if (window.currentUserRole === 'admin') {
-                    Tawk_API.hideWidget();
-                }
-            };
+Tawk_API.onLoad = function() {
+    Tawk_API.setAttributes({
+        'Badge': window.currentUserBadge || 'N/A',
+        'Role': window.currentUserRole || 'N/A'
+    }, function(error) {
+        if (error) console.log('TAWK ATTR ERROR:', error);
+        else console.log('TAWK ATTR OK — Badge:', window.currentUserBadge, 'Role:', window.currentUserRole);
+    });
+    if (window.currentUserRole === 'admin') {
+        Tawk_API.hideWidget();
+    }
+};
         
             var s1 = document.createElement("script");
             s1.async = true;

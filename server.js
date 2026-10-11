@@ -1179,6 +1179,198 @@ app.post('/api/tawk-webhook', async (req, res) => {
     }
 });
 
+// ==========================
+// COMMITTEE SYSTEM (Bi-Weekly, LZ, V&W)
+// ==========================
+
+const COMMITTEE_CONFIG = {
+    biweekly: { meetingsTable: 'BiWeeklyMeetings', itemsTable: 'BiWeeklyItems', name: 'Bi-Weekly Meeting' },
+    lz: { meetingsTable: 'LZMeetings', itemsTable: 'LZItems', name: 'Commissie LZ Meeting' },
+    vw: { meetingsTable: 'VWMeetings', itemsTable: 'VWItems', name: 'Commissie V&W Meeting' }
+};
+
+// Middleware to validate committee prefix
+function validateCommittee(req, res, next) {
+    const prefix = req.params.prefix;
+    if (!COMMITTEE_CONFIG[prefix]) return res.status(400).json({ success: false, message: 'Invalid committee' });
+    req.committee = COMMITTEE_CONFIG[prefix];
+    next();
+}
+
+// --- GET Meetings ---
+app.get('/api/:prefix/meetings', validateCommittee, async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false });
+
+        const { data, error } = await supabase.from(req.committee.meetingsTable).select('*').order('meeting_date', { ascending: false });
+        if (error) throw error;
+        res.json({ success: true, meetings: data });
+    } catch (error) {
+        res.status(500).json({ success: false, meetings: [] });
+    }
+});
+
+// --- CREATE Meeting (with PDF upload) ---
+app.post('/api/:prefix/meetings', validateCommittee, upload.single('file'), async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false });
+
+        const { meeting_date, summary, created_by } = req.body;
+        const file = req.file;
+
+        let fileUrl = null;
+
+        if (file) {
+            const timestamp = Date.now();
+            const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const storagePath = `committee-pdfs/${timestamp}_${safeName}`;
+
+            const { error: uploadError } = await supabase.storage.from('committee-docs').upload(storagePath, file.buffer, { contentType: file.mimetype, upsert: false });
+            if (uploadError) return res.status(500).json({ success: false, message: 'Upload error.' });
+
+            const { data: urlData } = supabase.storage.from('committee-docs').getPublicUrl(storagePath);
+            fileUrl = urlData.publicUrl;
+        }
+
+        const { data, error } = await supabase.from(req.committee.meetingsTable).insert({
+            meeting_date,
+            summary: summary || null,
+            minutes_pdf_url: fileUrl,
+            created_by: created_by || 'Admin'
+        }).select().single();
+
+        if (error) throw error;
+        res.json({ success: true, meeting: data });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// --- DELETE Meeting ---
+app.delete('/api/:prefix/meetings/:id', validateCommittee, async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false });
+
+        const { error } = await supabase.from(req.committee.meetingsTable).delete().eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// --- GET Items for a Meeting ---
+app.get('/api/:prefix/items/:meetingId', validateCommittee, async (req, res) => {
+    try {
+        const { data, error } = await supabase.from(req.committee.itemsTable).select('*').eq('meeting_id', req.params.meetingId).order('created_at', { ascending: true });
+        if (error) throw error;
+        res.json({ success: true, items: data });
+    } catch (error) {
+        res.status(500).json({ success: false, items: [] });
+    }
+});
+
+// --- CREATE Item ---
+app.post('/api/:prefix/items', validateCommittee, async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false });
+
+        const { meeting_id, case_title, stance, plea, created_by } = req.body;
+        const { data, error } = await supabase.from(req.committee.itemsTable).insert({
+            meeting_id, case_title, stance, plea, created_by: created_by || 'Admin', status: 'Pending'
+        }).select().single();
+
+        if (error) throw error;
+        res.json({ success: true, item: data });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// --- UPDATE Item Status ---
+app.patch('/api/:prefix/items/:id', validateCommittee, async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401).json({ success: false });
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403).json({ success: false });
+
+        const { status } = req.body;
+        const { data, error } = await supabase.from(req.committee.itemsTable).update({ status }).eq('id', req.params.id).select().single();
+        if (error) throw error;
+        res.json({ success: true, item: data });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// --- EXPORT MEETING AS PDF ---
+app.get('/api/:prefix/export/:meetingId', validateCommittee, async (req, res) => {
+    try {
+        const userId = req.cookies.rgwo_user;
+        if (!userId) return res.status(401);
+        const role = await getUserRole(userId);
+        if (role !== 'admin') return res.status(403);
+
+        const { data: meeting } = await supabase.from(req.committee.meetingsTable).select('*').eq('id', req.params.meetingId).single();
+        if (!meeting) return res.status(404).send('Not found');
+
+        const { data: items } = await supabase.from(req.committee.itemsTable).select('*').eq('meeting_id', req.params.meetingId).order('created_at', { ascending: true });
+
+        const doc = new PDFDocument({ margin: 50 });
+        res.setHeader('Content-Disposition', `attachment; filename="${req.committee.name.replace(/\s/g, '_')}_${meeting.meeting_date}.pdf"`);
+        res.setHeader('Content-Type', 'application/pdf');
+        doc.pipe(res);
+
+        doc.fontSize(22).text('RGWO', { align: 'center' });
+        doc.fontSize(16).text(req.committee.name, { align: 'center' });
+        doc.moveDown(0.5);
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+        doc.moveDown();
+        
+        const dateStr = new Date(meeting.meeting_date).toLocaleDateString('nl-NL', { day: '2-digit', month: 'long', year: 'numeric' });
+        doc.fontSize(12).text(`Datum: ${dateStr}`);
+        doc.text(`Opgesteld door: ${meeting.created_by || '-'}`);
+        if (meeting.summary) { doc.moveDown(); doc.text(`Samenvatting: ${meeting.summary}`); }
+        doc.moveDown(1.5);
+
+        if (items && items.length > 0) {
+            doc.fontSize(14).text('Besproken Items / Cases:', { underline: true });
+            doc.moveDown(0.5);
+
+            items.forEach((item, index) => {
+                if (doc.y > 700) doc.addPage(); // Prevent overflow
+                doc.fontSize(12).fillColor('black').text(`${index + 1}. ${item.case_title}`, { continued: false });
+                doc.fontSize(10).fillColor('gray').text(`Status: ${item.status}`, 70);
+                
+                const stanceLabel = req.params.prefix === 'lz' ? 'HR Policy' : req.params.prefix === 'vw' ? 'HR Findings' : 'HR Stance';
+                const pleaLabel = req.params.prefix === 'lz' ? 'Union Advocacy' : req.params.prefix === 'vw' ? 'Union Safety Demand' : 'Union Plea';
+
+                doc.fillColor('black').text(`${stanceLabel}: ${item.stance}`, 70);
+                doc.text(`${pleaLabel}: ${item.plea}`, 70);
+                doc.moveDown(0.8);
+            });
+        }
+
+        doc.end();
+    } catch (error) {
+        console.error("[EXPORT PDF ERROR]", error.message);
+        res.status(500).send("Error generating PDF");
+    }
+});
+
 app.listen(PORT, async () => {
     console.log(`Server listening on port ${PORT}`);
     await registerWebhook();

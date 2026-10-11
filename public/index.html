@@ -526,7 +526,7 @@ initTawkWhenReady();
         }
 
         function applyRoleView(role) {
-            var isMember = role === 'member' || role === 'shop_steward'; // <-- UPDATED LINE
+            var isMember = role === 'member';
             var cards = ['card-balance', 'card-surplus', 'card-pie', 'card-transactions'];
             cards.forEach(function(id) {
                 var el = document.getElementById(id);

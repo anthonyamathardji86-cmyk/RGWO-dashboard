@@ -27,9 +27,7 @@
         @keyframes fadeOut { to { opacity: 0; transform: translateX(20px); } }
         #access-denied { display: none; position: fixed; inset: 0; z-index: 100; background: white; align-items: center; justify-content: center; }
         #access-denied.active { display: flex; }
-        .status-pending { background: #fef3c7; color: #d97706; }
-        .status-resolved { background: #d1fae5; color: #059669; }
-        .status-escalated { background: #fee2e2; color: #dc2626; }
+        .status-pending { background: #fef3c7; color: #d97706; } .status-resolved { background: #d1fae5; color: #059669; } .status-escalated { background: #fee2e2; color: #dc2626; }
     </style>
 </head>
 <body class="text-gray-800 antialiased">
@@ -53,7 +51,8 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="/" class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition"><i class="fa-solid fa-arrow-left mr-1"></i> Portal</a>
-                    <button onclick="enterPreviewMode('member')" class="px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-md transition"><i class="fa-solid fa-eye mr-1"></i> Preview</button>
+                    <button onclick="enterPreviewMode('member')" class="px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-md transition"><i class="fa-solid fa-eye mr-1"></i> Preview Member</button>
+                    <button onclick="enterPreviewMode('board')" class="px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-md transition"><i class="fa-solid fa-eye mr-1"></i> Preview Board</button>
                     <button onclick="logout()" class="px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-md transition"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                 </div>
             </div>
@@ -78,7 +77,7 @@
         <div id="panel-maintenance" class="tab-panel">
             <div class="glass-card rounded-2xl p-8 border border-gray-100 max-w-2xl">
                 <h2 class="text-xl font-bold text-gray-900 mb-1"><i class="fa-solid fa-wrench mr-2 text-amber-500"></i>Onderhoudsmodus</h2>
-                <p class="text-sm text-gray-500 mb-4">Schakel in om het portaal te sluiten voor leden en bestuursleden.</p>
+                <p class="text-sm text-gray-500 mb-4">Schakel in om het portaal te sluiten voor leden en bestuursleden. Alleen admins behouden toegang.</p>
                 <div class="flex items-center gap-3 mb-6"><span id="maintenance-status" class="text-sm font-semibold text-gray-400">Laden...</span><div id="maintenance-indicator" class="w-3 h-3 rounded-full bg-gray-300"></div></div>
                 <button onclick="toggleMaintenance()" id="maintenance-btn" class="px-6 py-2.5 text-sm font-bold rounded-xl transition shadow-sm bg-amber-500 text-white hover:bg-amber-600">Inschakelen</button>
             </div>
@@ -86,6 +85,15 @@
         
         <!-- LEDEN TAB -->
         <div id="panel-leden" class="tab-panel hidden">
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-chart-simple mr-2 text-green-500"></i>Active Members (Handmatig)</h2>
+                <div class="flex items-center gap-4">
+                    <input type="number" id="active-members-input" class="form-input w-40" placeholder="v.b. 1100" min="0">
+                    <button onclick="saveActiveMembers()" class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition shadow-sm"><i class="fa-solid fa-save mr-1"></i>Opslaan</button>
+                    <span id="active-members-status" class="text-sm text-gray-400"></span>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">Dit aantal wordt getoond op de hoofdpagina als "Active Members".</p>
+            </div>
             <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
                 <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
                     <div class="flex items-center gap-3 w-full md:w-auto">
@@ -108,6 +116,7 @@
             </div>
         </div>
 
+        <!-- ADD/EDIT LID MODAL -->
         <div id="lidModal" class="modal-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:100;display:none;justify-content:center;align-items:center">
             <div style="background:white;width:90%;max-width:500px;border-radius:20px;padding:30px;max-height:90vh;overflow-y:auto">
                 <div class="flex justify-between items-center mb-6"><h2 id="lid-modal-title" class="text-xl font-bold text-gray-900">Lid Toevoegen</h2><button onclick="closeLidModal()" class="text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-2xl"></i></button></div>
@@ -124,11 +133,14 @@
                         <option value="daily_board">Daily Board</option>
                         <option value="admin">Admin</option>
                     </select>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telegram ID <span class="text-gray-400 font-normal">(optioneel)</span></label><input type="text" id="lid-telegram-id" class="form-input" placeholder="Automatisch bij Telegram login">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telegram Gebruikersnaam <span class="text-gray-400 font-normal">(optioneel)</span></label><input type="text" id="lid-telegram-username" class="form-input">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telegram Naam <span class="text-gray-400 font-normal">(auto)</span></label><input type="text" id="lid-telegram-naam" class="form-input" readonly style="background:#f8fafc">
                     <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition mt-2">Opslaan</button>
                 </form>
             </div>
         </div>
-
+        
         <!-- ANNOUNCEMENTS TAB -->
         <div id="panel-announcements" class="tab-panel hidden">
             <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
@@ -158,7 +170,7 @@
             <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
                 <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-calendar mr-2 text-blue-500"></i>Chart Data</h2>
                 <div class="space-y-4">
-                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Monthly Income</label><input type="text" id="fin-mi" class="form-input" placeholder="15000,2000,0,0,0"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Monthly Income <span class="text-gray-400 font-normal">(comma separated)</span></label><input type="text" id="fin-mi" class="form-input" placeholder="15000,2000,0,0,0"></div>
                     <div><label class="block text-sm font-semibold text-gray-700 mb-1">Monthly Expenses</label><input type="text" id="fin-me" class="form-input" placeholder="0,0,2200,5200,1500"></div>
                     <div><label class="block text-sm font-semibold text-gray-700 mb-1">Quarterly Income</label><input type="text" id="fin-qi" class="form-input" placeholder="45000,6000,0,0,0"></div>
                     <div><label class="block text-sm font-semibold text-gray-700 mb-1">Quarterly Expenses</label><input type="text" id="fin-qe" class="form-input" placeholder="0,0,6600,15600,4500"></div>
@@ -219,12 +231,11 @@
                 <div id="lening-list" class="divide-y divide-gray-100"><p class="text-center text-gray-400 py-8 text-sm">Laden...</p></div>
             </div>
         </div>
-
+    
         <!-- COMMITTEE TABS (Populated via JS) -->
         <div id="panel-biweekly" class="tab-panel hidden"></div>
         <div id="panel-lz" class="tab-panel hidden"></div>
         <div id="panel-vw" class="tab-panel hidden"></div>
-    
     </main>
 
     <div id="toast-container" class="toast-container"></div>
@@ -253,6 +264,7 @@
                     currentUserName = data.name || 'Admin';
                     loadMaintenanceStatus();
                     loadLeden();
+                    loadActiveMembers();
                     loadAnnouncements();
                     loadFinance();
                     loadDocuments();
@@ -296,17 +308,58 @@
 
         // --- LEDEN ---
         async function loadLeden() { try { const search = document.getElementById('leden-search')?.value || ''; const roleFilter = document.getElementById('leden-role-filter')?.value || ''; let url = '/api/leden?'; if(search) url+='search='+encodeURIComponent(search)+'&'; if(roleFilter) url+='role='+roleFilter; const res = await fetch(url); const data = await res.json(); if(data.success) renderLeden(data.leden); } catch(err){} }
-        function renderLeden(leden) { const c=document.getElementById('leden-list'); if(!leden.length){c.innerHTML='<p class="text-center text-gray-400 py-8 text-sm">Geen leden.</p>';return;} c.innerHTML=leden.map(l=>`<div class="p-4 hover:bg-gray-50 transition flex justify-between items-center"><div><p class="text-sm font-semibold text-gray-800">${l.naam||l.telegram_naam||'-'}</p><span class="text-xs text-gray-500">Badge: ${l.badge||'-'} • ${l.afdeling||'-'} • <b>${l.role}</b></span></div><div class="flex gap-1"><button onclick="editLid(${l.id})" class="p-2 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen text-blue-400"></i></button><button onclick="deleteLid(${l.id})" class="p-2 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash text-red-400"></i></button></div></div>`).join(''); }
-        function showAddLidModal() { document.getElementById('lid-modal-title').textContent='Lid Toevoegen'; document.getElementById('lid-edit-id').value=''; document.getElementById('lid-naam').value=''; document.getElementById('lid-badge').value=''; document.getElementById('lid-afdeling').value=''; document.getElementById('lid-role').value='member'; document.getElementById('lidModal').style.display='flex'; }
+        function renderLeden(leden) { 
+            const c = document.getElementById('leden-list'); 
+            if (!leden.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen leden gevonden.</p>'; return; } 
+            const roleColors = { admin: 'bg-red-100 text-red-700', board: 'bg-amber-100 text-amber-700', daily_board: 'bg-cyan-100 text-cyan-700', member: 'bg-blue-100 text-blue-700', shop_steward: 'bg-purple-100 text-purple-700' };
+            const roleLabels = { admin: 'Admin', board: 'Board', daily_board: 'Daily Board', member: 'Member', shop_steward: 'Shop Steward' };
+            c.innerHTML = leden.map(l => {
+                const rc = roleColors[l.role] || roleColors.member;
+                const rl = roleLabels[l.role] || 'Member';
+                return `<div class="p-4 hover:bg-gray-50 transition">
+                    <div class="flex items-center justify-between gap-4 cursor-pointer" onclick="this.parentElement.querySelector('.lid-details').classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-90')">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-chevron-down chevron text-gray-400 text-xs transition-transform"></i>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-800 truncate">${l.naam || l.telegram_naam || '-'}</p>
+                                <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                    <span class="text-xs font-mono text-gray-500">Badge: ${l.badge || '-'}</span>
+                                    <span class="text-xs text-gray-400">•</span>
+                                    <span class="text-xs text-gray-500">${l.afdeling || '-'}</span>
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded ${rc}">${rl}</span>
+                                    ${!l.telegram_id ? '<span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Handmatig</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                            <button onclick="editLid(${l.id})" class="p-2 rounded-lg hover:bg-blue-50 transition text-sm" title="Bewerken"><i class="fa-solid fa-pen text-blue-400"></i></button>
+                            <button onclick="deleteLid(${l.id}, '${(l.naam||'').replace(/'/g,"\\'")}')" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button>
+                        </div>
+                    </div>
+                    <div class="lid-details hidden mt-4 pl-7 border-l-2 border-blue-100">
+                        <div class="text-xs text-gray-500 space-y-1">
+                            <p><span class="font-semibold">Database ID:</span> ${l.id}</p>
+                            <p><span class="font-semibold">Telegram ID:</span> ${l.telegram_id || '-'}</p>
+                            <p><span class="font-semibold">Telegram Gebruikersnaam:</span> ${l.telegram_username ? '@' + l.telegram_username : '-'}</p>
+                            <p><span class="font-semibold">Telegram Naam:</span> ${l.telegram_naam || '-'}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        function showAddLidModal() { document.getElementById('lid-modal-title').textContent='Lid Toevoegen'; document.getElementById('lid-edit-id').value=''; document.getElementById('lid-naam').value=''; document.getElementById('lid-badge').value=''; document.getElementById('lid-afdeling').value=''; document.getElementById('lid-role').value='member'; document.getElementById('lid-telegram-id').value=''; document.getElementById('lid-telegram-username').value=''; document.getElementById('lid-telegram-naam').value=''; document.getElementById('lidModal').style.display='flex'; }
         function closeLidModal() { document.getElementById('lidModal').style.display='none'; }
-        async function editLid(id) { try { const res=await fetch('/api/leden'); const data=await res.json(); if(!data.success)return; const lid=data.leden.find(l=>l.id===id); if(!lid)return; document.getElementById('lid-modal-title').textContent='Lid Bewerken'; document.getElementById('lid-edit-id').value=id; document.getElementById('lid-naam').value=lid.naam||''; document.getElementById('lid-badge').value=lid.badge||''; document.getElementById('lid-afdeling').value=lid.afdeling||''; document.getElementById('lid-role').value=lid.role||'member'; document.getElementById('lidModal').style.display='flex'; } catch(err){} }
-        async function saveLid(event) { event.preventDefault(); const editId=document.getElementById('lid-edit-id').value; const formData={naam:document.getElementById('lid-naam').value,badge:document.getElementById('lid-badge').value,afdeling:document.getElementById('lid-afdeling').value,member_role:document.getElementById('lid-role').value}; try { let res; if(editId){res=await fetch('/api/leden/'+editId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData)});}else{res=await fetch('/api/leden',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData)});} const data=await res.json(); if(data.success){showToast('Opgeslagen!');closeLidModal();loadLeden();}else{showToast(data.message||'Fout.','error');} } catch(err){showToast('Fout.','error');} }
-        async function deleteLid(id) { if(!confirm('Verwijderen?'))return; try { const res=await fetch('/api/leden/'+id,{method:'DELETE'}); if(res.ok){showToast('Verwijderd.');loadLeden();} } catch(err){} }
+        async function editLid(id) { try { const res=await fetch('/api/leden'); const data=await res.json(); if(!data.success)return; const lid=data.leden.find(l=>l.id===id); if(!lid)return; document.getElementById('lid-modal-title').textContent='Lid Bewerken'; document.getElementById('lid-edit-id').value=id; document.getElementById('lid-naam').value=lid.naam||''; document.getElementById('lid-badge').value=lid.badge||''; document.getElementById('lid-afdeling').value=lid.afdeling||''; document.getElementById('lid-role').value=lid.role||'member'; document.getElementById('lid-telegram-id').value=lid.telegram_id||''; document.getElementById('lid-telegram-username').value=lid.telegram_username||''; document.getElementById('lid-telegram-naam').value=lid.telegram_naam||''; document.getElementById('lidModal').style.display='flex'; } catch(err){} }
+        async function saveLid(event) { event.preventDefault(); const editId=document.getElementById('lid-edit-id').value; const formData={naam:document.getElementById('lid-naam').value,badge:document.getElementById('lid-badge').value,afdeling:document.getElementById('lid-afdeling').value,member_role:document.getElementById('lid-role').value,telegram_id:document.getElementById('lid-telegram-id').value||null,telegram_username:document.getElementById('lid-telegram-username').value||null,telegram_naam:document.getElementById('lid-telegram-naam').value||document.getElementById('lid-naam').value}; try { let res; if(editId){res=await fetch('/api/leden/'+editId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData)});}else{res=await fetch('/api/leden',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData)});} const data=await res.json(); if(data.success){showToast('Opgeslagen!');closeLidModal();loadLeden();}else{showToast(data.message||'Fout.','error');} } catch(err){showToast('Fout.','error');} }
+        async function deleteLid(id, naam) { if(!confirm('Lid "'+naam+'" verwijderen?'))return; try { const res=await fetch('/api/leden/'+id,{method:'DELETE'}); if(res.ok){showToast('Verwijderd.');loadLeden();} } catch(err){} }
+        async function loadActiveMembers() { try { const res = await fetch('/api/stats'); const data = await res.json(); if (data.success) document.getElementById('active-members-input').value = data.active_members; } catch (err) {} }
+        async function saveActiveMembers() { const val = document.getElementById('active-members-input').value; try { const res = await fetch('/api/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active_members: val }) }); const data = await res.json(); if (data.success) { showToast('Opgeslagen!'); document.getElementById('active-members-status').textContent = '✅ Opgeslagen'; } } catch (err) { showToast('Fout.', 'error'); } }
 
         // --- ANNOUNCEMENTS ---
         async function loadAnnouncements() { try { const res = await fetch('/api/announcements/all'); const data = await res.json(); if (data.success) renderAnnouncements(data.announcements); } catch (err) {} }
-        function renderAnnouncements(announcements) { const c = document.getElementById('ann-list'); if (!announcements.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen mededelingen.</p>'; return; } c.innerHTML = announcements.map(a => `<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800 truncate">${a.message}</p><div class="flex items-center gap-2 mt-1"><span class="text-xs font-bold px-2 py-0.5 rounded ${a.type==='urgent'?'bg-red-100 text-red-700':'bg-blue-100 text-blue-700'}">${a.type}</span><span class="text-xs text-gray-400">${new Date(a.created_at).toLocaleDateString('nl-NL')}</span></div></div><button onclick="deleteAnn(${a.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm"><i class="fa-solid fa-trash text-red-400"></i></button></div>`).join(''); }
+        function renderAnnouncements(announcements) { const c = document.getElementById('ann-list'); if (!announcements.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen mededelingen.</p>'; return; } const typeColors = { info: 'bg-blue-100 text-blue-700', warning: 'bg-amber-100 text-amber-700', urgent: 'bg-red-100 text-red-700' }; c.innerHTML = announcements.map(a => { const color = typeColors[a.type] || typeColors.info; const date = new Date(a.created_at).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); return `<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800 truncate">${a.message}</p><div class="flex items-center gap-2 mt-1"><span class="text-xs font-bold px-2 py-0.5 rounded ${color}">${a.type}</span><span class="text-xs text-gray-400">${date}</span>${!a.is_active ? '<span class="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">INACTIEF</span>' : ''}</div></div><div class="flex items-center gap-1"><button onclick="toggleAnnActive(${a.id}, ${!a.is_active})" class="p-2 rounded-lg hover:bg-gray-100 transition text-sm" title="${a.is_active ? 'Deactiveren' : 'Activeren'}"><i class="fa-solid ${a.is_active ? 'fa-eye text-green-500' : 'fa-eye-slash text-gray-400'}"></i></button><button onclick="deleteAnn(${a.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button></div></div>`; }).join(''); }
         async function createAnnouncement() { const message = document.getElementById('ann-message').value.trim(); const type = document.getElementById('ann-type').value; if (!message) return showToast('Bericht is verplicht.', 'error'); try { const res = await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, type }) }); const data = await res.json(); if (data.success) { showToast('Mededeling toegevoegd!'); document.getElementById('ann-message').value = ''; loadAnnouncements(); } else { showToast(data.message || 'Fout.', 'error'); } } catch (err) { showToast('Verbindingsfout.', 'error'); } }
+        async function toggleAnnActive(id, newActive) { try { const res = await fetch(`/api/announcements/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: newActive }) }); if (res.ok) loadAnnouncements(); } catch (err) {} }
         async function deleteAnn(id) { if (!confirm('Mededeling verwijderen?')) return; try { const res = await fetch(`/api/announcements/${id}`, { method: 'DELETE' }); if (res.ok) { showToast('Verwijderd.'); loadAnnouncements(); } } catch (err) { showToast('Fout.', 'error'); } }
 
         // --- FINANCE ---
@@ -324,13 +377,71 @@
 
         // --- KLACHTEN ---
         async function loadKlachten() { try { const res = await fetch('/api/klachten'); const data = await res.json(); if (data.success) renderKlachten(data.klachten); } catch (err) {} }
-        function renderKlachten(klachten) { const c = document.getElementById('klacht-list'); if (!klachten.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen klachten.</p>'; return; } c.innerHTML = klachten.map(k => `<div class="p-4 hover:bg-gray-50 transition"><div class="flex justify-between items-center"><div><p class="text-sm font-semibold text-gray-800">${k.klacht_id} - ${k.naam}</p><p class="text-xs text-gray-500">${k.categories} • ${new Date(k.created_at).toLocaleDateString('nl-NL')}</p></div><select onchange="updateKlachtStatus(${k.id}, this.value)" class="form-input w-auto text-xs"><option value="pending" ${k.status==='pending'?'selected':''}>Pending</option><option value="resolved" ${k.status==='resolved'?'selected':''}>Resolved</option></select></div></div>`).join(''); }
-        async function updateKlachtStatus(id, status) { try { await fetch('/api/klachten/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); showToast('Bijgewerkt!'); } catch (err) {} }
+        function renderKlachten(klachten) { 
+            const c = document.getElementById('klacht-list'); 
+            if (!klachten.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen klachten gevonden.</p>'; return; } 
+            const statusColors = { pending: 'bg-amber-100 text-amber-700', resolved: 'bg-green-100 text-green-700' };
+            c.innerHTML = klachten.map(k => {
+                const sc = statusColors[k.status] || 'bg-gray-100 text-gray-700';
+                return `<div class="p-4 hover:bg-gray-50 transition">
+                    <div class="flex items-center justify-between gap-4 cursor-pointer" onclick="this.parentElement.querySelector('.klacht-details').classList.toggle('hidden')">
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-gray-800 truncate">${k.klacht_id} - ${k.naam}</p>
+                            <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                <span class="text-xs text-gray-500">${new Date(k.created_at).toLocaleDateString('nl-NL')}</span>
+                                <span class="text-xs font-bold px-2 py-0.5 rounded ${sc}">${k.status}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                            <button onclick="updateKlachtStatus(${k.id}, 'resolved')" class="px-2 py-1 text-xs font-bold bg-green-50 text-green-700 rounded hover:bg-green-100">Resolve</button>
+                            <button onclick="deleteKlacht(${k.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm"><i class="fa-solid fa-trash text-red-400"></i></button>
+                        </div>
+                    </div>
+                    <div class="klacht-details hidden mt-4 pl-4 border-l-2 border-amber-100 text-xs text-gray-600 space-y-1">
+                        <p><b>Badge:</b> ${k.badge || '-'}</p>
+                        <p><b>Categorieën:</b> ${k.categories}</p>
+                        <p><b>Beschrijving:</b> ${k.description}</p>
+                        ${k.resolution ? `<p><b>Gewenste oplossing:</b> ${k.resolution}</p>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        async function updateKlachtStatus(id, status) { try { await fetch('/api/klachten/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); showToast('Bijgewerkt!'); loadKlachten(); } catch (err) {} }
+        async function deleteKlacht(id) { if (!confirm('Klacht verwijderen?')) return; try { const res = await fetch('/api/klachten/' + id, { method: 'DELETE' }); if (res.ok) { showToast('Verwijderd.'); loadKlachten(); } } catch (err) {} }
 
         // --- LENINGEN ---
         async function loadLeningen() { try { const res = await fetch('/api/leningen'); const data = await res.json(); if (data.success) renderLeningen(data.leningen); } catch (err) {} }
-        function renderLeningen(leningen) { const c = document.getElementById('lening-list'); if (!leningen.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen leningen.</p>'; return; } c.innerHTML = leningen.map(l => `<div class="p-4 hover:bg-gray-50 transition"><div class="flex justify-between items-center"><div><p class="text-sm font-semibold text-gray-800">${l.loan_id} - ${l.naam} (SRD ${l.bedrag})</p><p class="text-xs text-gray-500">${l.reason} • ${new Date(l.created_at).toLocaleDateString('nl-NL')}</p></div><select onchange="updateLeningStatus('${l.loan_id}', this.value)" class="form-input w-auto text-xs"><option value="pending" ${l.status==='pending'?'selected':''}>Pending</option><option value="approved" ${l.status==='approved'?'selected':''}>Approved</option><option value="rejected" ${l.status==='rejected'?'selected':''}>Rejected</option></select></div></div>`).join(''); }
-        async function updateLeningStatus(loan_id, status) { try { await fetch('/api/leningen/' + loan_id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); showToast('Bijgewerkt!'); } catch (err) {} }
+        function renderLeningen(leningen) { 
+            const c = document.getElementById('lening-list'); 
+            if (!leningen.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen leningen.</p>'; return; } 
+            const statusColors = { pending: 'bg-amber-100 text-amber-700', approved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700' };
+            c.innerHTML = leningen.map(l => {
+                const sc = statusColors[l.status] || 'bg-gray-100 text-gray-700';
+                return `<div class="p-4 hover:bg-gray-50 transition">
+                    <div class="flex items-center justify-between gap-4 cursor-pointer" onclick="this.parentElement.querySelector('.lening-details').classList.toggle('hidden')">
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-gray-800 truncate">${l.loan_id} - ${l.naam}</p>
+                            <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                <span class="text-xs text-gray-500">SRD ${l.bedrag || '-'}</span>
+                                <span class="text-xs font-bold px-2 py-0.5 rounded ${sc}">${l.status}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                            ${l.status === 'pending' ? `<button onclick="updateLeningStatus('${l.loan_id}', 'approved')" class="px-2 py-1 text-xs font-bold bg-green-50 text-green-700 rounded hover:bg-green-100">Approve</button><button onclick="updateLeningStatus('${l.loan_id}', 'rejected')" class="px-2 py-1 text-xs font-bold bg-red-50 text-red-700 rounded hover:bg-red-100">Reject</button>` : ''}
+                            <button onclick="deleteLening('${l.loan_id}')" class="p-2 rounded-lg hover:bg-red-50 transition text-sm"><i class="fa-solid fa-trash text-red-400"></i></button>
+                        </div>
+                    </div>
+                    <div class="lening-details hidden mt-4 pl-4 border-l-2 border-blue-100 text-xs text-gray-600 space-y-1">
+                        <p><b>Badge:</b> ${l.badge || '-'}</p>
+                        <p><b>Telefoon:</b> ${l.telefoon || '-'}</p>
+                        <p><b>Reden:</b> ${l.reason}</p>
+                        <p><b>Termijn:</b> ${l.term ? l.term + ' maanden' : '-'}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        async function updateLeningStatus(loan_id, status) { try { await fetch('/api/leningen/' + loan_id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); showToast('Bijgewerkt!'); loadLeningen(); } catch (err) {} }
+        async function deleteLening(loan_id) { if (!confirm('Lening verwijderen?')) return; try { const res = await fetch('/api/leningen/' + loan_id, { method: 'DELETE' }); if (res.ok) { showToast('Verwijderd.'); loadLeningen(); } } catch (err) {} }
 
         // =======================================================
         // DYNAMIC COMMITTEE ENGINE (Bi-Weekly, LZ, V&W)
@@ -340,7 +451,6 @@
         function initCommittee(prefix, config) {
             committeeConfig[prefix] = config;
             const panel = document.getElementById(`panel-${prefix}`);
-            
             panel.innerHTML = `
                 <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
                     <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-plus mr-2 text-blue-500"></i>Nieuwe Vergadering</h2>

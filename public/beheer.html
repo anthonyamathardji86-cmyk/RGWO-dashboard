@@ -74,20 +74,17 @@
             <button onclick="switchTab('vw')" id="tab-vw" class="tab-btn tab-inactive px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap"><i class="fa-solid fa-shield-heart mr-2"></i>Commissie V&W</button>
         </div>
 
-        <!-- Existing Panels (Maintenance, Leden, Announcements, Finance, Documents, Klachten, Leningen) -->
+        <!-- MAINTENANCE TAB -->
         <div id="panel-maintenance" class="tab-panel">
             <div class="glass-card rounded-2xl p-8 border border-gray-100 max-w-2xl">
-                <div class="flex items-start justify-between gap-6">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-900 mb-1"><i class="fa-solid fa-wrench mr-2 text-amber-500"></i>Onderhoudsmodus</h2>
-                        <p class="text-sm text-gray-500 mb-4">Schakel in om het portaal te sluiten voor leden en bestuursleden.</p>
-                        <div class="flex items-center gap-3 mb-6"><span id="maintenance-status" class="text-sm font-semibold text-gray-400">Laden...</span><div id="maintenance-indicator" class="w-3 h-3 rounded-full bg-gray-300"></div></div>
-                        <button onclick="toggleMaintenance()" id="maintenance-btn" class="px-6 py-2.5 text-sm font-bold rounded-xl transition shadow-sm bg-amber-500 text-white hover:bg-amber-600">Inschakelen</button>
-                    </div>
-                </div>
+                <h2 class="text-xl font-bold text-gray-900 mb-1"><i class="fa-solid fa-wrench mr-2 text-amber-500"></i>Onderhoudsmodus</h2>
+                <p class="text-sm text-gray-500 mb-4">Schakel in om het portaal te sluiten voor leden en bestuursleden.</p>
+                <div class="flex items-center gap-3 mb-6"><span id="maintenance-status" class="text-sm font-semibold text-gray-400">Laden...</span><div id="maintenance-indicator" class="w-3 h-3 rounded-full bg-gray-300"></div></div>
+                <button onclick="toggleMaintenance()" id="maintenance-btn" class="px-6 py-2.5 text-sm font-bold rounded-xl transition shadow-sm bg-amber-500 text-white hover:bg-amber-600">Inschakelen</button>
             </div>
         </div>
         
+        <!-- LEDEN TAB -->
         <div id="panel-leden" class="tab-panel hidden">
             <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
                 <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -132,14 +129,98 @@
             </div>
         </div>
 
-        <!-- Placeholder panels for existing features (simplified for brevity, you keep your existing logic) -->
-        <div id="panel-announcements" class="tab-panel hidden"><p class="text-center text-gray-400 py-8 text-sm">Announcements Content (Existing)</p></div>
-        <div id="panel-finance" class="tab-panel hidden"><p class="text-center text-gray-400 py-8 text-sm">Finance Content (Existing)</p></div>
-        <div id="panel-documents" class="tab-panel hidden"><p class="text-center text-gray-400 py-8 text-sm">Documents Content (Existing)</p></div>
-        <div id="panel-klachten" class="tab-panel hidden"><p class="text-center text-gray-400 py-8 text-sm">Klachten Content (Existing)</p></div>
-        <div id="panel-leningen" class="tab-panel hidden"><p class="text-center text-gray-400 py-8 text-sm">Leningen Content (Existing)</p></div>
+        <!-- ANNOUNCEMENTS TAB -->
+        <div id="panel-announcements" class="tab-panel hidden">
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-plus mr-2 text-blue-500"></i>Nieuwe Mededeling</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-1">Bericht</label><input type="text" id="ann-message" class="form-input" placeholder="v.b. Vergadering op 15 november..."></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Type</label><select id="ann-type" class="form-input"><option value="info">Info</option><option value="warning">Waarschuwing</option><option value="urgent">Urgent</option></select></div>
+                </div>
+                <button onclick="createAnnouncement()" class="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i>Toevoegen</button>
+            </div>
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100"><h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-list mr-2 text-gray-400"></i>Alle Mededelingen</h2></div>
+                <div id="ann-list" class="divide-y divide-gray-100"><p class="text-center text-gray-400 py-8 text-sm">Laden...</p></div>
+            </div>
+        </div>
 
-        <!-- NEW: Committee Panels (Bi-Weekly, LZ, VW) -->
+        <!-- FINANCIEN TAB -->
+        <div id="panel-finance" class="tab-panel hidden">
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-chart-line mr-2 text-green-500"></i>Dashboard Cijfers</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Total Balance</label><input type="number" id="fin-balance" class="form-input" step="0.01"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Net Surplus</label><input type="number" id="fin-surplus" class="form-input" step="1"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Chart Labels <span class="text-gray-400 font-normal">(comma separated)</span></label><input type="text" id="fin-labels" class="form-input" placeholder="Dues,Events,Rent,Legal,Ops"></div>
+                </div>
+            </div>
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-calendar mr-2 text-blue-500"></i>Chart Data</h2>
+                <div class="space-y-4">
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Monthly Income</label><input type="text" id="fin-mi" class="form-input" placeholder="15000,2000,0,0,0"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Monthly Expenses</label><input type="text" id="fin-me" class="form-input" placeholder="0,0,2200,5200,1500"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Quarterly Income</label><input type="text" id="fin-qi" class="form-input" placeholder="45000,6000,0,0,0"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Quarterly Expenses</label><input type="text" id="fin-qe" class="form-input" placeholder="0,0,6600,15600,4500"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Yearly Income</label><input type="text" id="fin-yi" class="form-input" placeholder="180000,24000,0,0,0"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Yearly Expenses</label><input type="text" id="fin-ye" class="form-input" placeholder="0,0,26400,62400,18000"></div>
+                </div>
+                <button onclick="saveFinance()" class="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm"><i class="fa-solid fa-save mr-1"></i>Opslaan</button>
+            </div>
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-table mr-2 text-amber-500"></i>Transactie Toevoegen</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Datum</label><input type="text" id="txn-date" class="form-input" placeholder="Oct 28"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Beschrijving</label><input type="text" id="txn-desc" class="form-input" placeholder="Monthly Lawyer Retainer"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Categorie</label><input type="text" id="txn-cat" class="form-input" placeholder="LEGAL"></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Bedrag</label><input type="number" id="txn-amount" class="form-input" step="0.01" placeholder="2500"></div>
+                </div>
+                <button onclick="addTransaction()" class="mt-4 px-5 py-2 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i>Toevoegen</button>
+            </div>
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100"><h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-list mr-2 text-gray-400"></i>Transacties</h2></div>
+                <div id="txn-list" class="divide-y divide-gray-100"><p class="text-center text-gray-400 py-8 text-sm">Laden...</p></div>
+            </div>
+        </div>
+
+        <!-- DOCUMENTS TAB -->
+        <div id="panel-documents" class="tab-panel hidden">
+            <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-cloud-arrow-up mr-2 text-blue-500"></i>Document Uploaden</h2>
+                <form id="upload-form" onsubmit="uploadDocument(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Bestand</label><input type="file" id="doc-file" class="form-input" required></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Categorie</label><select id="doc-category" class="form-input" required><option value="">Kies...</option><option value="formulieren">Formulieren</option><option value="documenten">Documenten</option><option value="bekendmakingen">Bekendmakingen</option></select></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Titel</label><input type="text" id="doc-title" class="form-input" placeholder="v.b. Lidmaatschapsformulier" required></div>
+                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">Beschrijving (optioneel)</label><input type="text" id="doc-description" class="form-input" placeholder="Korte beschrijving..."></div>
+                    <div class="md:col-span-2 flex justify-end"><button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm"><i class="fa-solid fa-upload mr-1"></i>Uploaden</button></div>
+                </form>
+            </div>
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-folder mr-2 text-gray-400"></i>Alle Documenten</h2>
+                    <select id="doc-filter" onchange="loadDocuments()" class="form-input w-auto text-sm"><option value="">Alle categorieën</option><option value="formulieren">Formulieren</option><option value="documenten">Documenten</option><option value="bekendmakingen">Bekendmakingen</option></select>
+                </div>
+                <div id="doc-list" class="divide-y divide-gray-100"><p class="text-center text-gray-400 py-8 text-sm">Laden...</p></div>
+            </div>
+        </div>
+
+        <!-- KLACHTEN TAB -->
+        <div id="panel-klachten" class="tab-panel hidden">
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100"><h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-triangle-exclamation mr-2 text-gray-400"></i>Klachten</h2></div>
+                <div id="klacht-list" class="divide-y divide-gray-100"><p class="text-center text-gray-400 py-8 text-sm">Laden...</p></div>
+            </div>
+        </div>
+
+        <!-- LENINGEN TAB -->
+        <div id="panel-leningen" class="tab-panel hidden">
+            <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100"><h2 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-hand-holding-dollar mr-2 text-gray-400"></i>Leningaanvragen</h2></div>
+                <div id="lening-list" class="divide-y divide-gray-100"><p class="text-center text-gray-400 py-8 text-sm">Laden...</p></div>
+            </div>
+        </div>
+
+        <!-- COMMITTEE TABS (Populated via JS) -->
         <div id="panel-biweekly" class="tab-panel hidden"></div>
         <div id="panel-lz" class="tab-panel hidden"></div>
         <div id="panel-vw" class="tab-panel hidden"></div>
@@ -149,7 +230,6 @@
     <div id="toast-container" class="toast-container"></div>
 
     <script>
-        // --- EXISTING GLOBAL SETUP ---
         const originalFetch = window.fetch;
         window.fetch = function(...args) {
             return originalFetch.apply(this, args).then(response => {
@@ -173,7 +253,11 @@
                     currentUserName = data.name || 'Admin';
                     loadMaintenanceStatus();
                     loadLeden();
-                    // Init Committees
+                    loadAnnouncements();
+                    loadFinance();
+                    loadDocuments();
+                    loadKlachten();
+                    loadLeningen();
                     initCommittee('biweekly', { title: 'Bi-Weekly Meetings', stanceLabel: 'HR Stance', pleaLabel: 'Union Plea' });
                     initCommittee('lz', { title: 'Commissie LZ Meetings', stanceLabel: 'HR Policy', pleaLabel: 'Union Advocacy' });
                     initCommittee('vw', { title: 'Commissie V&W Meetings', stanceLabel: 'HR Findings', pleaLabel: 'Union Safety Demand' });
@@ -219,6 +303,35 @@
         async function saveLid(event) { event.preventDefault(); const editId=document.getElementById('lid-edit-id').value; const formData={naam:document.getElementById('lid-naam').value,badge:document.getElementById('lid-badge').value,afdeling:document.getElementById('lid-afdeling').value,member_role:document.getElementById('lid-role').value}; try { let res; if(editId){res=await fetch('/api/leden/'+editId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData)});}else{res=await fetch('/api/leden',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData)});} const data=await res.json(); if(data.success){showToast('Opgeslagen!');closeLidModal();loadLeden();}else{showToast(data.message||'Fout.','error');} } catch(err){showToast('Fout.','error');} }
         async function deleteLid(id) { if(!confirm('Verwijderen?'))return; try { const res=await fetch('/api/leden/'+id,{method:'DELETE'}); if(res.ok){showToast('Verwijderd.');loadLeden();} } catch(err){} }
 
+        // --- ANNOUNCEMENTS ---
+        async function loadAnnouncements() { try { const res = await fetch('/api/announcements/all'); const data = await res.json(); if (data.success) renderAnnouncements(data.announcements); } catch (err) {} }
+        function renderAnnouncements(announcements) { const c = document.getElementById('ann-list'); if (!announcements.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen mededelingen.</p>'; return; } c.innerHTML = announcements.map(a => `<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800 truncate">${a.message}</p><div class="flex items-center gap-2 mt-1"><span class="text-xs font-bold px-2 py-0.5 rounded ${a.type==='urgent'?'bg-red-100 text-red-700':'bg-blue-100 text-blue-700'}">${a.type}</span><span class="text-xs text-gray-400">${new Date(a.created_at).toLocaleDateString('nl-NL')}</span></div></div><button onclick="deleteAnn(${a.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm"><i class="fa-solid fa-trash text-red-400"></i></button></div>`).join(''); }
+        async function createAnnouncement() { const message = document.getElementById('ann-message').value.trim(); const type = document.getElementById('ann-type').value; if (!message) return showToast('Bericht is verplicht.', 'error'); try { const res = await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, type }) }); const data = await res.json(); if (data.success) { showToast('Mededeling toegevoegd!'); document.getElementById('ann-message').value = ''; loadAnnouncements(); } else { showToast(data.message || 'Fout.', 'error'); } } catch (err) { showToast('Verbindingsfout.', 'error'); } }
+        async function deleteAnn(id) { if (!confirm('Mededeling verwijderen?')) return; try { const res = await fetch(`/api/announcements/${id}`, { method: 'DELETE' }); if (res.ok) { showToast('Verwijderd.'); loadAnnouncements(); } } catch (err) { showToast('Fout.', 'error'); } }
+
+        // --- FINANCE ---
+        async function loadFinance() { try { const res = await fetch('/api/finance'); const data = await res.json(); if (data.success) { const d = data.data; document.getElementById('fin-balance').value = d.total_balance || 0; document.getElementById('fin-surplus').value = d.net_surplus || 0; document.getElementById('fin-labels').value = d.chart_labels || ''; document.getElementById('fin-mi').value = d.monthly_income || ''; document.getElementById('fin-me').value = d.monthly_expenses || ''; document.getElementById('fin-qi').value = d.quarterly_income || ''; document.getElementById('fin-qe').value = d.quarterly_expenses || ''; document.getElementById('fin-yi').value = d.yearly_income || ''; document.getElementById('fin-ye').value = d.yearly_expenses || ''; renderTransactions(d.transactions || []); } } catch (err) {} }
+        async function saveFinance() { try { const body = { total_balance: document.getElementById('fin-balance').value, net_surplus: document.getElementById('fin-surplus').value, chart_labels: document.getElementById('fin-labels').value, monthly_income: document.getElementById('fin-mi').value, monthly_expenses: document.getElementById('fin-me').value, quarterly_income: document.getElementById('fin-qi').value, quarterly_expenses: document.getElementById('fin-qe').value, yearly_income: document.getElementById('fin-yi').value, yearly_expenses: document.getElementById('fin-ye').value }; const res = await fetch('/api/finance', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); const data = await res.json(); if (data.success) showToast('Opgeslagen!'); else showToast('Fout.', 'error'); } catch (err) { showToast('Fout.', 'error'); } }
+        function renderTransactions(txns) { const container = document.getElementById('txn-list'); if (!txns.length) { container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen transacties.</p>'; return; } container.innerHTML = txns.map(t => '<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">' + t.description + '</p><div class="flex items-center gap-2 mt-1"><span class="text-xs text-gray-500">' + t.date + '</span><span class="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">' + t.category + '</span><span class="text-xs font-bold">SRD ' + Number(t.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) + '</span></div></div><button onclick="deleteTransaction(' + t.id + ')" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijderen"><i class="fa-solid fa-trash text-red-400"></i></button></div>').join(''); }
+        async function addTransaction() { const date = document.getElementById('txn-date').value; const desc = document.getElementById('txn-desc').value; const cat = document.getElementById('txn-cat').value; const amount = document.getElementById('txn-amount').value; if (!date || !desc || !amount) return showToast('Vul alle velden in.', 'error'); try { const res = await fetch('/api/finance/transaction', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date, description: desc, category: cat, amount }) }); const data = await res.json(); if (data.success) { showToast('Transactie toegevoegd!'); loadFinance(); document.getElementById('txn-date').value = ''; document.getElementById('txn-desc').value = ''; document.getElementById('txn-cat').value = ''; document.getElementById('txn-amount').value = ''; } } catch (err) { showToast('Fout.', 'error'); } }
+        async function deleteTransaction(txnId) { if (!confirm('Transactie verwijderen?')) return; try { const res = await fetch('/api/finance/transaction/' + txnId, { method: 'DELETE' }); if (res.ok) { showToast('Verwijderd.'); loadFinance(); } } catch (err) { showToast('Fout.', 'error'); } }
+
+        // --- DOCUMENTS ---
+        async function loadDocuments() { try { const category = document.getElementById('doc-filter')?.value || ''; let url = '/api/documents'; if (category) url += '?category=' + encodeURIComponent(category); const res = await fetch(url); const data = await res.json(); if (data.success) renderDocuments(data.documents); } catch (err) {} }
+        function renderDocuments(docs) { const c = document.getElementById('doc-list'); if (!docs.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen documenten.</p>'; return; } c.innerHTML = docs.map(d => `<div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">${d.title}</p><span class="text-xs text-gray-500">${d.category} • ${d.filename}</span></div><button onclick="deleteDocument(${d.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm"><i class="fa-solid fa-trash text-red-400"></i></button></div>`).join(''); }
+        async function uploadDocument(event) { event.preventDefault(); const formData = new FormData(); formData.append('file', document.getElementById('doc-file').files[0]); formData.append('category', document.getElementById('doc-category').value); formData.append('title', document.getElementById('doc-title').value); formData.append('description', document.getElementById('doc-description').value); try { const res = await fetch('/api/documents/upload', { method: 'POST', body: formData }); const data = await res.json(); if (data.success) { showToast('Geüpload!'); loadDocuments(); document.getElementById('upload-form').reset(); } else { showToast(data.message || 'Fout.', 'error'); } } catch (err) { showToast('Fout.', 'error'); } }
+        async function deleteDocument(id) { if (!confirm('Verwijderen?')) return; try { const res = await fetch('/api/documents/' + id, { method: 'DELETE' }); if (res.ok) { showToast('Verwijderd.'); loadDocuments(); } } catch (err) {} }
+
+        // --- KLACHTEN ---
+        async function loadKlachten() { try { const res = await fetch('/api/klachten'); const data = await res.json(); if (data.success) renderKlachten(data.klachten); } catch (err) {} }
+        function renderKlachten(klachten) { const c = document.getElementById('klacht-list'); if (!klachten.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen klachten.</p>'; return; } c.innerHTML = klachten.map(k => `<div class="p-4 hover:bg-gray-50 transition"><div class="flex justify-between items-center"><div><p class="text-sm font-semibold text-gray-800">${k.klacht_id} - ${k.naam}</p><p class="text-xs text-gray-500">${k.categories} • ${new Date(k.created_at).toLocaleDateString('nl-NL')}</p></div><select onchange="updateKlachtStatus(${k.id}, this.value)" class="form-input w-auto text-xs"><option value="pending" ${k.status==='pending'?'selected':''}>Pending</option><option value="resolved" ${k.status==='resolved'?'selected':''}>Resolved</option></select></div></div>`).join(''); }
+        async function updateKlachtStatus(id, status) { try { await fetch('/api/klachten/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); showToast('Bijgewerkt!'); } catch (err) {} }
+
+        // --- LENINGEN ---
+        async function loadLeningen() { try { const res = await fetch('/api/leningen'); const data = await res.json(); if (data.success) renderLeningen(data.leningen); } catch (err) {} }
+        function renderLeningen(leningen) { const c = document.getElementById('lening-list'); if (!leningen.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen leningen.</p>'; return; } c.innerHTML = leningen.map(l => `<div class="p-4 hover:bg-gray-50 transition"><div class="flex justify-between items-center"><div><p class="text-sm font-semibold text-gray-800">${l.loan_id} - ${l.naam} (SRD ${l.bedrag})</p><p class="text-xs text-gray-500">${l.reason} • ${new Date(l.created_at).toLocaleDateString('nl-NL')}</p></div><select onchange="updateLeningStatus('${l.loan_id}', this.value)" class="form-input w-auto text-xs"><option value="pending" ${l.status==='pending'?'selected':''}>Pending</option><option value="approved" ${l.status==='approved'?'selected':''}>Approved</option><option value="rejected" ${l.status==='rejected'?'selected':''}>Rejected</option></select></div></div>`).join(''); }
+        async function updateLeningStatus(loan_id, status) { try { await fetch('/api/leningen/' + loan_id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); showToast('Bijgewerkt!'); } catch (err) {} }
+
         // =======================================================
         // DYNAMIC COMMITTEE ENGINE (Bi-Weekly, LZ, V&W)
         // =======================================================
@@ -232,21 +345,10 @@
                 <div class="glass-card rounded-2xl p-6 border border-gray-100 mb-6">
                     <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-plus mr-2 text-blue-500"></i>Nieuwe Vergadering</h2>
                     <form id="form-${prefix}" onsubmit="createMeeting('${prefix}', event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Datum</label>
-                            <input type="date" id="date-${prefix}" class="form-input" required>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Samenvatting / Notities</label>
-                            <input type="text" id="summary-${prefix}" class="form-input" placeholder="Korte samenvatting...">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Officiële Notulen PDF <span class="text-gray-400 font-normal">(Optioneel)</span></label>
-                            <input type="file" id="pdf-${prefix}" class="form-input" accept=".pdf">
-                        </div>
-                        <div class="md:col-span-3 flex justify-end">
-                            <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm"><i class="fa-solid fa-save mr-1"></i>Opslaan</button>
-                        </div>
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Datum</label><input type="date" id="date-${prefix}" class="form-input" required></div>
+                        <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-1">Samenvatting / Notities</label><input type="text" id="summary-${prefix}" class="form-input" placeholder="Korte samenvatting..."></div>
+                        <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-1">Officiële Notulen PDF <span class="text-gray-400 font-normal">(Optioneel)</span></label><input type="file" id="pdf-${prefix}" class="form-input" accept=".pdf"></div>
+                        <div class="md:col-span-3 flex justify-end"><button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm"><i class="fa-solid fa-save mr-1"></i>Opslaan</button></div>
                     </form>
                 </div>
                 <div class="glass-card rounded-2xl border border-gray-100 overflow-hidden">
@@ -257,148 +359,24 @@
             loadMeetings(prefix);
         }
 
-        async function loadMeetings(prefix) {
-            try {
-                const res = await fetch(`/api/${prefix}/meetings`);
-                const data = await res.json();
-                if (data.success) renderMeetings(prefix, data.meetings);
-            } catch (err) { console.error(err); }
-        }
-
+        async function loadMeetings(prefix) { try { const res = await fetch(`/api/${prefix}/meetings`); const data = await res.json(); if (data.success) renderMeetings(prefix, data.meetings); } catch (err) {} }
         function renderMeetings(prefix, meetings) {
             const container = document.getElementById(`list-${prefix}`);
             if (!meetings.length) { container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Geen vergaderingen.</p>'; return; }
-            
             container.innerHTML = meetings.map(m => {
                 const date = new Date(m.meeting_date).toLocaleDateString('nl-NL', { day: '2-digit', month: 'long', year: 'numeric' });
-                return `
-                    <div class="p-4 hover:bg-gray-50 transition">
-                        <div class="flex items-center justify-between gap-4 cursor-pointer" onclick="this.parentElement.querySelector('.meeting-details').classList.toggle('hidden')">
-                            <div class="min-w-0">
-                                <p class="text-sm font-semibold text-gray-800">Vergadering: ${date}</p>
-                                <p class="text-xs text-gray-500 mt-1">Door: ${m.created_by || 'Onbekend'} ${m.summary ? '• ' + m.summary.substring(0,50)+'...' : ''}</p>
-                            </div>
-                            <div class="flex items-center gap-2" onclick="event.stopPropagation()">
-                                ${m.minutes_pdf_url ? `<a href="${m.minutes_pdf_url}" target="_blank" class="p-2 rounded-lg hover:bg-blue-50 transition text-sm" title="Bekijk PDF"><i class="fa-solid fa-file-pdf text-red-500"></i></a>` : ''}
-                                <button onclick="exportMeetingPDF('${prefix}', ${m.id})" class="p-2 rounded-lg hover:bg-green-50 transition text-sm" title="Exporteer naar PDF"><i class="fa-solid fa-download text-green-500"></i></button>
-                                <button onclick="deleteMeeting('${prefix}', ${m.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijder"><i class="fa-solid fa-trash text-red-400"></i></button>
-                            </div>
-                        </div>
-                        
-                        <div class="meeting-details hidden mt-4 pl-4 border-l-2 border-blue-100">
-                            <div class="flex justify-between items-center mb-2">
-                                <h4 class="text-sm font-bold text-gray-700">Cases / Items</h4>
-                                <button onclick="showAddItemForm('${prefix}', ${m.id})" class="text-xs text-blue-600 hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus mr-1"></i>Toevoegen</button>
-                            </div>
-                            
-                            <div id="items-${prefix}-${m.id}" class="space-y-2 mb-3">
-                                <p class="text-xs text-gray-400 italic">Laden...</p>
-                            </div>
-                            
-                            <div id="add-item-form-${prefix}-${m.id}" class="hidden bg-gray-50 p-3 rounded-lg border border-gray-200 mt-2">
-                                <form onsubmit="createItem('${prefix}', ${m.id}, event)">
-                                    <input type="text" id="item-title-${prefix}-${m.id}" class="form-input mb-2" placeholder="Case Title (v.b. John Doe - Suspendie)" required>
-                                    <input type="text" id="item-stance-${prefix}-${m.id}" class="form-input mb-2" placeholder="${committeeConfig[prefix].stanceLabel}" required>
-                                    <input type="text" id="item-plea-${prefix}-${m.id}" class="form-input mb-2" placeholder="${committeeConfig[prefix].pleaLabel}" required>
-                                    <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700">Opslaan</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                return `<div class="p-4 hover:bg-gray-50 transition"><div class="flex items-center justify-between gap-4 cursor-pointer" onclick="this.parentElement.querySelector('.meeting-details').classList.toggle('hidden')"><div class="min-w-0"><p class="text-sm font-semibold text-gray-800">Vergadering: ${date}</p><p class="text-xs text-gray-500 mt-1">Door: ${m.created_by || 'Onbekend'} ${m.summary ? '• ' + m.summary.substring(0,50)+'...' : ''}</p></div><div class="flex items-center gap-2" onclick="event.stopPropagation()">${m.minutes_pdf_url ? `<a href="${m.minutes_pdf_url}" target="_blank" class="p-2 rounded-lg hover:bg-blue-50 transition text-sm" title="Bekijk PDF"><i class="fa-solid fa-file-pdf text-red-500"></i></a>` : ''}<button onclick="exportMeetingPDF('${prefix}', ${m.id})" class="p-2 rounded-lg hover:bg-green-50 transition text-sm" title="Exporteer naar PDF"><i class="fa-solid fa-download text-green-500"></i></button><button onclick="deleteMeeting('${prefix}', ${m.id})" class="p-2 rounded-lg hover:bg-red-50 transition text-sm" title="Verwijder"><i class="fa-solid fa-trash text-red-400"></i></button></div></div><div class="meeting-details hidden mt-4 pl-4 border-l-2 border-blue-100"><div class="flex justify-between items-center mb-2"><h4 class="text-sm font-bold text-gray-700">Cases / Items</h4><button onclick="showAddItemForm('${prefix}', ${m.id})" class="text-xs text-blue-600 hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus mr-1"></i>Toevoegen</button></div><div id="items-${prefix}-${m.id}" class="space-y-2 mb-3"><p class="text-xs text-gray-400 italic">Laden...</p></div><div id="add-item-form-${prefix}-${m.id}" class="hidden bg-gray-50 p-3 rounded-lg border border-gray-200 mt-2"><form onsubmit="createItem('${prefix}', ${m.id}, event)"><input type="text" id="item-title-${prefix}-${m.id}" class="form-input mb-2" placeholder="Case Title (v.b. John Doe - Suspendie)" required><input type="text" id="item-stance-${prefix}-${m.id}" class="form-input mb-2" placeholder="${committeeConfig[prefix].stanceLabel}" required><input type="text" id="item-plea-${prefix}-${m.id}" class="form-input mb-2" placeholder="${committeeConfig[prefix].pleaLabel}" required><button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700">Opslaan</button></form></div></div></div>`;
             }).join('');
-
-            // Load items for each meeting
             meetings.forEach(m => loadItems(prefix, m.id));
         }
 
-        async function loadItems(prefix, meetingId) {
-            try {
-                const res = await fetch(`/api/${prefix}/items/${meetingId}`);
-                const data = await res.json();
-                const container = document.getElementById(`items-${prefix}-${meetingId}`);
-                if (!container) return;
-                
-                if (!data.success || !data.items.length) { 
-                    container.innerHTML = '<p class="text-xs text-gray-400 italic">Nog geen items.</p>'; 
-                    return; 
-                }
-
-                container.innerHTML = data.items.map(item => `
-                    <div class="bg-white p-2 rounded border border-gray-100 text-xs">
-                        <div class="flex justify-between items-start">
-                            <span class="font-bold text-gray-800">${item.case_title}</span>
-                            <select onchange="updateItemStatus('${prefix}', ${item.id}, this.value)" class="text-xs p-0 border-0 bg-transparent font-semibold cursor-pointer status-${item.status.toLowerCase()}">
-                                <option value="Pending" ${item.status==='Pending'?'selected':''}>Pending</option>
-                                <option value="Resolved" ${item.status==='Resolved'?'selected':''}>Resolved</option>
-                                <option value="Escalated" ${item.status==='Escalated'?'selected':''}>Escalated</option>
-                            </select>
-                        </div>
-                        <p class="mt-1 text-gray-600"><b>${committeeConfig[prefix].stanceLabel}:</b> ${item.stance}</p>
-                        <p class="text-gray-600"><b>${committeeConfig[prefix].pleaLabel}:</b> ${item.plea}</p>
-                    </div>
-                `).join('');
-            } catch (err) { console.error(err); }
-        }
-
-        async function createMeeting(prefix, event) {
-            event.preventDefault();
-            const formData = new FormData();
-            formData.append('meeting_date', document.getElementById(`date-${prefix}`).value);
-            formData.append('summary', document.getElementById(`summary-${prefix}`).value);
-            formData.append('created_by', currentUserName);
-            const fileInput = document.getElementById(`pdf-${prefix}`);
-            if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
-
-            try {
-                const res = await fetch(`/api/${prefix}/meetings`, { method: 'POST', body: formData });
-                const data = await res.json();
-                if (data.success) { showToast('Vergadering opgeslagen!'); loadMeetings(prefix); document.getElementById(`form-${prefix}`).reset(); }
-                else showToast(data.message || 'Fout.', 'error');
-            } catch (err) { showToast('Fout.', 'error'); }
-        }
-
-        async function deleteMeeting(prefix, id) {
-            if (!confirm('Vergadering en alle items verwijderen?')) return;
-            try {
-                const res = await fetch(`/api/${prefix}/meetings/${id}`, { method: 'DELETE' });
-                if (res.ok) { showToast('Verwijderd.'); loadMeetings(prefix); }
-            } catch (err) { showToast('Fout.', 'error'); }
-        }
-
-        function showAddItemForm(prefix, meetingId) {
-            document.getElementById(`add-item-form-${prefix}-${meetingId}`).classList.toggle('hidden');
-        }
-
-        async function createItem(prefix, meetingId, event) {
-            event.preventDefault();
-            const body = {
-                meeting_id: meetingId,
-                case_title: document.getElementById(`item-title-${prefix}-${meetingId}`).value,
-                stance: document.getElementById(`item-stance-${prefix}-${meetingId}`).value,
-                plea: document.getElementById(`item-plea-${prefix}-${meetingId}`).value,
-                created_by: currentUserName
-            };
-
-            try {
-                const res = await fetch(`/api/${prefix}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-                const data = await res.json();
-                if (data.success) { loadItems(prefix, meetingId); document.getElementById(`add-item-form-${prefix}-${meetingId}`).classList.add('hidden'); }
-                else showToast(data.message || 'Fout.', 'error');
-            } catch (err) { showToast('Fout.', 'error'); }
-        }
-
-        async function updateItemStatus(prefix, itemId, newStatus) {
-            try {
-                await fetch(`/api/${prefix}/items/${itemId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
-                showToast('Status bijgewerkt!');
-            } catch (err) { showToast('Fout.', 'error'); }
-        }
-
-        async function exportMeetingPDF(prefix, meetingId) {
-            showToast('PDF wordt gegenereerd...', 'success');
-            window.open(`/api/${prefix}/export/${meetingId}`, '_blank');
-        }
+        async function loadItems(prefix, meetingId) { try { const res = await fetch(`/api/${prefix}/items/${meetingId}`); const data = await res.json(); const container = document.getElementById(`items-${prefix}-${meetingId}`); if (!container) return; if (!data.success || !data.items.length) { container.innerHTML = '<p class="text-xs text-gray-400 italic">Nog geen items.</p>'; return; } container.innerHTML = data.items.map(item => `<div class="bg-white p-2 rounded border border-gray-100 text-xs"><div class="flex justify-between items-start"><span class="font-bold text-gray-800">${item.case_title}</span><select onchange="updateItemStatus('${prefix}', ${item.id}, this.value)" class="text-xs p-0 border-0 bg-transparent font-semibold cursor-pointer status-${item.status.toLowerCase()}"><option value="Pending" ${item.status==='Pending'?'selected':''}>Pending</option><option value="Resolved" ${item.status==='Resolved'?'selected':''}>Resolved</option><option value="Escalated" ${item.status==='Escalated'?'selected':''}>Escalated</option></select></div><p class="mt-1 text-gray-600"><b>${committeeConfig[prefix].stanceLabel}:</b> ${item.stance}</p><p class="text-gray-600"><b>${committeeConfig[prefix].pleaLabel}:</b> ${item.plea}</p></div>`).join(''); } catch (err) {} }
+        async function createMeeting(prefix, event) { event.preventDefault(); const formData = new FormData(); formData.append('meeting_date', document.getElementById(`date-${prefix}`).value); formData.append('summary', document.getElementById(`summary-${prefix}`).value); formData.append('created_by', currentUserName); const fileInput = document.getElementById(`pdf-${prefix}`); if (fileInput.files[0]) formData.append('file', fileInput.files[0]); try { const res = await fetch(`/api/${prefix}/meetings`, { method: 'POST', body: formData }); const data = await res.json(); if (data.success) { showToast('Vergadering opgeslagen!'); loadMeetings(prefix); document.getElementById(`form-${prefix}`).reset(); } else showToast(data.message || 'Fout.', 'error'); } catch (err) { showToast('Fout.', 'error'); } }
+        async function deleteMeeting(prefix, id) { if (!confirm('Vergadering en alle items verwijderen?')) return; try { const res = await fetch(`/api/${prefix}/meetings/${id}`, { method: 'DELETE' }); if (res.ok) { showToast('Verwijderd.'); loadMeetings(prefix); } } catch (err) { showToast('Fout.', 'error'); } }
+        function showAddItemForm(prefix, meetingId) { document.getElementById(`add-item-form-${prefix}-${meetingId}`).classList.toggle('hidden'); }
+        async function createItem(prefix, meetingId, event) { event.preventDefault(); const body = { meeting_id: meetingId, case_title: document.getElementById(`item-title-${prefix}-${meetingId}`).value, stance: document.getElementById(`item-stance-${prefix}-${meetingId}`).value, plea: document.getElementById(`item-plea-${prefix}-${meetingId}`).value, created_by: currentUserName }; try { const res = await fetch(`/api/${prefix}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); const data = await res.json(); if (data.success) { loadItems(prefix, meetingId); document.getElementById(`add-item-form-${prefix}-${meetingId}`).classList.add('hidden'); } else showToast(data.message || 'Fout.', 'error'); } catch (err) { showToast('Fout.', 'error'); } }
+        async function updateItemStatus(prefix, itemId, newStatus) { try { await fetch(`/api/${prefix}/items/${itemId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) }); showToast('Status bijgewerkt!'); } catch (err) { showToast('Fout.', 'error'); } }
+        async function exportMeetingPDF(prefix, meetingId) { showToast('PDF wordt gegenereerd...', 'success'); window.open(`/api/${prefix}/export/${meetingId}`, '_blank'); }
     </script>
 </body>
 </html>
